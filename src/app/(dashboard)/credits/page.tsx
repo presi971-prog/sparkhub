@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Mes Crédits',
-  description: 'Gérez vos crédits Cobeone Pro',
+  description: 'Gérez vos crédits SparkHub',
 }
 
 const creditPacks = [

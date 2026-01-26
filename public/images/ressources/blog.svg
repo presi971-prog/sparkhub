@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect fill="#f3e8ff" width="800" height="450"/>
+  <rect x="320" y="120" width="160" height="120" rx="8" fill="#a855f7" opacity="0.2"/>
+  <rect x="340" y="145" width="120" height="10" rx="2" fill="#a855f7"/>
+  <rect x="340" y="165" width="100" height="6" rx="2" fill="#a855f7" opacity="0.5"/>
+  <rect x="340" y="180" width="110" height="6" rx="2" fill="#a855f7" opacity="0.5"/>
+  <rect x="340" y="195" width="80" height="6" rx="2" fill="#a855f7" opacity="0.5"/>
+  <text x="400" y="300" font-family="system-ui" font-size="24" font-weight="600" fill="#a855f7" text-anchor="middle">Blog Automatise</text>
+  <text x="400" y="330" font-family="system-ui" font-size="14" fill="#78716c" text-anchor="middle">Generez du contenu SEO</text>
+</svg>

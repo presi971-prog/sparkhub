@@ -63,7 +63,7 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="font-heading text-3xl font-bold">Dashboard Admin</h1>
         <p className="mt-2 text-muted-foreground">
-          Vue d'ensemble de la plateforme Cobeone Pro
+          Vue d'ensemble de la plateforme SparkHub
         </p>
       </div>
 

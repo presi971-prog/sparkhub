@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Inscription Livreur',
-  description: 'Rejoignez Cobeone Pro en tant que livreur et développez votre activité en Guadeloupe.',
+  description: 'Rejoignez SparkHub en tant que livreur et développez votre activité en Guadeloupe.',
 }
 
 export default async function InscriptionLivreurPage() {

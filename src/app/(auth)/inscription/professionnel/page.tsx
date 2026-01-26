@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export const metadata: Metadata = {
   title: 'Inscription Professionnel',
-  description: 'Inscrivez-vous en tant que professionnel sur Cobeone Pro et trouvez des livreurs fiables.',
+  description: 'Inscrivez-vous en tant que professionnel sur SparkHub et trouvez des livreurs fiables.',
 }
 
 export default function InscriptionProPage() {

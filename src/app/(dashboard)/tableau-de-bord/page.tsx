@@ -19,7 +19,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Tableau de bord',
-  description: 'Votre espace membre Cobeone Pro',
+  description: 'Votre espace membre SparkHub',
 }
 
 export default async function TableauDeBordPage() {
@@ -126,7 +126,7 @@ export default async function TableauDeBordPage() {
           Bienvenue, {profile.full_name.split(' ')[0]} !
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Voici un résumé de votre activité sur Cobeone Pro.
+          Voici un résumé de votre activité sur SparkHub.
         </p>
       </div>
 

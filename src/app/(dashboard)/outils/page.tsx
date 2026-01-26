@@ -9,7 +9,7 @@ import { Coins, ExternalLink, Sparkles, Lock } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Outils',
-  description: 'Accédez aux outils IA de Cobeone Pro',
+  description: 'Accédez aux outils IA de SparkHub',
 }
 
 export default async function OutilsPage() {

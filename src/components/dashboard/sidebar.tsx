@@ -76,10 +76,10 @@ export function DashboardSidebar({ profile }: Props) {
           <div className="flex h-16 items-center gap-2 border-b px-6">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-                C
+                S
               </div>
               <span className="font-heading text-lg font-bold">
-                Cobeone<span className="text-primary">Pro</span>
+                Spark<span className="text-primary">Hub</span>
               </span>
             </Link>
           </div>

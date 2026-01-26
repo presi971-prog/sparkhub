@@ -24,7 +24,7 @@ INSERT INTO tiers (name, display_name, emoji, max_places, min_rank, discount_per
 
 -- Badges Débutant
 INSERT INTO badges (name, description, icon, category, points_reward, condition_type, condition_value) VALUES
-('Nouvelle Pousse', 'Bienvenue sur Cobeone Pro ! Votre aventure commence.', '🌱', 'debutant', 10, 'account_created', 1),
+('Nouvelle Pousse', 'Bienvenue sur SparkHub ! Votre aventure commence.', '🌱', 'debutant', 10, 'account_created', 1),
 ('Photogénique', 'Ajoutez une photo de profil professionnelle.', '📸', 'debutant', 15, 'avatar_uploaded', 1),
 ('Premier Pas', 'Complétez votre première livraison.', '👣', 'debutant', 30, 'deliveries_completed', 1),
 ('Prêt à Rouler', 'Ajoutez vos documents de véhicule.', '🚗', 'debutant', 20, 'documents_uploaded', 1),
@@ -59,9 +59,9 @@ INSERT INTO badges (name, description, icon, category, points_reward, condition_
 -- ==============================================
 
 INSERT INTO ressources (title, description, image_url, url, category, credit_cost, is_active, order_index) VALUES
-('Community Manager IA', 'Gérez vos réseaux sociaux automatiquement avec l''IA.', '/images/ressources/cm-ia.png', 'https://tools.cobeone.pro/community-manager', 'marketing', 50, true, 1),
-('Création de Visuels', 'Créez des visuels professionnels pour votre activité.', '/images/ressources/visuels.png', 'https://tools.cobeone.pro/visuels', 'marketing', 30, true, 2),
-('Montage Vidéo', 'Montez vos vidéos promotionnelles facilement.', '/images/ressources/video.png', 'https://tools.cobeone.pro/video', 'marketing', 75, true, 3),
-('Comptabilité Simplifiée', 'Suivez vos revenus et dépenses en un clic.', '/images/ressources/compta.png', 'https://tools.cobeone.pro/comptabilite', 'gestion', 40, true, 4),
-('Blog Automatisé', 'Générez du contenu SEO pour votre visibilité.', '/images/ressources/blog.png', 'https://tools.cobeone.pro/blog', 'marketing', 60, true, 5),
-('Guide du Livreur', 'Tout ce qu''il faut savoir pour réussir.', '/images/ressources/guide.png', 'https://docs.cobeone.pro/guide', 'formation', 0, true, 6);
+('Community Manager IA', 'Gérez vos réseaux sociaux automatiquement avec l''IA.', '/images/ressources/cm-ia.png', 'https://tools.sparkhub.pro/community-manager', 'marketing', 50, true, 1),
+('Création de Visuels', 'Créez des visuels professionnels pour votre activité.', '/images/ressources/visuels.png', 'https://tools.sparkhub.pro/visuels', 'marketing', 30, true, 2),
+('Montage Vidéo', 'Montez vos vidéos promotionnelles facilement.', '/images/ressources/video.png', 'https://tools.sparkhub.pro/video', 'marketing', 75, true, 3),
+('Comptabilité Simplifiée', 'Suivez vos revenus et dépenses en un clic.', '/images/ressources/compta.png', 'https://tools.sparkhub.pro/comptabilite', 'gestion', 40, true, 4),
+('Blog Automatisé', 'Générez du contenu SEO pour votre visibilité.', '/images/ressources/blog.png', 'https://tools.sparkhub.pro/blog', 'marketing', 60, true, 5),
+('Guide du Livreur', 'Tout ce qu''il faut savoir pour réussir.', '/images/ressources/guide.png', 'https://docs.sparkhub.pro/guide', 'formation', 0, true, 6);

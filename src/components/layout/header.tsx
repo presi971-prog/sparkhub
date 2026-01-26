@@ -50,10 +50,10 @@ export function Header({ user }: HeaderProps) {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-            C
+            S
           </div>
           <span className="font-heading text-xl font-bold">
-            Cobeone<span className="text-primary">Pro</span>
+            Spark<span className="text-primary">Hub</span>
           </span>
         </Link>
 

@@ -62,7 +62,7 @@ const testimonials = [
   {
     name: 'Jean-Pierre M.',
     role: 'Livreur Platine',
-    content: 'Grâce à Cobeone Pro, j\'ai triplé mes demandes en 2 mois. Les outils IA m\'ont permis de créer une vraie présence en ligne.',
+    content: 'Grâce à SparkHub, j\'ai triplé mes demandes en 2 mois. Les outils IA m\'ont permis de créer une vraie présence en ligne.',
     avatar: '👨🏾',
     tier: 'platine',
   },
@@ -293,7 +293,7 @@ export default function HomePage() {
               Prêt à développer votre activité ?
             </h2>
             <p className="mt-4 text-primary-foreground/80">
-              Rejoignez les premiers livreurs de Guadeloupe sur Cobeone Pro et bénéficiez d'avantages exclusifs.
+              Rejoignez SparkHub et bénéficiez d'avantages exclusifs. Votre succès commence ici.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button size="lg" variant="secondary" asChild>

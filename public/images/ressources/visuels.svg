@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect fill="#fef3c7" width="800" height="450"/>
+  <rect x="320" y="120" width="160" height="120" rx="8" fill="#f97316" opacity="0.2"/>
+  <rect x="340" y="140" width="120" height="80" rx="4" fill="#f97316"/>
+  <circle cx="370" cy="170" r="15" fill="#fef3c7"/>
+  <polygon points="390,200 430,160 440,200" fill="#fef3c7"/>
+  <text x="400" y="300" font-family="system-ui" font-size="24" font-weight="600" fill="#f97316" text-anchor="middle">Creation de Visuels</text>
+  <text x="400" y="330" font-family="system-ui" font-size="14" fill="#78716c" text-anchor="middle">Creez des visuels professionnels</text>
+</svg>

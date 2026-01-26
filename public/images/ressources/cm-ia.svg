@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect fill="#f0fdfa" width="800" height="450"/>
+  <circle cx="400" cy="180" r="60" fill="#0891b2" opacity="0.2"/>
+  <path d="M370 160 L400 140 L430 160 L430 200 L400 220 L370 200 Z" fill="#0891b2"/>
+  <circle cx="400" cy="175" r="15" fill="#fff"/>
+  <rect x="390" y="195" width="20" height="8" rx="2" fill="#fff"/>
+  <text x="400" y="300" font-family="system-ui" font-size="24" font-weight="600" fill="#0891b2" text-anchor="middle">Community Manager IA</text>
+  <text x="400" y="330" font-family="system-ui" font-size="14" fill="#78716c" text-anchor="middle">Automatisez vos reseaux sociaux</text>
+</svg>

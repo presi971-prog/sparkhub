@@ -31,15 +31,14 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-                C
+                S
               </div>
               <span className="font-heading text-xl font-bold">
-                Cobeone<span className="text-primary">Pro</span>
+                Spark<span className="text-primary">Hub</span>
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              La plateforme des livreurs et professionnels de Guadeloupe.
-              Outils, visibilité et réseau pour développer votre activité.
+              Votre succès commence ici. La plateforme des livreurs et professionnels de Guadeloupe.
             </p>
             <div className="mt-4 space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -48,8 +47,8 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <a href="mailto:contact@cobeone.pro" className="hover:text-primary">
-                  contact@cobeone.pro
+                <a href="mailto:contact@sparkhub.pro" className="hover:text-primary">
+                  contact@sparkhub.pro
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -116,7 +115,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Cobeone Pro. Tous droits réservés.
+            © {new Date().getFullYear()} SparkHub. Tous droits réservés.
           </p>
           <p className="text-sm text-muted-foreground">
             Fait avec ❤️ en Guadeloupe

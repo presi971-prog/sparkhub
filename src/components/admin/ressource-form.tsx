@@ -210,7 +210,7 @@ export function RessourceForm({ mode, ressource }: Props) {
             <Input
               id="url"
               type="url"
-              placeholder="https://tools.cobeone.pro/..."
+              placeholder="https://tools.sparkhub.pro/..."
               {...register('url')}
             />
             {errors.url && (

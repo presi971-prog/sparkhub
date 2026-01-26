@@ -12,10 +12,10 @@ export default function AuthLayout({
         <div className="container flex h-16 items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-              C
+              S
             </div>
             <span className="font-heading text-xl font-bold">
-              Cobeone<span className="text-primary">Pro</span>
+              Spark<span className="text-primary">Hub</span>
             </span>
           </Link>
         </div>
@@ -31,7 +31,7 @@ export default function AuthLayout({
       {/* Simple footer */}
       <footer className="border-t py-6">
         <div className="container text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Cobeone Pro. Tous droits réservés.
+          © {new Date().getFullYear()} SparkHub. Tous droits réservés.
         </div>
       </footer>
     </div>

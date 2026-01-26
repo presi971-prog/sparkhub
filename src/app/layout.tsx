@@ -27,11 +27,11 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Cobeone Pro - Plateforme des Livreurs de Guadeloupe',
-    template: '%s | Cobeone Pro',
+    default: 'SparkHub - Votre succès commence ici',
+    template: '%s | SparkHub',
   },
   description:
-    'La plateforme des livreurs et professionnels de Guadeloupe. Outils IA, visibilité et réseau pour développer votre activité. Rejoignez les premiers membres et obtenez des avantages exclusifs.',
+    'SparkHub, la plateforme des livreurs et professionnels de Guadeloupe. Outils IA, visibilité et réseau pour développer votre activité. Votre succès commence ici.',
   keywords: [
     'livreur',
     'guadeloupe',
@@ -39,32 +39,32 @@ export const metadata: Metadata = {
     'professionnel',
     'carte',
     'outils IA',
-    'cobeone',
+    'sparkhub',
   ],
-  authors: [{ name: 'Cobeone Pro' }],
-  creator: 'Cobeone Pro',
+  authors: [{ name: 'SparkHub' }],
+  creator: 'SparkHub',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    siteName: 'Cobeone Pro',
-    title: 'Cobeone Pro - Plateforme des Livreurs de Guadeloupe',
+    siteName: 'SparkHub',
+    title: 'SparkHub - Votre succès commence ici',
     description:
-      'La plateforme des livreurs et professionnels de Guadeloupe. Rejoignez les premiers membres et obtenez des avantages exclusifs.',
+      'La plateforme des livreurs et professionnels de Guadeloupe. Votre succès commence ici.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Cobeone Pro',
+        alt: 'SparkHub',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cobeone Pro - Plateforme des Livreurs de Guadeloupe',
+    title: 'SparkHub - Votre succès commence ici',
     description:
-      'La plateforme des livreurs et professionnels de Guadeloupe. Rejoignez les premiers membres.',
+      'La plateforme des livreurs et professionnels de Guadeloupe. Votre succès commence ici.',
     images: ['/og-image.png'],
   },
   robots: {

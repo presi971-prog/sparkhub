@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Connexion',
-  description: 'Connectez-vous à votre compte Cobeone Pro.',
+  description: 'Connectez-vous à votre compte SparkHub.',
 }
 
 function LoginFormFallback() {
@@ -24,7 +24,7 @@ export default function ConnexionPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Bon retour !</CardTitle>
         <CardDescription>
-          Connectez-vous à votre compte Cobeone Pro
+          Connectez-vous à votre compte SparkHub
         </CardDescription>
       </CardHeader>
       <CardContent>

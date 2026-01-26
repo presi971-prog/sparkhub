@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale'
 
 export const metadata: Metadata = {
   title: 'Mon Profil',
-  description: 'Gérez votre profil Cobeone Pro',
+  description: 'Gérez votre profil SparkHub',
 }
 
 export default async function ProfilPage() {
