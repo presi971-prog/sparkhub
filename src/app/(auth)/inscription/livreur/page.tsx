@@ -3,22 +3,29 @@ import Link from 'next/link'
 import { InscriptionLivreurForm } from '@/components/forms/inscription-livreur-form'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { TierCounter } from '@/components/tier-counter'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Inscription Livreur',
   description: 'Rejoignez SparkHub en tant que livreur et développez votre activité en Guadeloupe.',
 }
 
+// Disable caching for this page
+export const dynamic = 'force-dynamic'
+
 export default async function InscriptionLivreurPage() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   // Fetch communes for zone selection
-  const { data: communes } = await supabase
+  const { data: communes, error } = await supabase
     .from('communes')
     .select('id, name, zone')
     .order('zone')
     .order('name')
+
+  if (error) {
+    console.error('Error fetching communes:', error)
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
