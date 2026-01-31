@@ -2,8 +2,8 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_EMAIL = 'SparkHub <noreply@sparkhub.pro>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkhub.pro'
+const FROM_EMAIL = 'SparkHub <noreply@sparkhub.digital-code-growth.com>'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkhub.digital-code-growth.com'
 
 // ============================================================
 // Admin Notifications
