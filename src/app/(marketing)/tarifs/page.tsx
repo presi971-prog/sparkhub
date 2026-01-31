@@ -4,43 +4,91 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TierCounter } from '@/components/tier-counter'
-import { TIERS, TIER_ORDER, REPUTATION_LEVELS, TOOLS_CONFIG } from '@/config/tiers'
-import { CheckCircle2, ArrowRight, HelpCircle, Coins, Clock } from 'lucide-react'
+import { STRIPE_PRICES, FOUNDER_CREDIT_MULTIPLIER } from '@/config/stripe'
+import { TOOLS_CONFIG } from '@/config/tiers'
+import { CheckCircle2, ArrowRight, HelpCircle, Coins, Zap, Crown, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Tarifs',
-  description: 'Découvrez nos tarifs et les avantages exclusifs selon votre ordre d\'inscription.',
+  description: 'Découvrez nos formules d\'abonnement et les avantages fondateurs.',
 }
+
+const subscriptionPlans = [
+  {
+    key: 'basic' as const,
+    name: 'Basic',
+    emoji: '⭐',
+    price: 9.90,
+    popular: false,
+    features: [
+      '50 crédits/mois (jusqu\'à 100 pour fondateurs)',
+      'Accès à tous les outils IA',
+      'Support par email',
+    ],
+  },
+  {
+    key: 'pro' as const,
+    name: 'Pro',
+    emoji: '🚀',
+    price: 19.90,
+    popular: true,
+    features: [
+      '150 crédits/mois (jusqu\'à 300 pour fondateurs)',
+      'Accès à tous les outils IA',
+      'Support prioritaire',
+      'Exports haute qualité',
+    ],
+  },
+  {
+    key: 'premium' as const,
+    name: 'Premium',
+    emoji: '👑',
+    price: 29.90,
+    popular: false,
+    features: [
+      '300 crédits/mois (jusqu\'à 600 pour fondateurs)',
+      'Accès à tous les outils IA',
+      'Support prioritaire 24/7',
+      'Exports haute qualité',
+      'Fonctionnalités beta',
+    ],
+  },
+]
+
+const creditPacks = [
+  { credits: 50, price: 12, pricePerCredit: 0.24 },
+  { credits: 100, price: 20, pricePerCredit: 0.20, savings: '17%' },
+  { credits: 200, price: 36, pricePerCredit: 0.18, savings: '25%' },
+]
+
+const founderTiers = [
+  { name: 'Platine', emoji: '🏆', places: '1-10', multiplier: 'x2', color: 'text-cyan-400' },
+  { name: 'Or', emoji: '🥇', places: '11-30', multiplier: 'x1.43', color: 'text-yellow-500' },
+  { name: 'Argent', emoji: '🥈', places: '31-60', multiplier: 'x1.25', color: 'text-gray-400' },
+  { name: 'Bronze', emoji: '🥉', places: '61-100', multiplier: 'x1.10', color: 'text-orange-600' },
+]
 
 const faqs = [
   {
-    question: 'Comment fonctionne le système de tiers ?',
-    answer: 'Votre tier est déterminé par votre ordre d\'inscription. Les 10 premiers inscrits obtiennent le tier Platine avec 200 crédits/mois, les suivants le tier Or avec 150 crédits/mois, etc. Ces avantages sont permanents tant que vous restez abonné !',
-  },
-  {
-    question: 'Quelle est la différence entre les tiers ?',
-    answer: 'Tous les tiers coûtent 9€/mois. La différence : le nombre de crédits mensuels (50 à 200) et la durée de validité des crédits non utilisés (1 mois à illimité).',
+    question: 'Qu\'est-ce qu\'un fondateur ?',
+    answer: 'Les 100 premiers livreurs et 100 premiers professionnels inscrits obtiennent le statut de fondateur. Pendant 6 mois, ils reçoivent plus de crédits pour le même prix d\'abonnement. Après 6 mois, leur statut évolue selon leur activité.',
   },
   {
     question: 'À quoi servent les crédits ?',
     answer: 'Les crédits vous permettent d\'utiliser nos outils IA : génération de posts (2 crédits), création de photos (3-10 crédits), montage de vidéos (5-100 crédits selon la qualité).',
   },
   {
-    question: 'Les crédits s\'accumulent-ils ?',
-    answer: 'Les crédits de votre abonnement sont remis à zéro chaque mois (pas d\'accumulation). Mais les crédits achetés en supplément sont conservés indéfiniment.',
+    question: 'Puis-je acheter des crédits sans abonnement ?',
+    answer: 'Oui ! Vous pouvez utiliser SparkHub gratuitement avec votre numéro Cobeone et acheter des crédits à la carte quand vous en avez besoin.',
   },
   {
-    question: 'Que se passe-t-il quand mes crédits sont épuisés ?',
-    answer: 'Vous pouvez acheter des crédits supplémentaires pour continuer à utiliser les outils. Même avec le coût doublé à l\'utilisation, ça reste bien plus avantageux que les tarifs du marché pour des outils IA de cette qualité !',
+    question: 'Les crédits s\'accumulent-ils ?',
+    answer: 'Les crédits de votre abonnement sont remis à zéro chaque mois. Mais les crédits achetés en supplément sont conservés indéfiniment.',
   },
   {
     question: 'Y a-t-il un engagement ?',
     answer: 'Non, aucun engagement. Vous pouvez annuler à tout moment.',
-  },
-  {
-    question: 'Que se passe-t-il si je me désabonne ?',
-    answer: 'Vous conservez vos crédits achetés, vos points et votre profil. Votre rang est préservé pendant 2 mois : si vous revenez dans ce délai, vous récupérez votre tier. Après 2 mois, vous repartez en fin de file avec le tier correspondant à votre nouvelle place.',
   },
 ]
 
@@ -54,119 +102,153 @@ export default function TarifsPage() {
             <TierCounter />
           </div>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold md:text-5xl">
-            Même prix, plus de{' '}
-            <span className="text-primary">valeur</span>{' '}
-            pour les premiers
+            Choisissez votre{' '}
+            <span className="text-primary">formule</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
-            Tous les abonnements à 9€/mois. Plus vous vous inscrivez tôt, plus vous recevez de crédits.
+            3 abonnements adaptés à vos besoins. Les fondateurs bénéficient de crédits bonus pendant 6 mois.
           </p>
         </div>
 
-        {/* Tier Cards */}
-        <div className="mt-8 sm:mt-12 md:mt-16 grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {TIER_ORDER.map((tierName) => {
-            const tier = TIERS[tierName]
-            const isPopular = tierName === 'platine'
-            const endRank = tierName === 'standard' ? '∞' : tier.minRank + tier.maxPlaces - 1
+        {/* Subscription Cards */}
+        <div className="mt-8 sm:mt-12 md:mt-16 grid gap-6 grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto">
+          {subscriptionPlans.map((plan) => (
+            <Card
+              key={plan.key}
+              className={cn(
+                'relative flex flex-col',
+                plan.popular && 'border-primary border-2 md:scale-105 shadow-lg'
+              )}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-primary text-primary-foreground">
+                    Populaire
+                  </Badge>
+                </div>
+              )}
 
-            return (
-              <Card
-                key={tierName}
-                className={cn(
-                  'relative flex flex-col',
-                  tier.bgColor,
-                  tier.borderColor,
-                  'border-2',
-                  isPopular && 'md:scale-105 shadow-lg'
-                )}
-              >
-                {isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-secondary text-secondary-foreground">
-                      Meilleure offre
-                    </Badge>
-                  </div>
-                )}
+              <CardHeader className="text-center">
+                <span className="text-4xl">{plan.emoji}</span>
+                <CardTitle className="mt-2">{plan.name}</CardTitle>
+              </CardHeader>
 
-                <CardHeader className="text-center">
-                  <span className="text-4xl">{tier.emoji}</span>
-                  <CardTitle className="mt-2">{tier.displayName}</CardTitle>
-                  <CardDescription>
-                    Places {tier.minRank}-{endRank}
-                  </CardDescription>
+              <CardContent className="flex-1">
+                {/* Prix */}
+                <div className="text-center">
+                  <p className="text-4xl font-bold">{plan.price}€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+                </div>
+
+                {/* Features */}
+                <ul className="mt-6 space-y-3">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  variant={plan.popular ? 'default' : 'outline'}
+                  asChild
+                >
+                  <Link href="/inscription/livreur">
+                    Commencer
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+
+        {/* Fondateurs */}
+        <div className="mt-12 sm:mt-16 md:mt-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <Badge variant="secondary" className="mb-4">
+              <Crown className="h-3 w-3 mr-1" />
+              Avantage Fondateur
+            </Badge>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold">
+              Les premiers inscrits gagnent plus
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Les 100 premiers de chaque catégorie reçoivent un multiplicateur de crédits pendant 6 mois.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 grid-cols-2 md:grid-cols-4 max-w-3xl mx-auto">
+            {founderTiers.map((tier) => (
+              <Card key={tier.name} className="text-center">
+                <CardHeader className="pb-2">
+                  <span className="text-3xl">{tier.emoji}</span>
+                  <CardTitle className={cn('text-lg', tier.color)}>{tier.name}</CardTitle>
+                  <CardDescription>Places {tier.places}</CardDescription>
                 </CardHeader>
-
-                <CardContent className="flex-1">
-                  {/* Prix */}
-                  <div className="text-center">
-                    <p className="text-3xl font-bold">{tier.price}€<span className="text-sm font-normal">/mois</span></p>
-                  </div>
-
-                  {/* Crédits highlight */}
-                  <div className="mt-4 rounded-lg bg-primary/10 p-3 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Coins className="h-5 w-5 text-primary" />
-                      <p className={cn('text-2xl font-bold', tier.color)}>
-                        {tier.monthlyCredits}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      crédits/mois
-                    </p>
-                  </div>
-
-                  {/* Validité des crédits */}
-                  <div className="mt-4 text-center text-sm">
-                    <div className="rounded-lg bg-muted p-3">
-                      <Clock className="h-4 w-4 mx-auto text-muted-foreground" />
-                      <p className="mt-1 font-medium">
-                        {tier.creditsValidityMonths === null ? 'Sans expiration' : `Valides ${tier.creditsValidityMonths} mois`}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Features */}
-                  <ul className="mt-6 space-y-2">
-                    {tier.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <CardContent>
+                  <p className="text-2xl font-bold text-primary">{tier.multiplier}</p>
+                  <p className="text-xs text-muted-foreground">crédits</p>
                 </CardContent>
-
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant={isPopular ? 'default' : 'outline'}
-                    asChild
-                  >
-                    <Link href="/inscription/livreur">
-                      S'inscrire
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
               </Card>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Crédits supplémentaires */}
+        <div className="mt-12 sm:mt-16 md:mt-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <Badge variant="secondary" className="mb-4">
+              <ShoppingCart className="h-3 w-3 mr-1" />
+              Crédits à la carte
+            </Badge>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold">
+              Besoin de plus de crédits ?
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Achetez des crédits supplémentaires quand vous voulez. Plus vous achetez, moins c'est cher.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-3 max-w-3xl mx-auto">
+            {creditPacks.map((pack) => (
+              <Card key={pack.credits} className="text-center">
+                <CardHeader>
+                  <div className="flex items-center justify-center gap-2">
+                    <Coins className="h-5 w-5 text-primary" />
+                    <CardTitle>{pack.credits} crédits</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{pack.price}€</p>
+                  <p className="text-sm text-muted-foreground">{pack.pricePerCredit}€/crédit</p>
+                  {pack.savings && (
+                    <Badge variant="secondary" className="mt-2">
+                      -{pack.savings}
+                    </Badge>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
         {/* Outils et crédits */}
         <div className="mt-12 sm:mt-16 md:mt-20">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-4">Outils IA</Badge>
+            <Badge variant="secondary" className="mb-4">
+              <Zap className="h-3 w-3 mr-1" />
+              Outils IA
+            </Badge>
             <h2 className="font-heading text-2xl sm:text-3xl font-bold">
               Que pouvez-vous faire avec vos crédits ?
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              Une palette complète d'outils pour développer votre activité.
-            </p>
           </div>
 
-          <div className="mt-8 sm:mt-12 grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-8 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 max-w-5xl mx-auto">
             {Object.entries(TOOLS_CONFIG).slice(0, 6).map(([key, tool]) => (
               <Card key={key} className="text-center">
                 <CardHeader className="pb-2">
@@ -181,46 +263,13 @@ export default function TarifsPage() {
           </div>
         </div>
 
-        {/* Réputation */}
-        <div className="mt-12 sm:mt-16 md:mt-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-4">Réputation</Badge>
-            <h2 className="font-heading text-2xl sm:text-3xl font-bold">
-              Montez en niveau, gagnez en visibilité
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Plus vous êtes actif, plus vous êtes visible. Badges, classement et priorité dans les recherches.
-            </p>
-          </div>
-
-          <div className="mt-8 sm:mt-12 grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-4">
-            {Object.values(REPUTATION_LEVELS).map((level) => (
-              <Card key={level.name} className="text-center">
-                <CardHeader>
-                  <span className="text-3xl">{level.emoji}</span>
-                  <CardTitle>{level.name}</CardTitle>
-                  <CardDescription>{level.min}-{level.max === Infinity ? '∞' : level.max} points</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-medium text-primary">Badge "{level.badge}"</p>
-                  <p className="text-sm text-muted-foreground">+{level.searchBoost}% visibilité</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Gagnez des points via vos livraisons, commandes, avis et parrainages !
-          </p>
-        </div>
-
         {/* FAQ */}
         <div className="mt-12 sm:mt-16 md:mt-20">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="font-heading text-2xl sm:text-3xl font-bold">Questions fréquentes</h2>
           </div>
 
-          <div className="mx-auto mt-8 sm:mt-12 max-w-3xl space-y-4 sm:space-y-6">
+          <div className="mx-auto mt-8 max-w-3xl space-y-4">
             {faqs.map((faq, index) => (
               <Card key={index}>
                 <CardHeader>
@@ -243,7 +292,7 @@ export default function TarifsPage() {
             Prêt à nous rejoindre ?
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Inscrivez-vous maintenant pour sécuriser votre tier et maximiser vos crédits.
+            Inscrivez-vous maintenant et profitez des avantages fondateur.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button size="lg" asChild>
