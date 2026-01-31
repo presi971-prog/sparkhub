@@ -1,81 +1,73 @@
 // Configuration Stripe pour SparkHub
 
+// Bonus crédits pour les fondateurs (pendant 6 mois)
+export const FOUNDER_CREDIT_MULTIPLIER = {
+  platine: 2.0,    // x2 crédits (équivalent -50%)
+  or: 1.43,        // x1.43 crédits (équivalent -30%)
+  argent: 1.25,    // x1.25 crédits (équivalent -20%)
+  bronze: 1.10,    // x1.10 crédits (équivalent -10%)
+  standard: 1.0,   // crédits normaux
+} as const
+
 export const STRIPE_PRICES = {
-  // Abonnement mensuel
-  subscription: {
-    priceId: 'price_1SvhiaHbbIrNBYlv0CefmYBr',
-    name: 'Abonnement SparkHub',
-    amount: 990, // en centimes
-    interval: 'month',
+  // Abonnements mensuels
+  subscriptions: {
+    basic: {
+      priceId: 'price_1SvhiaHbbIrNBYlv0CefmYBr',
+      name: 'Abonnement Basic',
+      amount: 990, // 9.90€ en centimes
+      baseCredits: 50,
+    },
+    pro: {
+      priceId: 'price_1SviraHbbIrNBYlvIHQz8fAC',
+      name: 'Abonnement Pro',
+      amount: 1990, // 19.90€ en centimes
+      baseCredits: 150,
+    },
+    premium: {
+      priceId: 'price_1SvisCHbbIrNBYlvw8Jjqiu0',
+      name: 'Abonnement Premium',
+      amount: 2990, // 29.90€ en centimes
+      baseCredits: 300,
+    },
   },
 
-  // Packs de crédits (prix de base, avant réduction)
+  // Packs de crédits supplémentaires (même prix pour tous)
   credits: {
     pack_50: {
       priceId: 'price_1SvhnsHbbIrNBYlvUVdVcaSD',
       credits: 50,
-      basePrice: 1200, // 12€ en centimes
+      price: 1200, // 12€
     },
     pack_100: {
       priceId: 'price_1SvhpUHbbIrNBYlv8zin8ePK',
       credits: 100,
-      basePrice: 2400, // 24€ en centimes
+      price: 2000, // 20€ (dégressif)
     },
     pack_200: {
       priceId: 'price_1SvhqOHbbIrNBYlvZ3QIL4XS',
       credits: 200,
-      basePrice: 4800, // 48€ en centimes
+      price: 3600, // 36€ (dégressif)
     },
   },
 } as const
 
-// Réductions selon le statut
-export const CREDIT_DISCOUNTS = {
-  // Fondateurs (réduction permanente pendant 1 an)
-  platine: 0.50,    // -50%
-  or: 0.30,         // -30%
-  argent: 0.20,     // -20%
-  bronze: 0.10,     // -10%
-
-  // Abonnés (sans statut fondateur)
-  subscriber: 0.20, // -20%
-
-  // Sans abonnement
-  none: 0,          // prix plein
-} as const
-
-// Calcule le prix final d'un pack selon le statut
-export function calculateCreditPackPrice(
-  packKey: keyof typeof STRIPE_PRICES.credits,
-  founderStatus: keyof typeof CREDIT_DISCOUNTS | null,
-  isSubscriber: boolean
+// Calcule les crédits d'un abonnement selon le statut fondateur
+export function getSubscriptionCredits(
+  plan: keyof typeof STRIPE_PRICES.subscriptions,
+  founderStatus: keyof typeof FOUNDER_CREDIT_MULTIPLIER | null
 ): number {
-  const pack = STRIPE_PRICES.credits[packKey]
-  let discount = 0
+  const subscription = STRIPE_PRICES.subscriptions[plan]
+  const multiplier = founderStatus
+    ? FOUNDER_CREDIT_MULTIPLIER[founderStatus]
+    : FOUNDER_CREDIT_MULTIPLIER.standard
 
-  if (founderStatus && founderStatus in CREDIT_DISCOUNTS) {
-    discount = CREDIT_DISCOUNTS[founderStatus as keyof typeof CREDIT_DISCOUNTS]
-  } else if (isSubscriber) {
-    discount = CREDIT_DISCOUNTS.subscriber
-  }
-
-  return Math.round(pack.basePrice * (1 - discount))
+  return Math.round(subscription.baseCredits * multiplier)
 }
 
-// Prix par crédit selon le statut
-export function getPricePerCredit(
-  founderStatus: keyof typeof CREDIT_DISCOUNTS | null,
-  isSubscriber: boolean
-): number {
-  // Prix de base: 0.24€ par crédit (12€ / 50 crédits)
-  const basePrice = 0.24
-
-  let discount = 0
-  if (founderStatus && founderStatus in CREDIT_DISCOUNTS) {
-    discount = CREDIT_DISCOUNTS[founderStatus as keyof typeof CREDIT_DISCOUNTS]
-  } else if (isSubscriber) {
-    discount = CREDIT_DISCOUNTS.subscriber
-  }
-
-  return basePrice * (1 - discount)
+// Prix par crédit selon le plan
+export function getPricePerCredit(plan: keyof typeof STRIPE_PRICES.subscriptions, founderStatus: keyof typeof FOUNDER_CREDIT_MULTIPLIER | null): number {
+  const subscription = STRIPE_PRICES.subscriptions[plan]
+  const credits = getSubscriptionCredits(plan, founderStatus)
+  return subscription.amount / 100 / credits
 }

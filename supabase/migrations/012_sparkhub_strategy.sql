@@ -239,7 +239,7 @@ BEGIN
     is_founder = TRUE,
     founder_status = v_founder_status,
     registration_rank = v_slot_number,
-    founder_expires_at = NOW() + INTERVAL '1 year',
+    founder_expires_at = NOW() + INTERVAL '6 months',
     current_discount = CASE v_founder_status
       WHEN 'platine' THEN 50
       WHEN 'or' THEN 30
