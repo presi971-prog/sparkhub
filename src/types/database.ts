@@ -113,14 +113,13 @@ export interface Subscription {
   updated_at: string
 }
 
-// Système de crédits à deux niveaux
-export interface UserCredits {
+// Système de crédits
+export interface Credits {
   id: string
-  user_id: string
-  subscription_credits: number      // Crédits de l'abonnement (remis à zéro chaque mois)
-  subscription_credits_reset_at: string | null
-  purchased_credits: number         // Crédits achetés (persistent indéfiniment)
-  created_at: string
+  profile_id: string
+  balance: number
+  lifetime_earned: number
+  lifetime_spent: number
   updated_at: string
 }
 
@@ -270,10 +269,10 @@ export interface Database {
         Insert: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Subscription, 'id' | 'created_at'>>
       }
-      user_credits: {
-        Row: UserCredits
-        Insert: Omit<UserCredits, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<UserCredits, 'id' | 'created_at'>>
+      credits: {
+        Row: Credits
+        Insert: Omit<Credits, 'id' | 'updated_at'>
+        Update: Partial<Omit<Credits, 'id'>>
       }
       credit_transactions: {
         Row: CreditTransaction

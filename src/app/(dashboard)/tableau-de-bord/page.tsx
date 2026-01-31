@@ -37,15 +37,15 @@ export default async function TableauDeBordPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const profile = profileData as any
 
-  // Fetch credits (new system: subscription + purchased)
+  // Fetch credits
   const { data: creditsData } = await supabase
-    .from('user_credits')
+    .from('credits')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('profile_id', user.id)
     .single()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userCredits = creditsData as any
-  const totalCredits = (userCredits?.subscription_credits || 0) + (userCredits?.purchased_credits || 0)
+  const totalCredits = userCredits?.balance || 0
 
   // Fetch badges count
   const { count: badgesCount } = await supabase
