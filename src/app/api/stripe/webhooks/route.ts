@@ -45,6 +45,52 @@ export async function POST(request: NextRequest) {
 
         if (!userId) break
 
+        // Handle credit pack purchases (one-time payment)
+        if (session.mode === 'payment' && session.metadata?.type === 'credits') {
+          const credits = parseInt(session.metadata?.credits || '0')
+
+          if (credits > 0) {
+            // Get current credits or create if not exists
+            const { data: currentCredits } = await supabase
+              .from('credits')
+              .select('balance, lifetime_earned')
+              .eq('profile_id', userId)
+              .single()
+
+            if (currentCredits) {
+              await supabase
+                .from('credits')
+                .update({
+                  balance: (currentCredits.balance || 0) + credits,
+                  lifetime_earned: (currentCredits.lifetime_earned || 0) + credits,
+                })
+                .eq('profile_id', userId)
+            } else {
+              await supabase
+                .from('credits')
+                .insert({
+                  profile_id: userId,
+                  balance: credits,
+                  lifetime_earned: credits,
+                  lifetime_spent: 0,
+                })
+            }
+
+            // Log transaction
+            await supabase.from('credit_transactions').insert({
+              profile_id: userId,
+              amount: credits,
+              type: 'purchase',
+              description: `Achat de ${credits} crédits`,
+              reference_id: session.id,
+            })
+
+            console.log(`Added ${credits} credits to user ${userId}`)
+          }
+          break
+        }
+
+        // Handle subscription checkout
         if (session.mode === 'subscription' && session.subscription) {
           const subscriptionData = await stripe.subscriptions.retrieve(
             session.subscription as string

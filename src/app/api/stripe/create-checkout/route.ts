@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe/client'
+import { STRIPE_PRICES } from '@/config/stripe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { priceId, mode = 'subscription' } = await request.json()
+    const { priceId, mode = 'subscription', packId } = await request.json()
 
     if (!priceId) {
       return NextResponse.json({ error: 'Price ID required' }, { status: 400 })
@@ -45,6 +46,15 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id)
     }
 
+    // Get credit pack info if it's a payment mode
+    let creditPackCredits = 0
+    if (mode === 'payment' && packId) {
+      const pack = STRIPE_PRICES.credits[packId as keyof typeof STRIPE_PRICES.credits]
+      if (pack) {
+        creditPackCredits = pack.credits
+      }
+    }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -57,9 +67,13 @@ export async function POST(request: NextRequest) {
         },
       ],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tableau-de-bord?checkout=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tarifs?checkout=cancelled`,
+      cancel_url: mode === 'payment'
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/credits?checkout=cancelled`
+        : `${process.env.NEXT_PUBLIC_APP_URL}/tarifs?checkout=cancelled`,
       metadata: {
         user_id: user.id,
+        type: mode === 'payment' ? 'credits' : 'subscription',
+        credits: creditPackCredits.toString(),
       },
       subscription_data: mode === 'subscription' ? {
         metadata: {

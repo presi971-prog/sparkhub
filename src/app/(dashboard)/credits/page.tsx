@@ -1,23 +1,44 @@
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Coins, TrendingUp, TrendingDown, ArrowRight, History } from 'lucide-react'
+import { Coins, TrendingUp, TrendingDown, History } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { STRIPE_PRICES } from '@/config/stripe'
+import { CreditPackButton } from '@/components/credit-pack-button'
 
 export const metadata: Metadata = {
   title: 'Mes Crédits',
   description: 'Gérez vos crédits SparkHub',
 }
 
+// Packs de crédits synchronisés avec Stripe
 const creditPacks = [
-  { credits: 50, price: 5, popular: false },
-  { credits: 100, price: 9, popular: true, savings: '10%' },
-  { credits: 250, price: 20, popular: false, savings: '20%' },
-  { credits: 500, price: 35, popular: false, savings: '30%' },
+  {
+    id: 'pack_50',
+    credits: STRIPE_PRICES.credits.pack_50.credits,
+    price: STRIPE_PRICES.credits.pack_50.price / 100,
+    priceId: STRIPE_PRICES.credits.pack_50.priceId,
+    popular: false,
+  },
+  {
+    id: 'pack_100',
+    credits: STRIPE_PRICES.credits.pack_100.credits,
+    price: STRIPE_PRICES.credits.pack_100.price / 100,
+    priceId: STRIPE_PRICES.credits.pack_100.priceId,
+    popular: true,
+    savings: '17%',
+  },
+  {
+    id: 'pack_200',
+    credits: STRIPE_PRICES.credits.pack_200.credits,
+    price: STRIPE_PRICES.credits.pack_200.price / 100,
+    priceId: STRIPE_PRICES.credits.pack_200.priceId,
+    popular: false,
+    savings: '25%',
+  },
 ]
 
 export default async function CreditsPage() {
@@ -32,8 +53,12 @@ export default async function CreditsPage() {
     .select('*')
     .eq('profile_id', user.id)
     .single()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const credits = creditsData as any
+
+  const credits = creditsData as {
+    balance: number
+    lifetime_earned: number
+    lifetime_spent: number
+  } | null
 
   // Fetch recent transactions
   const { data: transactionsData } = await supabase
@@ -42,8 +67,14 @@ export default async function CreditsPage() {
     .eq('profile_id', user.id)
     .order('created_at', { ascending: false })
     .limit(10)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transactions = transactionsData as any[]
+
+  const transactions = transactionsData as Array<{
+    id: string
+    amount: number
+    type: string
+    description: string
+    created_at: string
+  }> | null
 
   // Fetch user tier for discount info
   const { data: profileData } = await supabase
@@ -52,8 +83,7 @@ export default async function CreditsPage() {
     .eq('id', user.id)
     .single()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profile = profileData as any
+  const profile = profileData as { tier_id: string | null; tiers: { name: string; discount_percent: number } | null } | null
   const tierDiscount = profile?.tiers?.discount_percent || 0
 
   const transactionTypes: Record<string, { label: string; color: string }> = {
@@ -123,10 +153,10 @@ export default async function CreditsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {creditPacks.map((pack) => (
               <Card
-                key={pack.credits}
+                key={pack.id}
                 className={cn(
                   'relative',
                   pack.popular && 'border-primary shadow-md'
@@ -145,16 +175,20 @@ export default async function CreditsPage() {
                   <p className="text-sm text-muted-foreground">crédits</p>
 
                   <p className="mt-4 text-2xl font-bold">{pack.price}€</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(pack.price / pack.credits).toFixed(2)}€ / crédit
+                  </p>
                   {pack.savings && (
                     <Badge variant="secondary" className="mt-1">
                       Économisez {pack.savings}
                     </Badge>
                   )}
 
-                  <Button className="w-full mt-4" variant={pack.popular ? 'default' : 'outline'}>
-                    Acheter
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <CreditPackButton
+                    packId={pack.id}
+                    priceId={pack.priceId}
+                    popular={pack.popular}
+                  />
                 </CardContent>
               </Card>
             ))}

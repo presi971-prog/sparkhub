@@ -26,6 +26,8 @@ export interface Tier {
   created_at: string
 }
 
+export type FounderStatus = 'platine' | 'or' | 'argent' | 'bronze' | 'standard' | null
+
 export interface Profile {
   id: string
   email: string
@@ -42,6 +44,9 @@ export interface Profile {
   subscription_status: ProfileSubscriptionStatus
   cancelled_at: string | null
   grace_period_ends_at: string | null
+  founder_status: FounderStatus
+  founder_credits_multiplier: number | null
+  founder_benefits_end_at: string | null
   created_at: string
   updated_at: string
 }
