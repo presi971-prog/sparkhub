@@ -1,66 +1,18 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TierCounter } from '@/components/tier-counter'
-import { STRIPE_PRICES, FOUNDER_CREDIT_MULTIPLIER } from '@/config/stripe'
+import { PricingCards, CreditPackCards } from '@/components/pricing-cards'
 import { TOOLS_CONFIG } from '@/config/tiers'
-import { CheckCircle2, ArrowRight, HelpCircle, Coins, Zap, Crown, ShoppingCart } from 'lucide-react'
+import { ArrowRight, HelpCircle, Zap, Crown, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Tarifs',
   description: 'Découvrez nos formules d\'abonnement et les avantages fondateurs.',
 }
-
-const subscriptionPlans = [
-  {
-    key: 'basic' as const,
-    name: 'Basic',
-    emoji: '⭐',
-    price: 9.90,
-    popular: false,
-    features: [
-      '50 crédits/mois (jusqu\'à 100 pour fondateurs)',
-      'Accès à tous les outils IA',
-      'Support par email',
-    ],
-  },
-  {
-    key: 'pro' as const,
-    name: 'Pro',
-    emoji: '🚀',
-    price: 19.90,
-    popular: true,
-    features: [
-      '150 crédits/mois (jusqu\'à 300 pour fondateurs)',
-      'Accès à tous les outils IA',
-      'Support prioritaire',
-      'Exports haute qualité',
-    ],
-  },
-  {
-    key: 'premium' as const,
-    name: 'Premium',
-    emoji: '👑',
-    price: 29.90,
-    popular: false,
-    features: [
-      '300 crédits/mois (jusqu\'à 600 pour fondateurs)',
-      'Accès à tous les outils IA',
-      'Support prioritaire 24/7',
-      'Exports haute qualité',
-      'Fonctionnalités beta',
-    ],
-  },
-]
-
-const creditPacks = [
-  { credits: 50, price: 12, pricePerCredit: 0.24 },
-  { credits: 100, price: 20, pricePerCredit: 0.20, savings: '17%' },
-  { credits: 200, price: 36, pricePerCredit: 0.18, savings: '25%' },
-]
 
 const founderTiers = [
   { name: 'Platine', emoji: '🏆', places: '1-10', multiplier: 'x2', color: 'text-cyan-400' },
@@ -111,59 +63,8 @@ export default function TarifsPage() {
         </div>
 
         {/* Subscription Cards */}
-        <div className="mt-8 sm:mt-12 md:mt-16 grid gap-6 grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto">
-          {subscriptionPlans.map((plan) => (
-            <Card
-              key={plan.key}
-              className={cn(
-                'relative flex flex-col',
-                plan.popular && 'border-primary border-2 md:scale-105 shadow-lg'
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">
-                    Populaire
-                  </Badge>
-                </div>
-              )}
-
-              <CardHeader className="text-center">
-                <span className="text-4xl">{plan.emoji}</span>
-                <CardTitle className="mt-2">{plan.name}</CardTitle>
-              </CardHeader>
-
-              <CardContent className="flex-1">
-                {/* Prix */}
-                <div className="text-center">
-                  <p className="text-4xl font-bold">{plan.price}€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
-                </div>
-
-                {/* Features */}
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant={plan.popular ? 'default' : 'outline'}
-                  asChild
-                >
-                  <Link href="/inscription/livreur">
-                    Commencer
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="mt-8 sm:mt-12 md:mt-16">
+          <PricingCards />
         </div>
 
         {/* Fondateurs */}
@@ -213,26 +114,8 @@ export default function TarifsPage() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-3 max-w-3xl mx-auto">
-            {creditPacks.map((pack) => (
-              <Card key={pack.credits} className="text-center">
-                <CardHeader>
-                  <div className="flex items-center justify-center gap-2">
-                    <Coins className="h-5 w-5 text-primary" />
-                    <CardTitle>{pack.credits} crédits</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{pack.price}€</p>
-                  <p className="text-sm text-muted-foreground">{pack.pricePerCredit}€/crédit</p>
-                  {pack.savings && (
-                    <Badge variant="secondary" className="mt-2">
-                      -{pack.savings}
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+          <div className="mt-8">
+            <CreditPackCards />
           </div>
         </div>
 
