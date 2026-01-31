@@ -177,15 +177,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Build success message
-    let message = 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte.'
+    let message = 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte (pensez à vérifier vos spams).'
     if (founderInfo) {
       const statusLabels: Record<string, string> = {
-        platine: 'Platine (50% de réduction)',
-        or: 'Or (30% de réduction)',
-        argent: 'Argent (20% de réduction)',
-        bronze: 'Bronze (10% de réduction)',
+        platine: 'Platine (x2 crédits)',
+        or: 'Or (x1.43 crédits)',
+        argent: 'Argent (x1.25 crédits)',
+        bronze: 'Bronze (x1.10 crédits)',
       }
-      message = `Félicitations ! Vous êtes le fondateur #${founderInfo.slot_number} - ${statusLabels[founderInfo.founder_status] || founderInfo.founder_status}. Vérifiez votre email pour confirmer votre compte.`
+      message = `Félicitations ! Vous êtes le fondateur #${founderInfo.slot_number} - ${statusLabels[founderInfo.founder_status] || founderInfo.founder_status}. Vérifiez votre email pour confirmer votre compte (pensez à vérifier vos spams).`
     }
 
     return NextResponse.json({
