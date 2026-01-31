@@ -580,21 +580,21 @@ USING (true);
 -- 16. INSERT NEW BADGES (if not exist)
 -- ============================================================
 
-INSERT INTO badges (name, description, icon, category, points_reward) VALUES
-  ('Nouveau membre', 'Bienvenue sur SparkHub !', '🎉', 'debutant', 10),
-  ('Profil complété', 'Votre profil est complet à 100%', '✅', 'debutant', 50),
-  ('Premier outil', 'Vous avez utilisé votre premier outil IA', '🛠️', 'debutant', 20),
-  ('Fidèle 7 jours', 'Connecté 7 jours de suite', '📅', 'progression', 30),
-  ('Fidèle 30 jours', 'Connecté 30 jours de suite', '🔥', 'progression', 100),
-  ('Accro aux outils', 'Vous avez utilisé 50 outils', '⚡', 'expert', 50),
-  ('Gros consommateur', 'Vous avez acheté 500 crédits', '💰', 'expert', 50),
-  ('Premier parrain', 'Vous avez parrainé votre première personne', '🤝', 'progression', 30),
-  ('Super parrain', 'Vous avez parrainé 10 personnes', '🌟', 'expert', 100),
-  ('Bien noté', 'Vous avez reçu 5 avis positifs', '👍', 'progression', 30),
-  ('Star', 'Vous avez reçu 20 avis positifs', '⭐', 'expert', 100),
-  ('Légende', 'Vous avez atteint le niveau Légende', '👑', 'special', 200),
-  ('Fondateur', 'Vous faites partie des 200 premiers', '🏆', 'special', 100),
-  ('Top mensuel', 'Vous êtes #1 du mois', '🥇', 'special', 150)
+INSERT INTO badges (name, description, icon, category, points_reward, condition_type, condition_value) VALUES
+  ('Nouveau membre', 'Bienvenue sur SparkHub !', '🎉', 'debutant', 10, 'account_created', 1),
+  ('Profil complété', 'Votre profil est complet à 100%', '✅', 'debutant', 50, 'profile_complete', 1),
+  ('Premier outil', 'Vous avez utilisé votre premier outil IA', '🛠️', 'debutant', 20, 'tool_usage', 1),
+  ('Fidèle 7 jours', 'Connecté 7 jours de suite', '📅', 'progression', 30, 'consecutive_days', 7),
+  ('Fidèle 30 jours', 'Connecté 30 jours de suite', '🔥', 'progression', 100, 'consecutive_days', 30),
+  ('Accro aux outils', 'Vous avez utilisé 50 outils', '⚡', 'expert', 50, 'tool_usage', 50),
+  ('Gros consommateur', 'Vous avez acheté 500 crédits', '💰', 'expert', 50, 'credits_purchased', 500),
+  ('Premier parrain', 'Vous avez parrainé votre première personne', '🤝', 'progression', 30, 'referrals', 1),
+  ('Super parrain', 'Vous avez parrainé 10 personnes', '🌟', 'expert', 100, 'referrals', 10),
+  ('Bien noté', 'Vous avez reçu 5 avis positifs', '👍', 'progression', 30, 'five_star_reviews', 5),
+  ('Star', 'Vous avez reçu 20 avis positifs', '⭐', 'expert', 100, 'five_star_reviews', 20),
+  ('Légende', 'Vous avez atteint le niveau Légende', '👑', 'special', 200, 'points_reached', 5000),
+  ('Fondateur', 'Vous faites partie des 200 premiers', '🏆', 'special', 100, 'rank_number', 200),
+  ('Top mensuel', 'Vous êtes #1 du mois', '🥇', 'special', 150, 'monthly_top_1', 1)
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================

@@ -81,6 +81,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erreur lors de la création du profil' }, { status: 500 })
     }
 
+    // 2b. Claim founder slot (if available)
+    let founderInfo = null
+    if (role === 'livreur' || role === 'professionnel') {
+      const { data: slotData, error: slotError } = await supabase
+        .rpc('claim_founder_slot', {
+          p_profile_id: userId,
+          p_user_type: role,
+        })
+
+      if (slotError) {
+        console.error('Founder slot error:', slotError)
+      } else if (slotData) {
+        const result = Array.isArray(slotData) ? slotData[0] : slotData
+        if (result?.success) {
+          founderInfo = {
+            slot_number: result.result_slot_number,
+            founder_status: result.founder_status,
+          }
+        }
+      }
+    }
+
+    // 2c. Add initial points for signup
+    await supabase.rpc('add_points', {
+      p_profile_id: userId,
+      p_points: 10,
+      p_action: 'account_created',
+      p_description: 'Bienvenue sur SparkHub !',
+    })
+
     // 3. Create role-specific record
     if (role === 'livreur') {
       const { data: livreur, error: livreurError } = await supabase
@@ -146,10 +176,23 @@ export async function POST(request: NextRequest) {
       // Non-blocking
     }
 
+    // Build success message
+    let message = 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte.'
+    if (founderInfo) {
+      const statusLabels: Record<string, string> = {
+        platine: 'Platine (50% de réduction)',
+        or: 'Or (30% de réduction)',
+        argent: 'Argent (20% de réduction)',
+        bronze: 'Bronze (10% de réduction)',
+      }
+      message = `Félicitations ! Vous êtes le fondateur #${founderInfo.slot_number} - ${statusLabels[founderInfo.founder_status] || founderInfo.founder_status}. Vérifiez votre email pour confirmer votre compte.`
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte.',
+      message,
       userId,
+      founder: founderInfo,
     })
 
   } catch (error) {
