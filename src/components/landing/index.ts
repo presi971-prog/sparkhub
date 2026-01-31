@@ -1,0 +1,8 @@
+export { HeroSection } from './hero-section'
+export { HowItWorksSection } from './how-it-works-section'
+export { FoundersSection } from './founders-section'
+export { FeaturesSection } from './features-section'
+export { TestimonialsSection } from './testimonials-section'
+export { CTASection } from './cta-section'
+export { LandingHeader } from './landing-header'
+export { LandingFooter } from './landing-footer'

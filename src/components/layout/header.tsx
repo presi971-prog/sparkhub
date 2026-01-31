@@ -33,7 +33,7 @@ const navigation = [
   { name: 'Carte', href: '/carte', icon: MapPin },
   { name: 'Classement', href: '/classement', icon: Trophy },
   { name: 'Tarifs', href: '/tarifs', icon: CreditCard },
-  { name: 'Ressources', href: '/ressources', icon: BookOpen },
+  { name: 'Ressources IA', href: '/ressources', icon: BookOpen },
 ]
 
 export function Header({ user }: HeaderProps) {

@@ -1,5 +1,4 @@
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { LandingHeader, LandingFooter } from '@/components/landing'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function MarketingLayout({
@@ -21,10 +20,10 @@ export default async function MarketingLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header user={profile} />
+    <div className="flex min-h-screen flex-col bg-background">
+      <LandingHeader user={profile} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <LandingFooter />
     </div>
   )
 }

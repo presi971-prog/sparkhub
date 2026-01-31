@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Inter, Outfit } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -88,8 +90,12 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} antialiased`}>
-        {children}
-        <Toaster position="top-right" />
+        <ThemeProvider>
+          <SmoothScrollProvider>
+            {children}
+          </SmoothScrollProvider>
+          <Toaster position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   )
