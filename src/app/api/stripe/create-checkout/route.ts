@@ -62,7 +62,6 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
       },
       subscription_data: mode === 'subscription' ? {
-        trial_period_days: 7,
         metadata: {
           user_id: user.id,
         },
@@ -72,8 +71,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Checkout error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: `Erreur: ${errorMessage}` },
       { status: 500 }
     )
   }
