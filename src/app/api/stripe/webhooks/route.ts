@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe/client'
 import { createAdminClient } from '@/lib/supabase/server'
+import { STRIPE_PRICES, FOUNDER_CREDIT_MULTIPLIER } from '@/config/stripe'
 import Stripe from 'stripe'
+
+// Helper to get plan from price ID
+function getPlanFromPriceId(priceId: string): 'basic' | 'pro' | 'premium' | null {
+  if (priceId === STRIPE_PRICES.subscriptions.basic.priceId) return 'basic'
+  if (priceId === STRIPE_PRICES.subscriptions.pro.priceId) return 'pro'
+  if (priceId === STRIPE_PRICES.subscriptions.premium.priceId) return 'premium'
+  return null
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -43,10 +52,14 @@ export async function POST(request: NextRequest) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const subscription = subscriptionData as any
 
-          // Get user's tier
+          // Get the price ID from the subscription
+          const priceId = subscription.items?.data?.[0]?.price?.id
+          const plan = getPlanFromPriceId(priceId)
+
+          // Get user's profile with founder status
           const { data: profile } = await supabase
             .from('profiles')
-            .select('tier_id')
+            .select('tier_id, founder_status')
             .eq('id', userId)
             .single()
 
@@ -60,6 +73,51 @@ export async function POST(request: NextRequest) {
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
           })
+
+          // Add credits based on plan and founder status
+          if (plan) {
+            const baseCredits = STRIPE_PRICES.subscriptions[plan].baseCredits
+            const founderStatus = profile?.founder_status as keyof typeof FOUNDER_CREDIT_MULTIPLIER | null
+            const multiplier = founderStatus && FOUNDER_CREDIT_MULTIPLIER[founderStatus]
+              ? FOUNDER_CREDIT_MULTIPLIER[founderStatus]
+              : 1
+            const credits = Math.round(baseCredits * multiplier)
+
+            // Get current credits or create if not exists
+            const { data: currentCredits } = await supabase
+              .from('credits')
+              .select('balance, lifetime_earned')
+              .eq('profile_id', userId)
+              .single()
+
+            if (currentCredits) {
+              await supabase
+                .from('credits')
+                .update({
+                  balance: (currentCredits.balance || 0) + credits,
+                  lifetime_earned: (currentCredits.lifetime_earned || 0) + credits,
+                })
+                .eq('profile_id', userId)
+            } else {
+              await supabase
+                .from('credits')
+                .insert({
+                  profile_id: userId,
+                  balance: credits,
+                  lifetime_earned: credits,
+                  lifetime_spent: 0,
+                })
+            }
+
+            // Log transaction
+            await supabase.from('credit_transactions').insert({
+              profile_id: userId,
+              amount: credits,
+              type: 'purchase',
+              description: `Abonnement ${plan.charAt(0).toUpperCase() + plan.slice(1)} - ${credits} crédits`,
+              reference_id: subscription.id,
+            })
+          }
         }
         break
       }
