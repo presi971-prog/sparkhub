@@ -57,15 +57,15 @@ export default async function RessourcesPage() {
   let balance = 0
 
   if (user) {
-    const { data: profileData } = await supabase
-      .from('profiles')
+    const { data: profileData } = await (supabase
+      .from('profiles') as any)
       .select('tiers(name, discount_percent)')
       .eq('id', user.id)
       .single()
     profile = profileData as { tiers?: { name: string; discount_percent: number } } | null
 
-    const { data: creditsData } = await supabase
-      .from('credits')
+    const { data: creditsData } = await (supabase
+      .from('credits') as any)
       .select('balance')
       .eq('profile_id', user.id)
       .single()
