@@ -50,32 +50,9 @@ export default async function RessourcesPage() {
     redirect('/outils')
   }
 
-  // Page marketing pour visiteurs non connectés
-  let profile = null
-  let credits = null
-  let tierDiscount = 0
-  let balance = 0
-
-  if (user) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: profileData } = await (supabase as any)
-      .from('profiles')
-      .select('tiers(name, discount_percent)')
-      .eq('id', user.id)
-      .single()
-    profile = profileData as { tiers?: { name: string; discount_percent: number } } | null
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: creditsData } = await (supabase as any)
-      .from('credits')
-      .select('balance')
-      .eq('profile_id', user.id)
-      .single()
-    credits = creditsData as { balance: number } | null
-
-    tierDiscount = profile?.tiers?.discount_percent || 0
-    balance = credits?.balance || 0
-  }
+  // Page marketing pour visiteurs non connectés (user connecté = redirigé vers /outils)
+  const tierDiscount = 0
+  const balance = 0
 
   // Fetch active ressources
   const { data: ressourcesData } = await supabase
