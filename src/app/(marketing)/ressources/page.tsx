@@ -57,15 +57,17 @@ export default async function RessourcesPage() {
   let balance = 0
 
   if (user) {
-    const { data: profileData } = await (supabase
-      .from('profiles') as any)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profileData } = await (supabase as any)
+      .from('profiles')
       .select('tiers(name, discount_percent)')
       .eq('id', user.id)
       .single()
     profile = profileData as { tiers?: { name: string; discount_percent: number } } | null
 
-    const { data: creditsData } = await (supabase
-      .from('credits') as any)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: creditsData } = await (supabase as any)
+      .from('credits')
       .select('balance')
       .eq('profile_id', user.id)
       .single()
