@@ -149,6 +149,9 @@ export function getRemainingPlaces(tierName: TierType, currentCount: number): nu
 
 // Configuration des outils et coûts en crédits
 export const TOOLS_CONFIG = {
+  // Réseaux sociaux
+  post_reseaux: { credits: 3, name: 'Post Réseaux Sociaux', category: 'social' },
+
   // Texte
   post_ia: { credits: 2, name: 'Post IA', category: 'texte' },
   legende: { credits: 2, name: 'Légende/Bio', category: 'texte' },

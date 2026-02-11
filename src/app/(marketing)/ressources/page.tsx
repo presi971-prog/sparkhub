@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,7 +45,12 @@ export default async function RessourcesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch user data if logged in
+  // Abonnés connectés → vers le dashboard outils
+  if (user) {
+    redirect('/outils')
+  }
+
+  // Page marketing pour visiteurs non connectés
   let profile = null
   let credits = null
   let tierDiscount = 0
