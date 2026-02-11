@@ -18,12 +18,45 @@ import type { Commerce, CommerceItem, CommerceFaq, CommerceType } from '@/types/
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
+const HEURES = [
+  '', '6h', '6h30', '7h', '7h30', '8h', '8h30', '9h', '9h30', '10h', '10h30',
+  '11h', '11h30', '12h', '12h30', '13h', '13h30', '14h', '14h30', '15h', '15h30',
+  '16h', '16h30', '17h', '17h30', '18h', '18h30', '19h', '19h30', '20h', '20h30',
+  '21h', '21h30', '22h', '22h30', '23h', '23h30', '0h',
+]
+
 const COMMERCE_TYPES: { value: CommerceType; label: string }[] = [
   { value: 'restaurant', label: 'Restaurant' },
   { value: 'artisan', label: 'Artisan' },
   { value: 'beaute', label: 'Salon de beauté' },
   { value: 'commerce', label: 'Commerce' },
 ]
+
+function parseHoraire(value: string): { ouverture: string; fermeture: string } {
+  if (!value) return { ouverture: '', fermeture: '' }
+  const parts = value.split('-')
+  return { ouverture: parts[0]?.trim() || '', fermeture: parts[1]?.trim() || '' }
+}
+
+function formatHoraire(ouverture: string, fermeture: string): string {
+  if (!ouverture && !fermeture) return ''
+  return `${ouverture}-${fermeture}`
+}
+
+function TimeSelect({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <select
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">{placeholder}</option>
+      {HEURES.filter(h => h !== '').map((h) => (
+        <option key={h} value={h}>{h}</option>
+      ))}
+    </select>
+  )
+}
 
 interface ItemForm {
   id?: string
@@ -248,6 +281,25 @@ export default function ConfigPage() {
     setFaqs(updated)
   }
 
+  async function toggleActive() {
+    const newValue = !isActive
+    setIsActive(newValue)
+
+    if (commerceId) {
+      const { error } = await supabase
+        .from('commerces')
+        .update({ is_active: newValue })
+        .eq('id', commerceId)
+
+      if (error) {
+        setIsActive(!newValue)
+        toast.error('Erreur lors de la mise à jour')
+      } else {
+        toast.success(newValue ? 'Assistant activé' : 'Assistant désactivé')
+      }
+    }
+  }
+
   // Catégories uniques pour le menu
   const categories = [...new Set(items.map((i) => i.categorie))]
 
@@ -305,7 +357,7 @@ export default function ConfigPage() {
           <Button
             variant={isActive ? 'destructive' : 'default'}
             size="sm"
-            onClick={() => setIsActive(!isActive)}
+            onClick={toggleActive}
           >
             {isActive ? 'Désactiver' : 'Activer'}
           </Button>
@@ -391,19 +443,34 @@ export default function ConfigPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {JOURS.map((jour) => (
-            <div key={jour} className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium">{jour}</span>
-              <Input
-                className="flex-1"
-                placeholder="Ex: 11h-14h, 18h-22h"
-                value={horaires[jour] || ''}
-                onChange={(e) =>
-                  setHoraires({ ...horaires, [jour]: e.target.value })
-                }
-              />
-            </div>
-          ))}
+          {JOURS.map((jour) => {
+            const { ouverture, fermeture } = parseHoraire(horaires[jour] || '')
+            const isClosed = !horaires[jour]
+            return (
+              <div key={jour} className="flex items-center gap-2">
+                <span className="w-24 text-sm font-medium">{jour}</span>
+                <TimeSelect
+                  value={ouverture}
+                  placeholder="Ouverture"
+                  onChange={(v) => setHoraires({ ...horaires, [jour]: formatHoraire(v, fermeture) })}
+                />
+                <span className="text-muted-foreground">à</span>
+                <TimeSelect
+                  value={fermeture}
+                  placeholder="Fermeture"
+                  onChange={(v) => setHoraires({ ...horaires, [jour]: formatHoraire(ouverture, v) })}
+                />
+                <Button
+                  variant={isClosed ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="text-xs whitespace-nowrap"
+                  onClick={() => setHoraires({ ...horaires, [jour]: isClosed ? '8h-18h' : '' })}
+                >
+                  {isClosed ? 'Fermé' : '✕'}
+                </Button>
+              </div>
+            )
+          })}
         </CardContent>
       </Card>
 
@@ -437,14 +504,18 @@ export default function ConfigPage() {
                         value={item.nom}
                         onChange={(e) => updateItem(index, 'nom', e.target.value)}
                       />
-                      <Input
-                        className="w-24"
-                        placeholder="Prix €"
-                        type="number"
-                        step="0.01"
-                        value={item.prix}
-                        onChange={(e) => updateItem(index, 'prix', e.target.value)}
-                      />
+                      <div className="relative w-28">
+                        <Input
+                          className="pr-8"
+                          placeholder="Prix"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={item.prix}
+                          onChange={(e) => updateItem(index, 'prix', e.target.value)}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                      </div>
                       <Input
                         className="flex-1"
                         placeholder="Description (optionnel)"
