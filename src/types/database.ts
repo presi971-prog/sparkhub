@@ -235,6 +235,77 @@ export interface Geolocalisation {
   timestamp: string
 }
 
+// ============================================
+// WhatsApp Chatbot
+// ============================================
+
+export type CommerceType = 'restaurant' | 'artisan' | 'beaute' | 'commerce'
+export type ConversationStatus = 'active' | 'closed'
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
+
+export interface Commerce {
+  id: string
+  profile_id: string
+  nom: string
+  type: CommerceType
+  description: string | null
+  adresse: string | null
+  telephone: string | null
+  horaires: Record<string, string>
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CommerceItem {
+  id: string
+  commerce_id: string
+  categorie: string
+  nom: string
+  prix: number | null
+  description: string | null
+  ordre: number
+  created_at: string
+}
+
+export interface CommerceFaq {
+  id: string
+  commerce_id: string
+  question: string
+  reponse: string
+  created_at: string
+}
+
+export interface WhatsAppMessage {
+  role: 'client' | 'bot'
+  content: string
+  timestamp: string
+}
+
+export interface WhatsAppConversation {
+  id: string
+  commerce_id: string | null
+  client_phone: string
+  client_name: string | null
+  messages: WhatsAppMessage[]
+  status: ConversationStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface Reservation {
+  id: string
+  commerce_id: string
+  client_phone: string
+  client_name: string | null
+  date: string
+  heure: string
+  nombre_personnes: number | null
+  note: string | null
+  status: ReservationStatus
+  created_at: string
+}
+
 // Database schema type for Supabase
 export interface Database {
   public: {
@@ -313,6 +384,31 @@ export interface Database {
         Row: Geolocalisation
         Insert: Omit<Geolocalisation, 'id'>
         Update: Partial<Omit<Geolocalisation, 'id'>>
+      }
+      commerces: {
+        Row: Commerce
+        Insert: Omit<Commerce, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Commerce, 'id' | 'created_at'>>
+      }
+      commerce_items: {
+        Row: CommerceItem
+        Insert: Omit<CommerceItem, 'id' | 'created_at'>
+        Update: Partial<Omit<CommerceItem, 'id' | 'created_at'>>
+      }
+      commerce_faq: {
+        Row: CommerceFaq
+        Insert: Omit<CommerceFaq, 'id' | 'created_at'>
+        Update: Partial<Omit<CommerceFaq, 'id' | 'created_at'>>
+      }
+      whatsapp_conversations: {
+        Row: WhatsAppConversation
+        Insert: Omit<WhatsAppConversation, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<WhatsAppConversation, 'id' | 'created_at'>>
+      }
+      reservations: {
+        Row: Reservation
+        Insert: Omit<Reservation, 'id' | 'created_at'>
+        Update: Partial<Omit<Reservation, 'id' | 'created_at'>>
       }
     }
   }

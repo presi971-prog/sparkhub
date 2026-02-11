@@ -20,7 +20,8 @@ import {
   X,
   Shield,
   FileText,
-  Users
+  Users,
+  MessageCircle
 } from 'lucide-react'
 import { useState } from 'react'
 import { Profile, Tier } from '@/types/database'
@@ -34,6 +35,7 @@ const navigation = [
   { name: 'Mon Profil', href: '/profil', icon: User },
   { name: 'Mes Crédits', href: '/credits', icon: CreditCard },
   { name: 'Outils', href: '/outils', icon: Wrench },
+  { name: 'Assistant WhatsApp', href: '/outils/assistant-whatsapp', icon: MessageCircle },
 ]
 
 const secondaryNav = [
