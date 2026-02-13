@@ -237,6 +237,7 @@ export async function POST(req: Request) {
             input: {
               prompt: enhancePrompt,
               image_input: [imageUrl],
+              aspect_ratio: 'auto',
               resolution: '2K',
               output_format: 'png',
             },
@@ -260,11 +261,16 @@ export async function POST(req: Request) {
     ])
 
     // Image : version améliorée ou photo originale en fallback
-    const finalImageUrl = imageResult.status === 'fulfilled'
-      ? imageResult.value
-      : imageUrl // Fallback : photo originale si l'amélioration échoue
+    let finalImageUrl: string
+    let imageEnhanced = false
+    let imageError: string | null = null
 
-    if (imageResult.status === 'rejected') {
+    if (imageResult.status === 'fulfilled') {
+      finalImageUrl = imageResult.value
+      imageEnhanced = true
+    } else {
+      finalImageUrl = imageUrl
+      imageError = imageResult.reason?.message || 'Erreur inconnue'
       console.error('Image enhance failed (using original):', imageResult.reason)
     }
 
@@ -276,6 +282,8 @@ export async function POST(req: Request) {
       success: true,
       result: {
         image_url: finalImageUrl,
+        image_enhanced: imageEnhanced,
+        image_error: imageError,
         caption,
         hashtags,
         credits_used: CREDITS_COST,

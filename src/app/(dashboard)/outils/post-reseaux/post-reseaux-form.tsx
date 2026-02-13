@@ -45,6 +45,8 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<{
     image_url: string
+    image_enhanced: boolean
+    image_error: string | null
     caption: string
     hashtags: string
     credits_remaining: number
@@ -189,9 +191,20 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
             <CardTitle className="text-lg flex items-center gap-2">
               <Instagram className="h-5 w-5" />
               Visuel
+              {result.image_enhanced ? (
+                <span className="text-xs font-normal text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Retouche OK</span>
+              ) : (
+                <span className="text-xs font-normal text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">Photo originale</span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {!result.image_enhanced && result.image_error && (
+              <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm text-yellow-600">
+                <p className="font-medium">La retouche IA n'a pas fonctionné</p>
+                <p className="text-xs mt-1 text-muted-foreground">{result.image_error}</p>
+              </div>
+            )}
             <img
               src={result.image_url}
               alt="Visuel généré"
