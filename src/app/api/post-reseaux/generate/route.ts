@@ -3,12 +3,12 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
+const FAL_KEY = process.env.FAL_KEY!
 const CREDITS_COST = 3
-const POLL_INTERVAL = 2000
-const MAX_POLL_ATTEMPTS = 60
+const POLL_INTERVAL = 3000
+const MAX_POLL_ATTEMPTS = 40
 
-// Prompt d'amélioration photo — mode ÉDITION explicite pour Nano Banana Pro
-// Chaque prompt commence par "Using the provided image" pour forcer le mode édition
+// Prompt d'amélioration photo — mode ÉDITION explicite pour Nano Banana Pro via fal.ai
 function buildEnhancePrompt(businessType: string, postStyle: string): string {
   const businessContext: Record<string, string> = {
     restaurant: 'Using the provided image, apply warm color temperature adjustments to make the dish look appetizing. Lift the midtones on greens, reds, and golden browns to bring out ingredient colors. Preserve all steam, sauce textures, and natural plating imperfections.',
@@ -34,6 +34,76 @@ Only make subtle, professional-level adjustments — like a good Lightroom edit.
 The result should look like expert post-processing, not AI-generated.`
 
   return `${context}\n\n${intent}\n\n${preservationFooter}`
+}
+
+// Nano Banana Pro via fal.ai — endpoint /edit dédié à l'édition d'image
+async function enhanceImageFal(imageUrl: string, prompt: string): Promise<string> {
+  // 1. Soumettre à la queue fal.ai
+  const submitResponse = await fetch('https://queue.fal.run/fal-ai/nano-banana-pro/edit', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Key ${FAL_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt,
+      image_urls: [imageUrl],
+      resolution: '2K',
+    }),
+  })
+
+  if (!submitResponse.ok) {
+    const errText = await submitResponse.text()
+    throw new Error(`fal.ai submit error (${submitResponse.status}): ${errText}`)
+  }
+
+  const submitData = await submitResponse.json()
+  const requestId = submitData.request_id
+
+  if (!requestId) {
+    throw new Error(`fal.ai: pas de request_id. Réponse: ${JSON.stringify(submitData)}`)
+  }
+
+  // 2. Polling du statut
+  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
+
+    const statusResponse = await fetch(
+      `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}/status`,
+      { headers: { 'Authorization': `Key ${FAL_KEY}` } }
+    )
+
+    if (!statusResponse.ok) continue
+
+    const statusData = await statusResponse.json()
+
+    if (statusData.status === 'COMPLETED') {
+      // 3. Récupérer le résultat
+      const resultResponse = await fetch(
+        `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}`,
+        { headers: { 'Authorization': `Key ${FAL_KEY}` } }
+      )
+
+      if (!resultResponse.ok) {
+        throw new Error(`fal.ai result error: ${await resultResponse.text()}`)
+      }
+
+      const resultData = await resultResponse.json()
+      const outputUrl = resultData.images?.[0]?.url
+
+      if (!outputUrl) {
+        throw new Error(`fal.ai: pas d'image dans le résultat. Réponse: ${JSON.stringify(resultData)}`)
+      }
+
+      return outputUrl
+    }
+
+    if (statusData.status === 'FAILED') {
+      throw new Error(`fal.ai failed: ${statusData.error || 'Erreur inconnue'}`)
+    }
+  }
+
+  throw new Error('Timeout: la retouche a pris trop de temps')
 }
 
 // Générer légende + hashtags via Gemini 2.5 Flash (Kie.ai)
@@ -135,36 +205,6 @@ Décris ce que tu vois sur la photo et adapte ta légende en conséquence.`
   }
 }
 
-// Polling du résultat Kie.ai
-async function pollKieTask(taskId: string): Promise<string> {
-  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
-    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
-
-    const response = await fetch(
-      `https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${taskId}`,
-      { headers: { 'Authorization': `Bearer ${KIE_API_KEY}` } }
-    )
-
-    if (!response.ok) continue
-
-    const data = await response.json()
-    const state = data.data?.state
-
-    if (state === 'success') {
-      const resultJson = JSON.parse(data.data.resultJson || '{}')
-      const imageUrl = resultJson.resultUrls?.[0]
-      if (!imageUrl) throw new Error('Pas d\'URL dans le résultat')
-      return imageUrl
-    }
-
-    if (state === 'fail') {
-      throw new Error(data.data?.failMsg || 'Échec de la génération')
-    }
-  }
-
-  throw new Error('Timeout: la génération a pris trop de temps')
-}
-
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
@@ -220,44 +260,11 @@ export async function POST(req: Request) {
         description: 'Post Réseaux Sociaux - Photo améliorée + légende IA'
       })
 
-    // Lancer en parallèle : amélioration photo + génération légende
+    // Lancer en parallèle : amélioration photo (fal.ai) + génération légende (Kie.ai)
     const enhancePrompt = buildEnhancePrompt(businessType, postStyle)
 
     const [imageResult, captionResult] = await Promise.allSettled([
-      // 1. Nano Banana Pro : améliorer la photo (pas générer une nouvelle)
-      (async () => {
-        const createResponse = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${KIE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'nano-banana-pro',
-            input: {
-              prompt: enhancePrompt,
-              image_input: [imageUrl],
-              aspect_ratio: 'auto',
-              resolution: '2K',
-              output_format: 'png',
-            },
-          }),
-        })
-
-        if (!createResponse.ok) {
-          const errText = await createResponse.text()
-          throw new Error(`Nano Banana Pro error: ${errText}`)
-        }
-
-        const createData = await createResponse.json()
-        console.log('Kie.ai createTask response:', JSON.stringify(createData))
-        const taskId = createData.data?.taskId
-        if (!taskId) throw new Error(`Pas de taskId. Réponse Kie.ai: ${JSON.stringify(createData)}`)
-
-        return pollKieTask(taskId)
-      })(),
-
-      // 2. Gemini 2.5 Flash : légende + hashtags (analyse la photo)
+      enhanceImageFal(imageUrl, enhancePrompt),
       generateCaptionAI(businessType, postStyle, message || '', businessName || '', imageUrl),
     ])
 
