@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   try {
     // Vérifier le statut du job fal.ai
     const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}/status`,
+      `https://queue.fal.run/fal-ai/nano-banana-pro/edit/requests/${requestId}/status`,
       { headers: { 'Authorization': `Key ${FAL_KEY}` } }
     )
 
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     if (statusData.status === 'COMPLETED') {
       // Récupérer le résultat
       const resultResponse = await fetch(
-        `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}`,
+        `https://queue.fal.run/fal-ai/nano-banana-pro/edit/requests/${requestId}`,
         { headers: { 'Authorization': `Key ${FAL_KEY}` } }
       )
 
