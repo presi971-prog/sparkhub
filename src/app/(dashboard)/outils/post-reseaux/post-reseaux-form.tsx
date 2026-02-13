@@ -24,11 +24,11 @@ const BUSINESS_TYPES = [
 ]
 
 const POST_STYLES = [
-  { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Mise en valeur d\'un plat ou produit phare', forTypes: ['restaurant'] },
-  { id: 'promo', label: 'Promotion', desc: 'Offre spéciale, réduction, événement', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
-  { id: 'avant_apres', label: 'Avant / Après', desc: 'Montrer le résultat d\'un travail', forTypes: ['artisan', 'beaute'] },
-  { id: 'nouveau', label: 'Nouveauté', desc: 'Nouveau produit, service ou réalisation', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
-  { id: 'ambiance', label: 'Ambiance', desc: 'Montrer l\'atmosphère de ton lieu', forTypes: ['restaurant', 'beaute', 'commerce'] },
+  { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Ton plat mis en scène sur une belle table avec décor restaurant', forTypes: ['restaurant'] },
+  { id: 'promo', label: 'Promotion', desc: 'Ton produit sur un fond pro type pub, lumineux et attractif', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
+  { id: 'avant_apres', label: 'Avant / Après', desc: 'Ton travail sur un fond épuré qui met en valeur le résultat', forTypes: ['artisan', 'beaute'] },
+  { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit dans un décor moderne et frais, effet lancement', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
+  { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu sublimé avec lumière chaleureuse et ambiance accueillante', forTypes: ['restaurant', 'beaute', 'commerce'] },
 ]
 
 interface PostReseauxFormProps {
@@ -98,7 +98,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
           image_enhanced: true,
           image_error: null,
         } : prev)
-        toast.success('Photo retouchée !')
+        toast.success('Photo sublimée !')
         return
       }
 
@@ -262,10 +262,10 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
               {isEnhancing ? (
                 <span className="text-xs font-normal text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Retouche en cours...
+                  Mise en scène en cours...
                 </span>
               ) : result.image_enhanced ? (
-                <span className="text-xs font-normal text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Retouche OK</span>
+                <span className="text-xs font-normal text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Photo sublimée</span>
               ) : result.image_error ? (
                 <span className="text-xs font-normal text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">Photo originale</span>
               ) : null}
@@ -274,7 +274,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
           <CardContent>
             {!isEnhancing && !result.image_enhanced && result.image_error && (
               <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm text-yellow-600">
-                <p className="font-medium">La retouche IA n'a pas fonctionné</p>
+                <p className="font-medium">La mise en scène IA n'a pas fonctionné</p>
                 <p className="text-xs mt-1 text-muted-foreground">{result.image_error}</p>
               </div>
             )}
@@ -288,7 +288,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
                 <div className="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center">
                   <div className="flex flex-col items-center gap-2 text-white">
                     <ImageIcon className="h-8 w-8 animate-pulse" />
-                    <span className="text-sm font-medium">Retouche IA en cours...</span>
+                    <span className="text-sm font-medium">Mise en scène IA en cours...</span>
                   </div>
                 </div>
               )}

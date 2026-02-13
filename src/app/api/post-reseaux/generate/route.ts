@@ -21,7 +21,7 @@ const STYLE_LABELS: Record<string, string> = {
   ambiance: 'Ambiance — montrer l\'atmosphère du lieu',
 }
 
-// Agent IA unique : analyse la photo + contexte pro → génère prompt d'édition + légende + hashtags
+// Agent IA unique : analyse la photo + contexte pro → génère prompt compositing + légende + hashtags
 async function analyzeAndGenerate(
   photoUrl: string,
   businessType: string,
@@ -32,7 +32,7 @@ async function analyzeAndGenerate(
 
   const systemPrompt = `Tu es un expert à DOUBLE compétence :
 
-1. DIRECTEUR PHOTO professionnel — tu analyses des photos et tu rédiges des instructions de retouche précises pour un outil d'édition IA (Nano Banana Pro). Tu utilises le vocabulaire Lightroom : color temperature, midtones, shadows, highlights, clarity, white balance, contrast, saturation, exposure, depth of field.
+1. DIRECTEUR ARTISTIQUE publicitaire — tu analyses des photos de produits/réalisations et tu rédiges des instructions de COMPOSITING pour un outil IA d'édition d'image (Nano Banana Pro). Ton objectif : garder le sujet principal INTACT et générer un environnement/décor adapté autour.
 
 2. COMMUNITY MANAGER expert réseaux sociaux — tu écris des légendes Instagram/Facebook pour des petits commerces en Guadeloupe (971, Antilles françaises).
 
@@ -44,20 +44,29 @@ CONTEXTE DU PROFESSIONNEL :
 
 TES 2 MISSIONS (dans cet ordre) :
 
-MISSION 1 — PROMPT D'ÉDITION PHOTO (en anglais)
-Analyse la photo fournie et rédige un prompt d'édition en anglais pour Nano Banana Pro. Le prompt doit :
+MISSION 1 — PROMPT DE COMPOSITING PHOTO (en anglais)
+Analyse la photo fournie et rédige un prompt en anglais pour Nano Banana Pro. Le prompt doit :
 - Commencer par "Using the provided image"
-- Décrire ce que tu VOIS (sujet principal, éclairage actuel, couleurs, défauts)
-- Donner 3-5 corrections PRÉCISES adaptées à ce que tu vois ET à l'objectif du post
-- Utiliser des termes de photographie (color temperature, midtones, shadows, clarity, exposure, white balance, depth of field)
-- Terminer par l'instruction de préservation
+- Identifier clairement le SUJET PRINCIPAL (le plat, le produit, le travail réalisé, la coiffure, etc.)
+- Demander de GARDER le sujet principal INTACT (forme, couleurs, textures, détails)
+- Décrire précisément l'ENVIRONNEMENT/DÉCOR à GÉNÉRER autour du sujet selon l'objectif du post
 
-Exemples de corrections contextuelles :
-- Restaurant/Plat du jour : réchauffer les tons, faire ressortir les couleurs des ingrédients, flouter l'arrière-plan si encombré, le plat doit être le héros
-- Artisan/Avant-Après : maximiser clarté et netteté, correction perspective si besoin, balance des blancs neutre pour les matériaux
-- Beauté/Nouveau : éclairage doux et flatteur, couleurs cheveux vibrantes, texture peau naturelle
-- Commerce/Promo : produit net et lumineux, look publicitaire mais authentique, étiquettes lisibles
-- Ambiance : tons chauds, lumière ambiante renforcée, atmosphère accueillante
+RÈGLES PAR STYLE DE POST :
+
+"Plat du jour" (restaurant) :
+→ Le plat reste IDENTIQUE. Générer autour : une belle table en bois ou nappe élégante, des couverts, un verre, un arrière-plan flou de restaurant chaleureux avec lumière chaude. Le plat doit être le héros de l'image.
+
+"Promotion" (tous types) :
+→ Le produit/sujet reste IDENTIQUE. Générer : un fond publicitaire professionnel, lumineux et propre. Éclairage studio, fond uni ou dégradé doux. L'image doit ressembler à une pub pro.
+
+"Avant / Après" (artisan, beauté) :
+→ Le travail/résultat reste IDENTIQUE. Générer : un fond épuré et neutre (blanc, gris clair) qui met toute l'attention sur le résultat. Éclairage net et uniforme. Clarté maximale.
+
+"Nouveauté" (tous types) :
+→ Le produit/sujet reste IDENTIQUE. Générer : un décor moderne et frais, couleurs vives, feeling de révélation/lancement. Peut inclure des éléments décoratifs contemporains (plantes, textures).
+
+"Ambiance" (restaurant, beauté, commerce) :
+→ Le lieu/sujet reste IDENTIQUE mais sublimé. Générer : lumière dorée/golden hour, atmosphère chaleureuse et accueillante, renforcer l'ambiance existante. Peut ajouter des éléments d'ambiance (bougies, lumières tamisées).
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
@@ -74,7 +83,7 @@ Génère aussi 10-15 hashtags pertinents (minuscules, sans espaces, séparés pa
 IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
 {"editPrompt": "Using the provided image... (en anglais)", "caption": "ta légende ici (en français)", "hashtags": "#tag1 #tag2 #tag3"}`
 
-  const userPrompt = `Analyse cette photo et exécute tes 2 missions. Regarde attentivement ce qu'il y a sur la photo avant de répondre.`
+  const userPrompt = `Analyse cette photo et exécute tes 2 missions. Regarde attentivement le SUJET PRINCIPAL de la photo — c'est lui qui doit rester intact. Puis décris l'environnement idéal à générer autour.`
 
   try {
     const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
@@ -106,11 +115,11 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const parsed = JSON.parse(cleanContent)
 
-    // Ajouter le footer de préservation au prompt d'édition
-    const preservationFooter = `\n\nIMPORTANT: This is a photo EDITING task, not generation. Do not create a new image. Keep all subjects, composition, natural textures, and the original aspect ratio exactly as they are. Only make subtle, professional-level adjustments — like a good Lightroom edit. The result should look like expert post-processing, not AI-generated.`
+    // Ajouter le footer de compositing au prompt d'édition
+    const compositingFooter = `\n\nCRITICAL RULES: Keep the MAIN SUBJECT (product, dish, work, person) exactly as it is — same shape, colors, textures, details. Do NOT alter, distort, or regenerate the subject. You may enhance the BACKGROUND and ENVIRONMENT around the subject: generate a new setting, improve lighting, add contextual elements. The subject must remain photographically real and untouched. The final image should look like a professional product photography composite.`
 
     return {
-      editPrompt: (parsed.editPrompt || 'Using the provided image, gently improve the lighting and colors while keeping everything natural.') + preservationFooter,
+      editPrompt: (parsed.editPrompt || 'Using the provided image, keep the main subject intact and place it in a clean, professional environment with warm lighting.') + compositingFooter,
       caption: parsed.caption || '',
       hashtags: parsed.hashtags || '',
     }
@@ -118,17 +127,17 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     console.error('Analyze AI error:', error)
     const name = businessName || 'chez nous'
 
-    // Fallback : prompt générique + légende basique
+    // Fallback : prompt générique compositing + légende basique
     const fallbackPrompts: Record<string, string> = {
-      restaurant: 'Using the provided image, apply warm color temperature, lift midtones on food colors, and preserve natural textures.',
-      artisan: 'Using the provided image, increase clarity and sharpness, correct perspective, and set neutral white balance.',
-      beaute: 'Using the provided image, apply soft flattering light, lift shadows, and enhance hair vibrancy while keeping natural skin texture.',
-      commerce: 'Using the provided image, brighten the product, apply subtle background blur, and keep all labels and details sharp.',
+      restaurant: 'Using the provided image, keep the dish exactly as it is and place it on an elegant wooden table with warm restaurant lighting in the background.',
+      artisan: 'Using the provided image, keep the work/result exactly as it is and place it on a clean, neutral background with bright uniform lighting.',
+      beaute: 'Using the provided image, keep the subject exactly as it is and enhance the environment with soft, flattering studio lighting and a clean backdrop.',
+      commerce: 'Using the provided image, keep the product exactly as it is and place it in a professional advertising setting with clean studio lighting.',
     }
 
     return {
-      editPrompt: (fallbackPrompts[businessType] || 'Using the provided image, gently improve the lighting and colors.') +
-        '\n\nIMPORTANT: This is a photo EDITING task, not generation. Do not create a new image. Keep all subjects, composition, natural textures, and the original aspect ratio exactly as they are.',
+      editPrompt: (fallbackPrompts[businessType] || 'Using the provided image, keep the main subject intact and place it in a clean, professional environment with warm lighting.') +
+        '\n\nCRITICAL: Keep the MAIN SUBJECT exactly as it is — same shape, colors, textures. Only change the background and environment around it.',
       caption: `${message || 'Venez découvrir ce qu\'on vous a préparé !'}\n\nOn vous attend ${name} 🌴\n\n📍 Guadeloupe`,
       hashtags: '#guadeloupe #971 #gwada #antilles #caribbean #local #decouverte',
     }
@@ -187,7 +196,7 @@ export async function POST(req: Request) {
         profile_id: user.id,
         amount: -CREDITS_COST,
         type: 'spend',
-        description: 'Post Réseaux Sociaux - Photo améliorée + légende IA'
+        description: 'Post Réseaux Sociaux - Mise en scène photo + légende IA'
       })
 
     // 1. Agent IA : analyse photo + contexte → prompt d'édition + légende + hashtags
