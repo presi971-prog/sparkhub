@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,11 +8,13 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Upload, Loader2, Coins, AlertCircle, Download, RefreshCw,
   Instagram, UtensilsCrossed, Wrench, Scissors, ShoppingBag,
-  Sparkles, Copy, Check, Hash
+  Sparkles, Copy, Check, Hash, ImageIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const CREDITS_COST = 3
+const POLL_INTERVAL = 3000
+const MAX_POLLS = 40
 
 const BUSINESS_TYPES = [
   { id: 'restaurant', label: 'Restaurant', icon: UtensilsCrossed, placeholder: 'Ex: Colombo de poulet, 12€' },
@@ -43,6 +45,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   const [message, setMessage] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isEnhancing, setIsEnhancing] = useState(false)
   const [result, setResult] = useState<{
     image_url: string
     image_enhanced: boolean
@@ -55,9 +58,17 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   const [copiedCaption, setCopiedCaption] = useState(false)
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentBusinessType = BUSINESS_TYPES.find(b => b.id === businessType)
   const availableStyles = POST_STYLES.filter(s => s.forTypes.includes(businessType))
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearTimeout(pollRef.current)
+    }
+  }, [])
 
   // Reset postStyle quand le businessType change et le style n'est plus dispo
   useEffect(() => {
@@ -65,6 +76,44 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
       setPostStyle(availableStyles[0]?.id || 'promo')
     }
   }, [businessType])
+
+  // Polling fal.ai côté client
+  const pollEnhancedImage = useCallback(async (requestId: string, attempt = 0) => {
+    if (attempt >= MAX_POLLS) {
+      setIsEnhancing(false)
+      setResult(prev => prev ? { ...prev, image_error: 'Timeout: la retouche a pris trop de temps' } : prev)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/post-reseaux/status?requestId=${requestId}`)
+      const data = await response.json()
+
+      if (data.status === 'completed' && data.image_url) {
+        setIsEnhancing(false)
+        setResult(prev => prev ? {
+          ...prev,
+          image_url: data.image_url,
+          image_enhanced: true,
+          image_error: null,
+        } : prev)
+        toast.success('Photo retouchée !')
+        return
+      }
+
+      if (data.status === 'error') {
+        setIsEnhancing(false)
+        setResult(prev => prev ? { ...prev, image_error: data.error } : prev)
+        return
+      }
+
+      // Encore en cours → re-poll
+      pollRef.current = setTimeout(() => pollEnhancedImage(requestId, attempt + 1), POLL_INTERVAL)
+    } catch {
+      setIsEnhancing(false)
+      setResult(prev => prev ? { ...prev, image_error: 'Erreur réseau' } : prev)
+    }
+  }, [])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -142,9 +191,25 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         throw new Error(data.error || 'Erreur lors de la génération')
       }
 
-      setResult(data.result)
-      setCredits(data.result.credits_remaining)
-      toast.success('Post généré avec succès !')
+      const r = data.result
+
+      // Afficher la légende immédiatement avec la photo originale
+      setResult({
+        image_url: r.image_url,
+        image_enhanced: false,
+        image_error: r.fal_error || null,
+        caption: r.caption,
+        hashtags: r.hashtags,
+        credits_remaining: r.credits_remaining,
+      })
+      setCredits(r.credits_remaining)
+      toast.success('Légende générée !')
+
+      // Si fal.ai a accepté le job, lancer le polling client
+      if (r.fal_request_id) {
+        setIsEnhancing(true)
+        pollEnhancedImage(r.fal_request_id)
+      }
     } catch (error) {
       console.error('Generation error:', error)
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la génération')
@@ -166,11 +231,13 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   }
 
   const handleReset = () => {
+    if (pollRef.current) clearTimeout(pollRef.current)
     setResult(null)
     setImageUrl('')
     setImagePreview(null)
     setMessage('')
     setBusinessName('')
+    setIsEnhancing(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -191,25 +258,40 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
             <CardTitle className="text-lg flex items-center gap-2">
               <Instagram className="h-5 w-5" />
               Visuel
-              {result.image_enhanced ? (
+              {isEnhancing ? (
+                <span className="text-xs font-normal text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Retouche en cours...
+                </span>
+              ) : result.image_enhanced ? (
                 <span className="text-xs font-normal text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Retouche OK</span>
-              ) : (
+              ) : result.image_error ? (
                 <span className="text-xs font-normal text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">Photo originale</span>
-              )}
+              ) : null}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {!result.image_enhanced && result.image_error && (
+            {!isEnhancing && !result.image_enhanced && result.image_error && (
               <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm text-yellow-600">
                 <p className="font-medium">La retouche IA n'a pas fonctionné</p>
                 <p className="text-xs mt-1 text-muted-foreground">{result.image_error}</p>
               </div>
             )}
-            <img
-              src={result.image_url}
-              alt="Visuel généré"
-              className="w-full rounded-lg"
-            />
+            <div className="relative">
+              <img
+                src={result.image_url}
+                alt="Visuel généré"
+                className="w-full rounded-lg"
+              />
+              {isEnhancing && (
+                <div className="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-2 text-white">
+                    <ImageIcon className="h-8 w-8 animate-pulse" />
+                    <span className="text-sm font-medium">Retouche IA en cours...</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

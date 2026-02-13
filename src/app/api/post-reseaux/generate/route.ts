@@ -5,8 +5,6 @@ import { NextResponse } from 'next/server'
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
 const CREDITS_COST = 3
-const POLL_INTERVAL = 3000
-const MAX_POLL_ATTEMPTS = 40
 
 // Prompt d'amélioration photo — mode ÉDITION explicite pour Nano Banana Pro via fal.ai
 function buildEnhancePrompt(businessType: string, postStyle: string): string {
@@ -34,76 +32,6 @@ Only make subtle, professional-level adjustments — like a good Lightroom edit.
 The result should look like expert post-processing, not AI-generated.`
 
   return `${context}\n\n${intent}\n\n${preservationFooter}`
-}
-
-// Nano Banana Pro via fal.ai — endpoint /edit dédié à l'édition d'image
-async function enhanceImageFal(imageUrl: string, prompt: string): Promise<string> {
-  // 1. Soumettre à la queue fal.ai
-  const submitResponse = await fetch('https://queue.fal.run/fal-ai/nano-banana-pro/edit', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Key ${FAL_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      prompt,
-      image_urls: [imageUrl],
-      resolution: '2K',
-    }),
-  })
-
-  if (!submitResponse.ok) {
-    const errText = await submitResponse.text()
-    throw new Error(`fal.ai submit error (${submitResponse.status}): ${errText}`)
-  }
-
-  const submitData = await submitResponse.json()
-  const requestId = submitData.request_id
-
-  if (!requestId) {
-    throw new Error(`fal.ai: pas de request_id. Réponse: ${JSON.stringify(submitData)}`)
-  }
-
-  // 2. Polling du statut
-  for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
-    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
-
-    const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}/status`,
-      { headers: { 'Authorization': `Key ${FAL_KEY}` } }
-    )
-
-    if (!statusResponse.ok) continue
-
-    const statusData = await statusResponse.json()
-
-    if (statusData.status === 'COMPLETED') {
-      // 3. Récupérer le résultat
-      const resultResponse = await fetch(
-        `https://queue.fal.run/fal-ai/nano-banana-pro/edit/${requestId}`,
-        { headers: { 'Authorization': `Key ${FAL_KEY}` } }
-      )
-
-      if (!resultResponse.ok) {
-        throw new Error(`fal.ai result error: ${await resultResponse.text()}`)
-      }
-
-      const resultData = await resultResponse.json()
-      const outputUrl = resultData.images?.[0]?.url
-
-      if (!outputUrl) {
-        throw new Error(`fal.ai: pas d'image dans le résultat. Réponse: ${JSON.stringify(resultData)}`)
-      }
-
-      return outputUrl
-    }
-
-    if (statusData.status === 'FAILED') {
-      throw new Error(`fal.ai failed: ${statusData.error || 'Erreur inconnue'}`)
-    }
-  }
-
-  throw new Error('Timeout: la retouche a pris trop de temps')
 }
 
 // Générer légende + hashtags via Gemini 2.5 Flash (Kie.ai)
@@ -260,38 +188,53 @@ export async function POST(req: Request) {
         description: 'Post Réseaux Sociaux - Photo améliorée + légende IA'
       })
 
-    // Lancer en parallèle : amélioration photo (fal.ai) + génération légende (Kie.ai)
+    // 1. Soumettre le job fal.ai (retour immédiat, pas de polling)
     const enhancePrompt = buildEnhancePrompt(businessType, postStyle)
+    let falRequestId: string | null = null
+    let falError: string | null = null
 
-    const [imageResult, captionResult] = await Promise.allSettled([
-      enhanceImageFal(imageUrl, enhancePrompt),
-      generateCaptionAI(businessType, postStyle, message || '', businessName || '', imageUrl),
-    ])
+    try {
+      const submitResponse = await fetch('https://queue.fal.run/fal-ai/nano-banana-pro/edit', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${FAL_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: enhancePrompt,
+          image_urls: [imageUrl],
+          resolution: '2K',
+        }),
+      })
 
-    // Image : version améliorée ou photo originale en fallback
-    let finalImageUrl: string
-    let imageEnhanced = false
-    let imageError: string | null = null
+      if (!submitResponse.ok) {
+        const errText = await submitResponse.text()
+        throw new Error(`fal.ai (${submitResponse.status}): ${errText}`)
+      }
 
-    if (imageResult.status === 'fulfilled') {
-      finalImageUrl = imageResult.value
-      imageEnhanced = true
-    } else {
-      finalImageUrl = imageUrl
-      imageError = imageResult.reason?.message || 'Erreur inconnue'
-      console.error('Image enhance failed (using original):', imageResult.reason)
+      const submitData = await submitResponse.json()
+      falRequestId = submitData.request_id || null
+
+      if (!falRequestId) {
+        throw new Error(`Réponse fal.ai: ${JSON.stringify(submitData)}`)
+      }
+    } catch (error) {
+      falError = error instanceof Error ? error.message : 'Erreur fal.ai'
+      console.error('fal.ai submit error:', error)
     }
 
-    const { caption, hashtags } = captionResult.status === 'fulfilled'
-      ? captionResult.value
-      : { caption: message || 'Découvrez ça !', hashtags: '#guadeloupe #971 #gwada #antilles' }
+    // 2. Générer la légende (rapide, ~2-5s)
+    const { caption, hashtags } = await generateCaptionAI(
+      businessType, postStyle, message || '', businessName || '', imageUrl
+    )
 
+    // 3. Retourner immédiatement avec légende + requestId pour polling client
     return NextResponse.json({
       success: true,
       result: {
-        image_url: finalImageUrl,
-        image_enhanced: imageEnhanced,
-        image_error: imageError,
+        image_url: imageUrl, // photo originale en attendant
+        fal_request_id: falRequestId,
+        fal_error: falError,
         caption,
         hashtags,
         credits_used: CREDITS_COST,
