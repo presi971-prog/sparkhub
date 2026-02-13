@@ -4,39 +4,39 @@ const FAL_KEY = process.env.FAL_KEY!
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const requestId = searchParams.get('requestId')
+  const statusUrl = searchParams.get('statusUrl')
+  const responseUrl = searchParams.get('responseUrl')
 
-  if (!requestId) {
-    return NextResponse.json({ error: 'requestId requis' }, { status: 400 })
+  if (!statusUrl || !responseUrl) {
+    return NextResponse.json({ error: 'statusUrl et responseUrl requis' }, { status: 400 })
   }
 
   try {
-    // Vérifier le statut du job fal.ai
-    const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/nano-banana-pro/edit/requests/${requestId}/status`,
-      { headers: { 'Authorization': `Key ${FAL_KEY}` } }
-    )
+    // Vérifier le statut via l'URL fournie par fal.ai
+    const statusResponse = await fetch(statusUrl, {
+      headers: { 'Authorization': `Key ${FAL_KEY}` },
+    })
 
     if (!statusResponse.ok) {
+      const errText = await statusResponse.text()
       return NextResponse.json({
         status: 'error',
-        error: `fal.ai status error (${statusResponse.status})`,
+        error: `fal.ai status (${statusResponse.status}): ${errText}`,
       })
     }
 
     const statusData = await statusResponse.json()
 
     if (statusData.status === 'COMPLETED') {
-      // Récupérer le résultat
-      const resultResponse = await fetch(
-        `https://queue.fal.run/fal-ai/nano-banana-pro/edit/requests/${requestId}`,
-        { headers: { 'Authorization': `Key ${FAL_KEY}` } }
-      )
+      // Récupérer le résultat via response_url
+      const resultResponse = await fetch(responseUrl, {
+        headers: { 'Authorization': `Key ${FAL_KEY}` },
+      })
 
       if (!resultResponse.ok) {
         return NextResponse.json({
           status: 'error',
-          error: 'Impossible de récupérer le résultat',
+          error: 'Impossible de récupérer le résultat fal.ai',
         })
       }
 
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
       if (!imageUrl) {
         return NextResponse.json({
           status: 'error',
-          error: 'Pas d\'image dans le résultat fal.ai',
+          error: `Pas d'image. Réponse: ${JSON.stringify(resultData).slice(0, 200)}`,
         })
       }
 
@@ -66,6 +66,7 @@ export async function GET(req: Request) {
     // IN_QUEUE ou IN_PROGRESS
     return NextResponse.json({
       status: 'processing',
+      fal_status: statusData.status,
       queue_position: statusData.queue_position,
     })
   } catch (error) {

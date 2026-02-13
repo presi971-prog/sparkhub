@@ -190,7 +190,8 @@ export async function POST(req: Request) {
 
     // 1. Soumettre le job fal.ai (retour immédiat, pas de polling)
     const enhancePrompt = buildEnhancePrompt(businessType, postStyle)
-    let falRequestId: string | null = null
+    let falStatusUrl: string | null = null
+    let falResponseUrl: string | null = null
     let falError: string | null = null
 
     try {
@@ -213,10 +214,12 @@ export async function POST(req: Request) {
       }
 
       const submitData = await submitResponse.json()
-      falRequestId = submitData.request_id || null
+      console.log('fal.ai submit response:', JSON.stringify(submitData))
+      falStatusUrl = submitData.status_url || null
+      falResponseUrl = submitData.response_url || null
 
-      if (!falRequestId) {
-        throw new Error(`Réponse fal.ai: ${JSON.stringify(submitData)}`)
+      if (!falStatusUrl) {
+        throw new Error(`fal.ai: pas de status_url. Réponse: ${JSON.stringify(submitData)}`)
       }
     } catch (error) {
       falError = error instanceof Error ? error.message : 'Erreur fal.ai'
@@ -233,7 +236,8 @@ export async function POST(req: Request) {
       success: true,
       result: {
         image_url: imageUrl, // photo originale en attendant
-        fal_request_id: falRequestId,
+        fal_status_url: falStatusUrl,
+        fal_response_url: falResponseUrl,
         fal_error: falError,
         caption,
         hashtags,

@@ -78,7 +78,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   }, [businessType])
 
   // Polling fal.ai côté client
-  const pollEnhancedImage = useCallback(async (requestId: string, attempt = 0) => {
+  const pollEnhancedImage = useCallback(async (statusUrl: string, responseUrl: string, attempt = 0) => {
     if (attempt >= MAX_POLLS) {
       setIsEnhancing(false)
       setResult(prev => prev ? { ...prev, image_error: 'Timeout: la retouche a pris trop de temps' } : prev)
@@ -86,7 +86,8 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     }
 
     try {
-      const response = await fetch(`/api/post-reseaux/status?requestId=${requestId}`)
+      const params = new URLSearchParams({ statusUrl, responseUrl })
+      const response = await fetch(`/api/post-reseaux/status?${params}`)
       const data = await response.json()
 
       if (data.status === 'completed' && data.image_url) {
@@ -108,7 +109,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
       }
 
       // Encore en cours → re-poll
-      pollRef.current = setTimeout(() => pollEnhancedImage(requestId, attempt + 1), POLL_INTERVAL)
+      pollRef.current = setTimeout(() => pollEnhancedImage(statusUrl, responseUrl, attempt + 1), POLL_INTERVAL)
     } catch {
       setIsEnhancing(false)
       setResult(prev => prev ? { ...prev, image_error: 'Erreur réseau' } : prev)
@@ -206,9 +207,9 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
       toast.success('Légende générée !')
 
       // Si fal.ai a accepté le job, lancer le polling client
-      if (r.fal_request_id) {
+      if (r.fal_status_url && r.fal_response_url) {
         setIsEnhancing(true)
-        pollEnhancedImage(r.fal_request_id)
+        pollEnhancedImage(r.fal_status_url, r.fal_response_url)
       }
     } catch (error) {
       console.error('Generation error:', error)
