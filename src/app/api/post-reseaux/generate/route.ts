@@ -250,8 +250,9 @@ export async function POST(req: Request) {
         }
 
         const createData = await createResponse.json()
+        console.log('Kie.ai createTask response:', JSON.stringify(createData))
         const taskId = createData.data?.taskId
-        if (!taskId) throw new Error('Pas de taskId retourné')
+        if (!taskId) throw new Error(`Pas de taskId. Réponse Kie.ai: ${JSON.stringify(createData)}`)
 
         return pollKieTask(taskId)
       })(),
