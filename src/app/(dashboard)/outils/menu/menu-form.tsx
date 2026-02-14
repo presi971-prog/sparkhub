@@ -145,11 +145,15 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
 
       const data = await res.json()
 
-      if (!res.ok) throw new Error(data.error || 'Erreur extraction')
+      if (!res.ok) {
+        const errMsg = data._debug ? `${data.error} (${data._debug})` : data.error
+        throw new Error(errMsg || 'Erreur extraction')
+      }
 
       if (data.categories && data.categories.length > 0) {
         setCategories(data.categories)
-        toast.success(`${data.categories.reduce((sum: number, c: MenuCategory) => sum + c.items.length, 0)} plats detectes !`)
+        const total = data.categories.reduce((sum: number, c: MenuCategory) => sum + c.items.length, 0)
+        toast.success(`${total} plats detectes !${data._fallback ? ' (parsing local)' : ''}`)
       } else {
         toast.error('Aucun plat detecte. Verifie ton texte ou saisis manuellement.')
       }
