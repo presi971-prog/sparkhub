@@ -58,113 +58,113 @@ Analyse la photo fournie et rédige un prompt en anglais pour Nano Banana Pro. L
 - Demander de GARDER le sujet principal INTACT (forme, couleurs, textures, détails)
 - Donner des instructions TRÈS PRÉCISES et VISUELLEMENT DISTINCTES pour le décor
 
-RÈGLES PAR COMBINAISON TYPE × STYLE :
+CHAQUE COMBINAISON CI-DESSOUS A UNE SIGNATURE VISUELLE UNIQUE. Aucune ne doit ressembler à une autre. Suis les instructions EXACTEMENT.
 
-═══ RESTAURANT ═══
+═══ RESTAURANT (4 styles) ═══
 
-"Plat du jour" + restaurant :
-→ Le plat INTACT. ANALYSER : barquette/emballage → table en bois peinte de couleurs vives, fond mur de food truck ou comptoir de snack, lumière naturelle extérieure, ambiance déjeuner de rue caribéenne. Assiette dressée → nappe en tissu, couverts en inox, verre de vin, fond salle de restaurant flou avec lumière tamisée chaude. Le plat occupe 60% de l'image, vu d'en haut ou en légère plongée.
+[R1] "Plat du jour" + restaurant :
+→ Le plat INTACT. ANALYSER LA GAMME : barquette/emballage → table en bois peinte de couleurs vives (bleu, rouge, jaune créole), fond mur de food truck tagué, lumière naturelle extérieure de midi, ambiance déjeuner de rue caribéenne. Assiette dressée → nappe en tissu blanc, couverts argent, verre de vin rouge, fond salle flou avec lumière tamisée ambrée. Vue plongeante à 45°, le plat occupe 60% de l'image. SIGNATURE : serviette à carreaux madras + verre d'eau avec citron vert à côté.
 
-"Promotion" + restaurant :
-→ Le plat INTACT, centré. Fond : surface unie de couleur contrastante (rouge vif, jaune moutarde, ou bleu profond selon les couleurs du plat). Un seul spot lumineux puissant d'en haut à droite qui crée une ombre nette. Look publicité affiche de fast-food ou carte de menu. Aucun élément décoratif — juste le plat, le fond, la lumière.
+[R2] "Promotion" + restaurant :
+→ Le plat INTACT, centré. Fond : papier kraft froissé brun, le plat posé sur une planche à découper en bois rectangulaire. Un SEUL spot puissant en haut à droite, ombre portée nette à gauche. AUCUN autre élément. SIGNATURE : fond kraft + planche bois + ombre dure. Look menu de restaurant.
 
-"Nouveauté" + restaurant :
-→ Le plat INTACT. Fond : plan de travail en marbre blanc ou ardoise noire, vapeur/fumée légère qui s'élève autour du plat, éclairage latéral dramatique qui crée du volume. 2-3 ingrédients bruts (épices, herbes fraîches, piment) disposés artistiquement autour. Look "reveal" de nouveau menu.
+[R3] "Nouveauté" + restaurant :
+→ Le plat INTACT. Fond : plan de travail en ardoise noire mate. Vapeur/fumée visible qui monte du plat. Éclairage rasant latéral gauche orange-rouge qui crée des ombres longues. 2 piments scotch bonnet + branche de thym posés sur l'ardoise. SIGNATURE : ardoise noire + fumée + éclairage rouge latéral. Look "reveal chef".
 
-"Ambiance" + restaurant :
-→ Le lieu/la table INTACTS. Renforcer : lumière chaude orangée type fin d'après-midi, guirlandes lumineuses floues en arrière-plan, reflets dorés sur les surfaces. Si terrasse : ciel de coucher de soleil tropical, palmiers en silhouette. L'image doit donner envie de s'asseoir et commander.
+[R4] "Ambiance" + restaurant :
+→ Le lieu/la table INTACTS. Terrasse avec vue mer Caraïbes floue en arrière-plan. Guirlandes de lampions allumées au-dessus. Verre de ti-punch avec tranche de citron vert. Ciel de coucher de soleil orange-rose. SIGNATURE : lampions + ti-punch + coucher de soleil mer. Tons exclusivement chauds ambrés.
 
-═══ BEAUTÉ ═══
+═══ BEAUTÉ (4 styles) ═══
 
-"Promotion" + beauté :
-→ Le résultat (coiffure, maquillage, ongles) INTACT. Fond : couleur unie pastel (rose poudré, lilas, menthe) ou dégradé doux. Éclairage ring light frontal qui élimine les ombres et fait briller. Le sujet est centré, cadré serré. Look affiche de salon professionnel.
+[B1] "Promotion" + beauté :
+→ Le résultat (coiffure/maquillage/ongles) INTACT. Fond : couleur ROSE MILLENNIAL UNI (#F5C6D0), rien d'autre. Éclairage ring light frontal (reflet circulaire visible si portrait). Cadrage serré sur le résultat. SIGNATURE : fond rose uni + ring light. Look affiche de salon.
 
-"Avant / Après" + beauté :
-→ Le résultat INTACT. Fond : mur blanc ou gris très clair, éclairage studio uniforme des deux côtés. Netteté maximale, aucune distraction. Chaque détail du travail doit être visible (mèches, texture, couleur). L'image doit prouver le savoir-faire.
+[B2] "Avant / Après" + beauté :
+→ Le résultat INTACT. Fond : mur en BÉTON GRIS TEXTURÉ (pas blanc, pas lisse). 2 éclairages latéraux symétriques (gauche ET droite) créant un relief. Contraste fort, netteté maximale. Chaque mèche, texture, détail visible. SIGNATURE : béton gris + double éclairage latéral. Look portfolio pro.
 
-"Nouveauté" + beauté :
-→ Le résultat INTACT. Fond : mur végétal avec feuillage tropical, ou surface en terrazzo moderne. Éclairage naturel doux type fenêtre latérale. Des éléments tendance autour (fleurs fraîches, produits cosmétiques flous en arrière-plan). Look post Instagram d'influenceuse beauté.
+[B3] "Nouveauté" + beauté :
+→ Le résultat INTACT. Fond : mur de FEUILLES DE MONSTERA vert jungle. Sol en terrazzo rose et gris. Lumière douce de grande fenêtre en arc à droite. 1 fleur d'hibiscus rouge posée sur la surface. SIGNATURE : monstera + terrazzo + hibiscus. Look influenceuse beauté tropicale.
 
-"Ambiance" + beauté :
-→ Le salon/lieu INTACT. Renforcer : lumière tamisée chaleureuse, bougies, serviettes roulées, produits alignés. Tons crème, or et blanc. Reflets doux sur les miroirs. L'image doit évoquer le bien-être et la détente, donner envie de prendre rendez-vous.
+[B4] "Ambiance" + beauté :
+→ Le salon/lieu INTACT. MIROIR ROND DORÉ accroché au mur en arrière-plan. Comptoir en marbre blanc veiné gris. 3 serviettes blanches roulées. 1 bougie allumée dans un pot en verre. Vapeur légère. Tons crème et or exclusivement. SIGNATURE : miroir doré + marbre + bougie. Look spa luxe.
 
-═══ ARTISAN ═══
+═══ ARTISAN (3 styles) ═══
 
-"Promotion" + artisan :
-→ La réalisation INTACTE. Fond : mur béton brut ou brique, éclairage chantier puissant et direct. Un casque, un mètre ou un outil posé à côté pour l'échelle. Look "portfolio artisan pro". Image nette, contraste élevé.
+[A1] "Promotion" + artisan :
+→ La réalisation INTACTE. Fond : mur de BRIQUES ROUGES anciennes. Outils accrochés sur panneau perforé métallique (clé à molette, niveau). Éclairage halogène jaune de chantier venant du bas. CASQUE DE CHANTIER JAUNE posé au premier plan. SIGNATURE : briques rouges + panneau outils + casque jaune. Look artisan de confiance.
 
-"Avant / Après" + artisan :
-→ Le résultat fini INTACT. Fond : strictement neutre (blanc ou gris clair), éclairage uniforme sans ombre. Angle droit, cadrage architectural. Chaque ligne, joint et finition doit être net et visible. L'image montre la qualité du travail.
+[A2] "Avant / Après" + artisan :
+→ Le résultat INTACT. Fond : mur blanc STRICT, sol blanc, ZÉRO décor. Éclairage 360° uniforme sans aucune ombre (comme une photo d'expertise). Cadrage DROIT, lignes parfaitement horizontales et verticales. SIGNATURE : blanc total + zéro ombre + cadrage architectural. Look photo d'expertise immobilière.
 
-"Nouveauté" + artisan :
-→ La réalisation INTACTE. Fond : intérieur moderne et lumineux avec grandes baies vitrées, sol béton ciré ou parquet clair. Plantes vertes, lumière naturelle. L'image montre le résultat dans un cadre de vie désirable.
+[A3] "Nouveauté" + artisan :
+→ La réalisation INTACTE. Fond : intérieur de MAISON CRÉOLE rénovée. Persiennes en bois bleues entrouvertes laissant passer des rais de lumière. Sol en carreaux de ciment anciens restaurés. Plante verte en pot en terre cuite. SIGNATURE : persiennes bleues + carreaux ciment + rais de lumière. Look magazine déco Antilles.
 
-═══ COMMERCE ═══
+═══ COMMERCE (3 styles) ═══
 
-"Promotion" + commerce :
-→ Le produit INTACT, centré. Fond : couleur unie vive et contrastante (corail, turquoise, jaune citron). Éclairage studio avec reflet blanc sur le produit. Aucun élément autour sauf peut-être une ombre portée nette. Look e-commerce premium / pub Instagram.
+[C1] "Promotion" + commerce :
+→ Le produit INTACT, centré. Fond : couleur TURQUOISE VIF UNI (#00BCD4). Le produit posé sur un PIÉDESTAL BLANC CYLINDRIQUE. 1 seul spot d'en haut, ombre portée en cercle net sous le piédestal. AUCUN autre élément. SIGNATURE : turquoise + piédestal blanc + spot unique. Look vitrine Apple Store.
 
-"Nouveauté" + commerce :
-→ Le produit INTACT. Fond : surface texturée tendance (lin froissé, bois blanchi, béton ciré). 2-3 objets déco minimalistes autour (bougie, plante, livre). Lumière naturelle de fenêtre, ombres douces. Look flat lay lifestyle Instagram.
+[C2] "Nouveauté" + commerce :
+→ Le produit INTACT. Surface : DRAP DE LIN BLANC FROISSÉ. Mur blanc. 1 branche d'eucalyptus à côté du produit. Lumière de fenêtre à droite créant des OMBRES DE STORE VÉNITIEN en bandes sur le lin. SIGNATURE : lin froissé + eucalyptus + ombres de store. Look flat lay lifestyle.
 
-"Ambiance" + commerce :
-→ La boutique/étalage INTACT. Renforcer : éclairage chaleureux, spots sur les produits phares, reflets sur les vitrines. Tons chauds, ambiance "concept store" accueillant. L'image doit donner envie de pousser la porte.
+[C3] "Ambiance" + commerce :
+→ La boutique/étalage INTACTS. ÉTAGÈRE EN BOIS MASSIF foncé avec d'autres produits flous autour. Spot directionnel chaud sur le produit principal. Fond boisé. 1 petite plante succulente en pot cuivré. SIGNATURE : étagère bois foncé + spot chaud + pot cuivré. Look concept store cosy.
 
-═══ SPORT & BIEN-ÊTRE ═══
+═══ SPORT & BIEN-ÊTRE (5 styles) ═══
 
-"Promotion" + sport :
-→ Le sujet INTACT. Fond : salle de sport ou extérieur flou, éclairage latéral dramatique qui sculpte les muscles/la silhouette. Tons sombres (noir, gris) avec un accent de couleur vive (rouge, néon). Look affiche de coaching.
+[S1] "Promotion" + sport :
+→ Le sujet INTACT. Fond : NOIR CHARBON. Éclairage en contre-plongée à 45° venant du bas gauche, ombres dramatiques vers le haut. BANDE NÉON VERT FLUO (#39FF14) horizontale en bas de l'image. SIGNATURE : noir + éclairage bas + néon vert. Look affiche coaching premium.
 
-"Avant / Après" + sport :
-→ Le résultat INTACT. Fond : blanc pur ou gris neutre, éclairage uniforme. Posture visible de la tête aux pieds. Netteté maximale pour montrer la transformation physique.
+[S2] "Avant / Après" + sport :
+→ Le résultat INTACT. Fond : GRIS 18% PHOTOGRAPHIQUE (gris moyen neutre). 2 softbox à 45° (gauche et droite). Sujet de la tête aux pieds, contraste élevé, muscles/lignes sculptés par la lumière. SIGNATURE : gris moyen + double softbox + full body. Look transformation fitness.
 
-"Nouveauté" + sport :
-→ Le sujet INTACT. Fond : extérieur tropical (plage, parc, montagne de Guadeloupe). Lumière du matin dorée, ciel bleu. Énergie positive et fraîcheur. Look "nouveau cours en plein air".
+[S3] "Nouveauté" + sport :
+→ Le sujet INTACT. Fond : PLAGE DE SABLE DORÉ, mer turquoise, cocotiers. Lumière du matin 7h, ciel pastel rose-bleu. Tapis de yoga ou serviette de sport sur le sable. SIGNATURE : plage + ciel pastel + accessoire sport sur sable. Look cours en plein air tropical.
 
-"Performance" + sport :
-→ Le sujet en action INTACT. Fond : NOIR avec un seul spot latéral puissant. Particules de sueur/eau en suspension. Flou de mouvement sur les extrémités. Look Nike/Adidas — puissance brute, contraste extrême.
+[S4] "Performance" + sport :
+→ Le sujet en action INTACT. Fond : NOIR ABSOLU. 1 seul spot latéral BLANC puissant venant de gauche. Gouttelettes d'eau/sueur illuminées en suspension. Le reste dans le noir total. SIGNATURE : noir absolu + spot blanc latéral + gouttelettes. Look Nike "Just Do It".
 
-"Le lieu" + sport :
-→ La salle/le studio INTACT. Renforcer : sol brillant reflétant la lumière, néons colorés au plafond, équipements alignés impeccablement. Lumière froide bleutée + accents néon. Look salle premium qui motive.
+[S5] "Le lieu" + sport :
+→ La salle/studio INTACT. SOL ÉPOXY BRILLANT reflétant les équipements comme un miroir. BANDES LED ROUGES au ras du sol. Mur de miroirs au fond. Éclairage BLEU-BLANC froid au plafond. SIGNATURE : sol miroir + LED rouges + éclairage froid bleu. Look salle premium high-tech.
 
-═══ TOURISME & HÉBERGEMENT ═══
+═══ TOURISME & HÉBERGEMENT (4 styles) ═══
 
-"Promotion" + tourisme :
-→ Le lieu INTACT. Fond : ciel bleu tropical intense, mer turquoise visible. Lumière de midi, couleurs saturées. Palmiers et végétation luxuriante. Look carte postale / pub d'office de tourisme.
+[T1] "Promotion" + tourisme :
+→ Le lieu INTACT. VUE AÉRIENNE/DRONE légèrement en plongée. Mer turquoise en fond, végétation tropicale dense autour. Couleurs ULTRA-SATURÉES (+40% saturation). Ciel bleu intense sans nuage. SIGNATURE : vue drone + saturation extrême + mer turquoise. Look brochure office de tourisme.
 
-"Nouveauté" + tourisme :
-→ Le lieu INTACT. Fond : rénové et frais, couleurs vives des volets/portes, fleurs tropicales (hibiscus, bougainvillier). Lumière du matin. Look "viens découvrir ce nouveau spot".
+[T2] "Nouveauté" + tourisme :
+→ Le lieu INTACT. FAÇADE COLORÉE (jaune soleil ou bleu créole). Bougainvilliers en fleur rose vif grimpant sur la façade. Volets en bois ouverts. SCOOTER VINTAGE garé devant. Lumière de 10h du matin. SIGNATURE : façade colorée + bougainvilliers + scooter. Look "nouveau spot à découvrir".
 
-"Ambiance" + tourisme :
-→ Le lieu INTACT. Renforcer : golden hour (coucher de soleil orange/rose), hamac ou transats, boisson tropicale posée, mer calme en fond. Tons chauds dorés partout. L'image doit vendre du rêve et de la détente.
+[T3] "Ambiance" + tourisme :
+→ Le lieu INTACT. HAMAC entre deux cocotiers au premier plan. Mer calme en fond. Ciel de coucher de soleil ORANGE-ROSE-VIOLET dégradé. LAMPE TEMPÊTE allumée posée sur table basse en bois. Verre de planteur avec paille. SIGNATURE : hamac + coucher de soleil + lampe tempête. Look paradis tropical rêvé.
 
-"Le lieu" + tourisme :
-→ Le gîte/hôtel INTACT. Ciel remplacé par ciel bleu parfait avec quelques nuages blancs. Végétation tropicale renforcée (palmiers, cocotiers). Piscine bleu turquoise si présente. Lumière de photo immobilière de luxe — tout est net, lumineux, invitant.
+[T4] "Le lieu" + tourisme :
+→ Le gîte/hôtel INTACT. Ciel remplacé par BLEU PARFAIT avec exactement 3 nuages blancs. PISCINE turquoise au premier plan avec surface lisse comme un miroir. Chaises longues blanches alignées. Bougainvilliers roses sur un côté. Lumière de "magic hour" (juste après lever du soleil). SIGNATURE : piscine miroir + 3 nuages + chaises blanches. Look photo immobilière de luxe.
 
-═══ AUTO & MOTO ═══
+═══ AUTO & MOTO (3 styles) ═══
 
-"Promotion" + auto :
-→ Le véhicule/la réparation INTACT. Fond : sol de garage propre et brillant (époxy gris), mur d'outils rangés, éclairage néon blanc industriel. Look "garage pro de confiance".
+[V1] "Promotion" + auto :
+→ Le véhicule/la réparation INTACT. SOL ÉPOXY GRIS BRILLANT de garage. MUR avec PANNEAU PERFORÉ et outils FACOM rangés. NÉONS BLANCS INDUSTRIELS au plafond. Pont élévateur rouge visible en fond flou. SIGNATURE : époxy gris + panneau Facom + néons industriels. Look garage pro certifié.
 
-"Avant / Après" + auto :
-→ Le résultat INTACT. Fond : blanc pur ou parking propre. Éclairage uniforme. Le véhicule/la pièce occupe 80% du cadre. Chaque détail de la réparation/carrosserie doit être visible.
+[V2] "Avant / Après" + auto :
+→ Le résultat INTACT. PARKING ASPHALTE propre avec MARQUAGE AU SOL BLANC visible. Ciel COUVERT gris uniforme (lumière diffuse sans ombre). Cadrage 3/4 avant. 80% du cadre = le véhicule. SIGNATURE : asphalte + marquage blanc + ciel couvert. Look expertise carrosserie.
 
-"Nouveauté" + auto :
-→ Le véhicule INTACT. Fond : route côtière de Guadeloupe, palmiers, ciel bleu. Reflets sur la carrosserie. Lumière latérale du soleil. Look "essai routier" magazine auto.
+[V3] "Nouveauté" + auto :
+→ Le véhicule INTACT. ROUTE CÔTIÈRE de Guadeloupe avec muret en pierre. PALMIERS ROYAUX des deux côtés. Ciel bleu. Soleil à gauche créant des REFLETS sur la carrosserie et le pare-brise. SIGNATURE : route côtière + palmiers royaux + reflets carrosserie. Look essai routier magazine.
 
-═══ ÉVÉNEMENTIEL ═══
+═══ ÉVÉNEMENTIEL (4 styles) ═══
 
-"Promotion" + événementiel :
-→ Le sujet INTACT (DJ, décor, prestation). Fond : scène avec lumières de concert (rose, violet, bleu). Fumée/haze léger. Silhouettes de public floues. Look affiche de soirée.
+[E1] "Promotion" + événementiel :
+→ Le sujet INTACT. RIDEAU NOIR en fond. 3 PROJECTEURS PAR en contre-jour (rose, violet, bleu). FUMÉE de machine à brouillard dense au sol. Sol noir reflétant les lumières. SIGNATURE : rideau noir + 3 projecteurs colorés + fumée au sol. Look affiche de soirée.
 
-"Nouveauté" + événementiel :
-→ Le sujet INTACT. Fond : lieu de réception élégant, guirlandes lumineuses, tables dressées. Lumière chaude. Look "book de prestataire mariage".
+[E2] "Nouveauté" + événementiel :
+→ Le sujet INTACT. Salle de réception avec PLAFOND DRAPÉ BLANC. GUIRLANDES DE FAIRY LIGHTS descendant du plafond. Tables rondes avec CENTRES DE TABLE FLORAUX (roses et verdure). Lumière dorée chaude. SIGNATURE : drapé blanc + fairy lights + centres floraux. Look prestataire mariage.
 
-"Ambiance" + événementiel :
-→ La scène/le lieu INTACT. Renforcer : lumières multicolores, bokeh (cercles lumineux flous), fumée de machine. Fond sombre percé de faisceaux lumineux. L'image doit transmettre l'énergie de la fête.
+[E3] "Ambiance" + événementiel :
+→ La scène/le lieu INTACT. BOULE DISCO créant des POINTS LUMINEUX sur les murs et le sol. Éclairage dominant BLEU-VIOLET. Silhouettes floues de 4-5 danseurs en fond. Légère fumée. SIGNATURE : boule disco + points lumineux + silhouettes + bleu-violet. Look soirée dansante.
 
-"Performance" + événementiel :
-→ Le sujet en action INTACT (DJ aux platines, danseur, animateur). Fond : NOIR avec projecteurs colorés en contre-jour. Silhouettes du public bras levés. Fumée et lasers. Look photo de festival.
+[E4] "Performance" + événementiel :
+→ Le sujet en action INTACT. Fond : NOIR TOTAL. Spot blanc unique d'en haut sur le sujet. LASERS VERTS ET ROUGES partant de derrière le sujet en éventail. MAINS DU PUBLIC en silhouette noire en bas de l'image. SIGNATURE : noir + lasers + mains du public. Look photo de festival.
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
