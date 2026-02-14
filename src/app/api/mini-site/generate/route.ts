@@ -116,8 +116,8 @@ export async function POST(req: Request) {
         address,
       }),
 
-      // 2. Image de couverture via fal.ai
-      generateHeroImage(siteTheme.aiPrompt, business_name, business_type, hero_prompt),
+      // 2. Image de couverture : Gemini optimise le prompt → fal.ai genere
+      generateHeroImage(siteTheme.aiPrompt, business_name, business_type, hero_prompt, siteTheme.id),
     ])
 
     const ai_description = textResult.status === 'fulfilled' ? textResult.value : ''
@@ -194,25 +194,87 @@ ${address ? `Adresse : ${address}` : ''}`
   return data.choices?.[0]?.message?.content?.trim() || ''
 }
 
+async function optimizeImagePrompt(
+  userDescription: string,
+  businessType: string,
+  themeId: string,
+): Promise<string> {
+  const systemPrompt = `Tu es un expert en prompts pour la generation d'images par IA (Stable Diffusion, Flux).
+Ton role : transformer la description d'un utilisateur en un prompt optimise en anglais pour generer une image REALISTE de haute qualite.
+
+Regles strictes :
+- Ecris UNIQUEMENT le prompt en anglais, rien d'autre (pas d'explication, pas de guillemets)
+- Le prompt doit faire 1 a 3 phrases maximum
+- Style OBLIGATOIRE : photographie realiste professionnelle (PAS illustration, PAS dessin, PAS cartoon)
+- Inclure des mots-cles techniques : "professional photography", "realistic", "DSLR", "natural lighting" ou "golden hour" selon le contexte
+- Decrire precisement la scene, les elements, les couleurs, la lumiere
+- Contexte : commerce local en Guadeloupe (Caraibes francaises)
+- JAMAIS de texte, lettres, mots ou logos dans l'image : ajouter "no text, no letters, no words, no logos, no watermark"
+- Adapter l'ambiance au theme visuel : ${themeId}`
+
+  const userPrompt = `Type de commerce : ${businessType || 'commerce local'}
+Description de l'utilisateur : ${userDescription}`
+
+  try {
+    const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KIE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
+          { role: 'user', content: [{ type: 'text', text: userPrompt }] },
+        ],
+        stream: false,
+        include_thoughts: false,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('Gemini prompt optimization error:', response.status)
+      return ''
+    }
+
+    const data = await response.json()
+    return data.choices?.[0]?.message?.content?.trim() || ''
+  } catch (error) {
+    console.error('Gemini prompt optimization failed:', error)
+    return ''
+  }
+}
+
 async function generateHeroImage(
   themePrompt: string,
   businessName: string,
   businessType: string,
   heroPrompt?: string,
+  themeId?: string,
 ): Promise<string | null> {
-  // Si le pro a decrit ce qu'il veut, on construit un prompt personnalise
-  // Sinon on utilise le prompt generique du theme
   let prompt: string
 
   if (heroPrompt && heroPrompt.trim().length > 5) {
-    // Prompt personnalise : description du pro + contexte metier + style photo
-    prompt = `Professional wide-angle photograph for a ${businessType || 'local business'} website banner: ${heroPrompt.trim()}. Caribbean Guadeloupe atmosphere, cinematic lighting, vibrant colors, high quality commercial photography, no text no letters no words no logos`
+    // Etape 1 : Gemini optimise la description du pro en prompt technique anglais
+    const optimizedPrompt = await optimizeImagePrompt(
+      heroPrompt.trim(),
+      businessType,
+      themeId || 'tropical_creole',
+    )
+
+    if (optimizedPrompt) {
+      prompt = optimizedPrompt
+    } else {
+      // Fallback si Gemini echoue
+      prompt = `Professional realistic DSLR photograph for a ${businessType || 'local business'} website: ${heroPrompt.trim()}. Caribbean Guadeloupe, natural lighting, vivid colors, no text no letters no words no logos`
+    }
   } else {
-    // Fallback : prompt generique du theme
-    prompt = `${themePrompt}, for a ${businessType || 'local business'} in Guadeloupe, professional commercial photography`
+    // Pas de description du pro → prompt generique du theme
+    prompt = `${themePrompt}, realistic professional DSLR photograph, natural lighting, for a ${businessType || 'local business'} in Caribbean Guadeloupe`
   }
 
-  const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
+  // Etape 2 : fal.ai flux/dev genere l'image (meilleure qualite que schnell)
+  const response = await fetch('https://fal.run/fal-ai/flux/dev', {
     method: 'POST',
     headers: {
       'Authorization': `Key ${FAL_KEY}`,
@@ -222,7 +284,8 @@ async function generateHeroImage(
       prompt,
       image_size: 'landscape_16_9',
       num_images: 1,
-      num_inference_steps: 4,
+      num_inference_steps: 28,
+      guidance_scale: 3.5,
     }),
   })
 
