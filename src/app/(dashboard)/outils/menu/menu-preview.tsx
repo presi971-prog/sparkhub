@@ -1,10 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Download, ArrowLeft, RefreshCw, Loader2 } from 'lucide-react'
+import { Download, ArrowLeft, RefreshCw, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { type MenuTemplate } from './menu-templates'
-import { type MenuTheme, EXPORT_FORMATS, type ExportFormat } from './menu-themes'
+import { type MenuTheme, EXPORT_FORMATS } from './menu-themes'
 
 interface MenuItem {
   name: string
@@ -36,6 +36,106 @@ interface MenuPreviewProps {
   onReset: () => void
 }
 
+// Estimation des hauteurs en pixels pour la pagination
+function estimateHeights(isCompact: boolean, isBanner: boolean) {
+  if (isBanner) {
+    return { fullHeader: 70, miniHeader: 40, footer: 40, pageIndicator: 25, categoryTitle: 35, itemLine: 20, divider: 15, themeDecoration: 20 }
+  }
+  if (isCompact) {
+    return { fullHeader: 120, miniHeader: 60, footer: 60, pageIndicator: 30, categoryTitle: 55, itemLine: 30, divider: 20, themeDecoration: 25 }
+  }
+  // Portrait / carre
+  return { fullHeader: 200, miniHeader: 80, footer: 80, pageIndicator: 35, categoryTitle: 70, itemLine: 45, divider: 25, themeDecoration: 30 }
+}
+
+// Decoupe les categories en pages selon la hauteur disponible
+function splitIntoPages(
+  categories: MenuCategory[],
+  formatHeight: number | 'auto',
+  isCompact: boolean,
+  isBanner: boolean,
+  hasTheme: boolean,
+  hasLogo: boolean,
+  hasSlogan: boolean,
+): MenuCategory[][] {
+  if (formatHeight === 'auto') return [categories]
+
+  const h = estimateHeights(isCompact, isBanner)
+  const totalHeight = formatHeight as number
+
+  const pages: MenuCategory[][] = []
+  let currentPage: MenuCategory[] = []
+  let isFirstPage = true
+
+  // Hauteur du header (complet page 1, mini pages suivantes)
+  const getHeaderHeight = (first: boolean) => {
+    let hh = first ? h.fullHeader : h.miniHeader
+    if (first && hasLogo) hh += 80
+    if (first && hasSlogan) hh += 30
+    if (hasTheme) hh += h.themeDecoration
+    return hh
+  }
+
+  let usedHeight = getHeaderHeight(true) + h.footer + h.pageIndicator
+
+  for (let catIdx = 0; catIdx < categories.length; catIdx++) {
+    const cat = categories[catIdx]
+    // Hauteur de cette categorie
+    let catHeight = h.categoryTitle
+    if (hasTheme && catIdx > 0 && currentPage.length > 0) catHeight += h.divider
+    catHeight += cat.items.length * h.itemLine
+
+    // Si la categorie entiere tient dans la page courante
+    if (usedHeight + catHeight <= totalHeight) {
+      currentPage.push(cat)
+      usedHeight += catHeight
+    } else {
+      // Essayer de splitter la categorie item par item
+      // D'abord, si la page courante a du contenu, la finaliser
+      if (currentPage.length > 0) {
+        pages.push(currentPage)
+        currentPage = []
+        isFirstPage = false
+        usedHeight = getHeaderHeight(false) + h.footer + h.pageIndicator
+      }
+
+      // Placer les items de cette categorie sur une ou plusieurs pages
+      let remainingItems = [...cat.items]
+
+      while (remainingItems.length > 0) {
+        const availableForItems = totalHeight - usedHeight - h.categoryTitle - (hasTheme && currentPage.length > 0 ? h.divider : 0)
+        const maxItems = Math.max(1, Math.floor(availableForItems / h.itemLine))
+
+        const pageItems = remainingItems.slice(0, maxItems)
+        remainingItems = remainingItems.slice(maxItems)
+
+        const suffix = remainingItems.length > 0 || pages.some(p => p.some(c => c.name === cat.name))
+          ? ` (suite)` : ''
+        const pageCatName = pages.some(p => p.some(c => c.name === cat.name || c.name === cat.name + ' (suite)'))
+          ? cat.name + suffix : cat.name
+
+        currentPage.push({ name: pageCatName, items: pageItems })
+
+        if (remainingItems.length > 0) {
+          pages.push(currentPage)
+          currentPage = []
+          isFirstPage = false
+          usedHeight = getHeaderHeight(false) + h.footer + h.pageIndicator
+        } else {
+          usedHeight += h.categoryTitle + pageItems.length * h.itemLine
+        }
+      }
+    }
+  }
+
+  // Derniere page
+  if (currentPage.length > 0) {
+    pages.push(currentPage)
+  }
+
+  return pages.length > 0 ? pages : [categories]
+}
+
 export function MenuPreview({
   categories,
   restaurantInfo,
@@ -48,6 +148,7 @@ export function MenuPreview({
   const menuRef = useRef<HTMLDivElement>(null)
   const [selectedFormat, setSelectedFormat] = useState<string>('a4')
   const [isExporting, setIsExporting] = useState(false)
+  const [currentPageIdx, setCurrentPageIdx] = useState(0)
 
   const format = EXPORT_FORMATS.find(f => f.id === selectedFormat) || EXPORT_FORMATS[0]
   const hasTheme = theme.id !== 'aucun'
@@ -55,6 +156,35 @@ export function MenuPreview({
   const headerBg = theme.headerBgOverride || template.headerBg
   const isLightHeader = template.id === 'moderne_epure' && !hasTheme
   const isSocialFormat = selectedFormat !== 'a4'
+
+  const isCompact = ['facebook_post', 'facebook_cover', 'linkedin_post', 'x_post'].includes(selectedFormat)
+  const isBanner = selectedFormat === 'facebook_cover'
+
+  // Pagination : decouper en pages si format a hauteur fixe
+  const pages = useMemo(() => {
+    const result = splitIntoPages(
+      categories,
+      format.height,
+      isCompact,
+      isBanner,
+      hasTheme,
+      !!restaurantInfo.logoUrl,
+      !!restaurantInfo.slogan,
+    )
+    return result
+  }, [categories, format.height, isCompact, isBanner, hasTheme, restaurantInfo.logoUrl, restaurantInfo.slogan])
+
+  const totalPages = pages.length
+  const isMultiPage = totalPages > 1 && isSocialFormat
+
+  // Reset page quand on change de format
+  const handleFormatChange = (formatId: string) => {
+    setSelectedFormat(formatId)
+    setCurrentPageIdx(0)
+  }
+
+  const currentCategories = pages[currentPageIdx] || categories
+  const isFirstPage = currentPageIdx === 0
 
   const formatPrice = (price: number | null) => {
     if (price === null || price === undefined) return ''
@@ -66,27 +196,84 @@ export function MenuPreview({
     window.print()
   }
 
-  // Export image via html2canvas
+  // Export une seule page image
+  const exportSinglePage = async (pageDiv: HTMLElement, pageNum: number) => {
+    const html2canvas = (await import('html2canvas-pro')).default
+    const canvas = await html2canvas(pageDiv, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: template.bgColor,
+      width: format.width,
+      height: format.height === 'auto' ? undefined : format.height,
+    })
+
+    const link = document.createElement('a')
+    const baseName = restaurantInfo.name?.replace(/\s+/g, '-').toLowerCase() || 'restaurant'
+    const suffix = totalPages > 1 ? `-${pageNum}` : ''
+    link.download = `menu-${baseName}-${format.id}${suffix}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+  }
+
+  // Export image : page courante
   const handleExportImage = async () => {
     if (!menuRef.current) return
     setIsExporting(true)
-
     try {
-      const html2canvas = (await import('html2canvas-pro')).default
-      const canvas = await html2canvas(menuRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: template.bgColor,
-        width: format.width,
-        height: format.height === 'auto' ? undefined : format.height,
-      })
-
-      const link = document.createElement('a')
-      link.download = `menu-${restaurantInfo.name?.replace(/\s+/g, '-').toLowerCase() || 'restaurant'}-${format.id}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
+      await exportSinglePage(menuRef.current, currentPageIdx + 1)
     } catch (error) {
       console.error('Export error:', error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  // Export toutes les pages (carousel)
+  const handleExportAll = async () => {
+    setIsExporting(true)
+    try {
+      const html2canvas = (await import('html2canvas-pro')).default
+      const baseName = restaurantInfo.name?.replace(/\s+/g, '-').toLowerCase() || 'restaurant'
+
+      // Creer un container hors-ecran pour rendre chaque page
+      const offscreen = document.createElement('div')
+      offscreen.style.position = 'fixed'
+      offscreen.style.left = '-9999px'
+      offscreen.style.top = '0'
+      document.body.appendChild(offscreen)
+
+      for (let i = 0; i < totalPages; i++) {
+        // Cloner le template du menu avec les categories de cette page
+        const pageDiv = document.createElement('div')
+        offscreen.appendChild(pageDiv)
+
+        // On va temporairement changer la page affichee et capturer
+        setCurrentPageIdx(i)
+        // Attendre le re-render
+        await new Promise(r => setTimeout(r, 200))
+
+        if (menuRef.current) {
+          const canvas = await html2canvas(menuRef.current, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: template.bgColor,
+            width: format.width,
+            height: format.height === 'auto' ? undefined : format.height,
+          })
+
+          const link = document.createElement('a')
+          link.download = `menu-${baseName}-${format.id}-${i + 1}.png`
+          link.href = canvas.toDataURL('image/png')
+          link.click()
+
+          // Petit delai entre les telechargements
+          await new Promise(r => setTimeout(r, 500))
+        }
+      }
+
+      document.body.removeChild(offscreen)
+    } catch (error) {
+      console.error('Export all error:', error)
     } finally {
       setIsExporting(false)
     }
@@ -97,7 +284,6 @@ export function MenuPreview({
     if (selectedFormat === 'a4') {
       return { maxWidth: '210mm' }
     }
-    // Pour les formats sociaux : on affiche a taille reduite
     const maxScreenWidth = 540
     const scale = Math.min(1, maxScreenWidth / format.width)
     const w = format.width * scale
@@ -130,13 +316,11 @@ export function MenuPreview({
       backgroundImage: theme.bgPattern || undefined,
       transform: `scale(${scale})`,
       transformOrigin: 'top left',
+      overflow: 'hidden',
     }
   }
 
-  // Ajuster les tailles de police pour formats compacts
-  // Formats paysage = texte compact (peu de hauteur)
-  const isCompact = ['facebook_post', 'facebook_cover', 'linkedin_post', 'x_post'].includes(selectedFormat)
-  const isBanner = selectedFormat === 'facebook_cover'
+  // Tailles de police adaptees
   const titleSize = isBanner ? 'text-xl' : isCompact ? 'text-2xl' : 'text-4xl'
   const catSize = isBanner ? 'text-sm' : isCompact ? 'text-lg' : 'text-2xl'
   const itemNameSize = isBanner ? 'text-xs' : isCompact ? 'text-sm' : 'text-lg'
@@ -148,6 +332,10 @@ export function MenuPreview({
   const spacing = isBanner ? 'space-y-1' : isCompact ? 'space-y-3' : 'space-y-8'
   const itemSpacing = isBanner ? 'space-y-0' : isCompact ? 'space-y-1' : 'space-y-3'
   const itemPadY = isBanner ? 'py-0' : isCompact ? 'py-1' : 'py-2'
+
+  // Header compact pour pages 2+
+  const miniHeaderPadY = isBanner ? 'py-1' : isCompact ? 'py-2' : 'py-4'
+  const miniTitleSize = isBanner ? 'text-base' : isCompact ? 'text-lg' : 'text-2xl'
 
   return (
     <div className="space-y-6">
@@ -170,13 +358,13 @@ export function MenuPreview({
 
       {/* Selecteur de format */}
       <div className="print:hidden">
-        <p className="text-sm font-medium mb-2">Format d'export</p>
+        <p className="text-sm font-medium mb-2">Format d&apos;export</p>
         <div className="flex flex-wrap gap-2">
           {EXPORT_FORMATS.map((f) => (
             <button
               key={f.id}
               type="button"
-              onClick={() => setSelectedFormat(f.id)}
+              onClick={() => handleFormatChange(f.id)}
               className={`px-3 py-2 rounded-lg border text-center transition-all ${
                 selectedFormat === f.id
                   ? 'border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20'
@@ -188,6 +376,51 @@ export function MenuPreview({
           ))}
         </div>
       </div>
+
+      {/* Indicateur multi-pages */}
+      {isMultiPage && (
+        <div className="print:hidden text-center space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Menu long : {totalPages} images (carousel)
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPageIdx(Math.max(0, currentPageIdx - 1))}
+              disabled={currentPageIdx === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">
+              Page {currentPageIdx + 1} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPageIdx(Math.min(totalPages - 1, currentPageIdx + 1))}
+              disabled={currentPageIdx === totalPages - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          {/* Points de navigation */}
+          <div className="flex justify-center gap-1.5">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setCurrentPageIdx(i)}
+                className={`h-2 rounded-full transition-all ${
+                  i === currentPageIdx
+                    ? 'w-6 bg-orange-500'
+                    : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Zone imprimable / capturable */}
       <div className="flex justify-center">
@@ -205,44 +438,64 @@ export function MenuPreview({
             )}
 
             {/* Header du menu */}
-            <div
-              className={`${padX} ${headerPadY} text-center`}
-              style={{ background: headerBg }}
-            >
-              {restaurantInfo.logoUrl && (
-                <img
-                  src={restaurantInfo.logoUrl}
-                  alt="Logo"
-                  className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-2"
-                  style={{ borderColor: accentColor }}
-                  crossOrigin="anonymous"
-                />
-              )}
-              <h1
-                className={`${titleSize} font-bold tracking-wide`}
-                style={{
-                  fontFamily: template.titleFont,
-                  color: isLightHeader ? template.textColor : '#FFFFFF',
-                  textShadow: isLightHeader ? 'none' : '0 2px 4px rgba(0,0,0,0.3)',
-                }}
+            {isFirstPage || !isSocialFormat ? (
+              // Header complet (page 1 ou A4)
+              <div
+                className={`${padX} ${headerPadY} text-center`}
+                style={{ background: headerBg }}
               >
-                {restaurantInfo.name}
-              </h1>
-              {restaurantInfo.slogan && (
-                <p
-                  className="mt-2 text-lg italic opacity-90"
+                {restaurantInfo.logoUrl && (
+                  <img
+                    src={restaurantInfo.logoUrl}
+                    alt="Logo"
+                    className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-2"
+                    style={{ borderColor: accentColor }}
+                    crossOrigin="anonymous"
+                  />
+                )}
+                <h1
+                  className={`${titleSize} font-bold tracking-wide`}
                   style={{
-                    color: isLightHeader ? template.accentColor : '#FFFFFF',
+                    fontFamily: template.titleFont,
+                    color: isLightHeader ? template.textColor : '#FFFFFF',
+                    textShadow: isLightHeader ? 'none' : '0 2px 4px rgba(0,0,0,0.3)',
                   }}
                 >
-                  {restaurantInfo.slogan}
-                </p>
-              )}
-            </div>
+                  {restaurantInfo.name}
+                </h1>
+                {restaurantInfo.slogan && (
+                  <p
+                    className="mt-2 text-lg italic opacity-90"
+                    style={{
+                      color: isLightHeader ? template.accentColor : '#FFFFFF',
+                    }}
+                  >
+                    {restaurantInfo.slogan}
+                  </p>
+                )}
+              </div>
+            ) : (
+              // Header compact (pages 2+ en social)
+              <div
+                className={`${padX} ${miniHeaderPadY} text-center`}
+                style={{ background: headerBg }}
+              >
+                <h1
+                  className={`${miniTitleSize} font-bold tracking-wide`}
+                  style={{
+                    fontFamily: template.titleFont,
+                    color: isLightHeader ? template.textColor : '#FFFFFF',
+                    textShadow: isLightHeader ? 'none' : '0 2px 4px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {restaurantInfo.name}
+                </h1>
+              </div>
+            )}
 
             {/* Corps du menu */}
-            <div className={`${padX} ${padY} ${spacing}`}>
-              {categories.map((category, catIdx) => (
+            <div className={`${padX} ${padY} ${spacing}`} style={{ flex: 1 }}>
+              {currentCategories.map((category, catIdx) => (
                 <div key={catIdx} className="break-inside-avoid">
                   {/* Divider theme entre categories */}
                   {hasTheme && theme.divider && catIdx > 0 && (
@@ -310,6 +563,15 @@ export function MenuPreview({
               ))}
             </div>
 
+            {/* Indicateur de page dans l'image */}
+            {isMultiPage && (
+              <div className="text-center py-1" style={{ opacity: 0.5 }}>
+                <span className="text-xs" style={{ color: template.textColor }}>
+                  {currentPageIdx + 1} / {totalPages}
+                </span>
+              </div>
+            )}
+
             {/* Footer */}
             <div
               className={`${padX} py-6 text-center text-sm space-y-1`}
@@ -322,42 +584,77 @@ export function MenuPreview({
               {hasTheme && theme.footerDecoration && (
                 <p className="text-lg mb-2">{theme.footerDecoration}</p>
               )}
-              {restaurantInfo.address && <p>{restaurantInfo.address}</p>}
-              {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
-              {!isCompact && restaurantInfo.hours && (
-                <p className="whitespace-pre-line">{restaurantInfo.hours}</p>
+              {/* Footer complet page 1 / A4, reduit pages suivantes */}
+              {isFirstPage || !isSocialFormat ? (
+                <>
+                  {restaurantInfo.address && <p>{restaurantInfo.address}</p>}
+                  {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
+                  {!isCompact && restaurantInfo.hours && (
+                    <p className="whitespace-pre-line">{restaurantInfo.hours}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
+                </>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bouton export (masque a l'impression) */}
-      <div className="text-center print:hidden">
+      {/* Boutons export (masque a l'impression) */}
+      <div className="text-center print:hidden space-y-3">
         {selectedFormat === 'a4' ? (
           <Button onClick={handlePrint} size="lg" className="gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
             <Download className="h-5 w-5" />
             Telecharger en PDF
           </Button>
         ) : (
-          <Button
-            onClick={handleExportImage}
-            disabled={isExporting}
-            size="lg"
-            className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Export en cours...
-              </>
-            ) : (
-              <>
-                <Download className="h-5 w-5" />
-                Telecharger pour {format.name}
-              </>
+          <div className="flex flex-col items-center gap-3">
+            <Button
+              onClick={handleExportImage}
+              disabled={isExporting}
+              size="lg"
+              className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Export en cours...
+                </>
+              ) : (
+                <>
+                  <Download className="h-5 w-5" />
+                  {isMultiPage
+                    ? `Telecharger page ${currentPageIdx + 1}`
+                    : `Telecharger pour ${format.name}`}
+                </>
+              )}
+            </Button>
+
+            {isMultiPage && (
+              <Button
+                onClick={handleExportAll}
+                disabled={isExporting}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Export de {totalPages} images...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-5 w-5" />
+                    Telecharger les {totalPages} images (carousel)
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
+          </div>
         )}
       </div>
 
