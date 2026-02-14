@@ -236,21 +236,21 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     console.error('Analyze AI error:', error)
     const name = businessName || 'chez nous'
 
-    // Fallback : prompt générique compositing + légende basique
+    // Fallback : prompt générique transformation + légende basique
     const fallbackPrompts: Record<string, string> = {
-      restaurant: 'Using the provided image, keep the dish exactly as it is and place it on an elegant wooden table with warm restaurant lighting in the background.',
-      artisan: 'Using the provided image, keep the work/result exactly as it is and place it on a clean, neutral background with bright uniform lighting.',
-      beaute: 'Using the provided image, keep the subject exactly as it is and enhance the environment with soft, flattering studio lighting and a clean backdrop.',
-      commerce: 'Using the provided image, keep the product exactly as it is and place it in a professional advertising setting with clean studio lighting.',
-      sport: 'Using the provided image, keep the subject exactly as it is and place them in a dynamic sports environment with dramatic lighting and energy.',
-      tourisme: 'Using the provided image, keep the place exactly as it is and enhance with tropical paradise atmosphere, blue sky, and warm natural light.',
-      auto: 'Using the provided image, keep the vehicle/work exactly as it is and place it in a clean professional garage or showroom setting.',
-      evenementiel: 'Using the provided image, keep the subject exactly as it is and place in a festive, vibrant event atmosphere with dramatic lighting.',
+      restaurant: 'Using the provided image, keep the dish recognizable. Place it on an elegant plate on a cinematic restaurant counter with ingredients exploding in slow motion around it. Dramatic food advertising lighting.',
+      artisan: 'Using the provided image, keep the work/result recognizable. Present it in a luxury home decor magazine setting with perfect lighting, plants, and professional interior photography.',
+      beaute: 'Using the provided image, keep ONLY the person\'s face. REMOVE their current clothes. DRESS them in a trendy influencer outfit. Place in an Instagram photo studio with ring light and colorful backdrop.',
+      commerce: 'Using the provided image, keep the product recognizable. Make it float in levitation against a vivid solid color background with perfect studio lighting and light rays, like a Nike/Apple ad campaign.',
+      sport: 'Using the provided image, keep ONLY the person\'s face. REMOVE their current clothes. DRESS them in a futuristic sport suit with glowing seams. Add blue-electric energy aura, dark stormy background, lightning bolts. Marvel movie poster style.',
+      tourisme: 'Using the provided image, keep the place recognizable. Transform into an unreal paradise: crystal turquoise water, tropical fish visible, pure white sand, rainbow, colorful birds in flight. More beautiful than reality.',
+      auto: 'Using the provided image, keep the vehicle recognizable. Place on a night road with blurred city lights, luminous headlight trails, road sparks. Fast & Furious cinematic look.',
+      evenementiel: 'Using the provided image, keep ONLY the person\'s face. REMOVE their current clothes. DRESS them in a flashy stage outfit with LED lights. Place on a massive Tomorrowland stage with 50,000 people, fireworks, smoke and lasers.',
     }
 
     return {
-      editPrompt: (fallbackPrompts[businessType] || 'Using the provided image, keep the main subject intact and place it in a clean, professional environment with warm lighting.') +
-        '\n\nCRITICAL: Keep the MAIN SUBJECT exactly as it is — same shape, colors, textures. Only change the background and environment around it.',
+      editPrompt: (fallbackPrompts[businessType] || 'Using the provided image, keep the main subject recognizable and project it into a stunning, cinematic environment. Be bold and dramatic.') +
+        '\n\nCRITICAL RULES: For PEOPLE: keep ONLY the FACE, CHANGE clothes and accessories. For OBJECTS/PLACES: keep subject recognizable, transform everything else. Be BOLD and CINEMATIC.',
       caption: `${message || 'Venez découvrir ce qu\'on vous a préparé !'}\n\nOn vous attend ${name} 🌴\n\n📍 Guadeloupe`,
       hashtags: '#guadeloupe #971 #gwada #antilles #caribbean #local #decouverte',
     }

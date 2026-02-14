@@ -166,6 +166,15 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     }
   }, [businessType])
 
+  // Nettoyer la 2e photo quand on quitte Avant/Après
+  useEffect(() => {
+    if (!isAvantApres) {
+      setImageUrl2('')
+      setImagePreview2(null)
+      if (fileInputRef2.current) fileInputRef2.current.value = ''
+    }
+  }, [isAvantApres])
+
   // Polling fal.ai côté client
   const pollEnhancedImage = useCallback(async (statusUrl: string, responseUrl: string, attempt = 0) => {
     if (attempt >= MAX_POLLS) {
@@ -548,6 +557,42 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         </CardContent>
       </Card>
 
+      {/* Type de business */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">1. Ton activité</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {BUSINESS_TYPES.map((b) => {
+              const Icon = b.icon
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setBusinessType(b.id)}
+                  className={`p-4 rounded-lg border text-left transition-all ${
+                    businessType === b.id
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
+                      : 'border-border hover:border-blue-500/50'
+                  }`}
+                >
+                  <Icon className={`h-6 w-6 mb-1 ${businessType === b.id ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                  <div className="font-medium">{b.label}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          <Input
+            placeholder="Nom de ton commerce (optionnel)"
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            maxLength={50}
+          />
+        </CardContent>
+      </Card>
+
       {/* Guide par profil */}
       {currentGuide && (
         <Card className="border-purple-500/20 bg-purple-500/5">
@@ -565,12 +610,38 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         </Card>
       )}
 
+      {/* Style du post */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">2. Type de post</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-2">
+            {availableStyles.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setPostStyle(s.id)}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  postStyle === s.id
+                    ? 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20'
+                    : 'border-border hover:border-purple-500/50'
+                }`}
+              >
+                <div className="font-medium">{s.label}</div>
+                <div className="text-sm text-muted-foreground">{s.desc}</div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Upload photo */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            {isAvantApres ? '1. Ta photo AVANT' : '1. Ta photo'}
+            {isAvantApres ? '3. Ta photo AVANT' : '3. Ta photo'}
           </CardTitle>
           <CardDescription>
             {currentGuide?.photo || 'Photo de ton plat, produit, réalisation ou lieu'}
@@ -706,68 +777,6 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
           </CardContent>
         </Card>
       )}
-
-      {/* Type de business */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">2. Ton activité</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {BUSINESS_TYPES.map((b) => {
-              const Icon = b.icon
-              return (
-                <button
-                  key={b.id}
-                  type="button"
-                  onClick={() => setBusinessType(b.id)}
-                  className={`p-4 rounded-lg border text-left transition-all ${
-                    businessType === b.id
-                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
-                      : 'border-border hover:border-blue-500/50'
-                  }`}
-                >
-                  <Icon className={`h-6 w-6 mb-1 ${businessType === b.id ? 'text-blue-500' : 'text-muted-foreground'}`} />
-                  <div className="font-medium">{b.label}</div>
-                </button>
-              )
-            })}
-          </div>
-
-          <Input
-            placeholder="Nom de ton commerce (optionnel)"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            maxLength={50}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Style du post */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">3. Type de post</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-2">
-            {availableStyles.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setPostStyle(s.id)}
-                className={`p-3 rounded-lg border text-left transition-all ${
-                  postStyle === s.id
-                    ? 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20'
-                    : 'border-border hover:border-purple-500/50'
-                }`}
-              >
-                <div className="font-medium">{s.label}</div>
-                <div className="text-sm text-muted-foreground">{s.desc}</div>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Message */}
       <Card>
