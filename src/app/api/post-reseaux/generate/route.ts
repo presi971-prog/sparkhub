@@ -54,41 +54,117 @@ MISSION 1 — PROMPT DE COMPOSITING PHOTO (en anglais)
 Analyse la photo fournie et rédige un prompt en anglais pour Nano Banana Pro. Le prompt doit :
 - Commencer par "Using the provided image"
 - Identifier clairement le SUJET PRINCIPAL (le plat, le produit, le travail réalisé, la coiffure, etc.)
+- ANALYSER le niveau de gamme du sujet (street food ou gastronomique ? salon de quartier ou luxe ? chantier basique ou rénovation haut de gamme ?) et ADAPTER le décor à ce niveau. Un décor trop luxueux pour un produit simple fait faux.
 - Demander de GARDER le sujet principal INTACT (forme, couleurs, textures, détails)
-- Décrire précisément l'ENVIRONNEMENT/DÉCOR à GÉNÉRER autour du sujet selon l'objectif du post
+- Donner des instructions TRÈS PRÉCISES et VISUELLEMENT DISTINCTES pour le décor
 
-RÈGLE FONDAMENTALE — ADAPTER LE DÉCOR AU PRODUIT :
-Avant de choisir le décor, ANALYSE le niveau/gamme du sujet sur la photo :
-- Un plat en barquette/emballage → décor snack, food truck, table de rue, ambiance street food (PAS restaurant chic)
-- Un plat servi dans une belle assiette → décor restaurant élégant, nappe, couverts
-- Un produit basique/quotidien → décor simple, propre, accessible (PAS vitrine de luxe)
-- Un produit haut de gamme → décor premium, éclairage soigné
-- Un chantier simple (peinture, plomberie) → décor réaliste de maison normale (PAS villa de luxe)
-- Une rénovation haut de gamme → décor architectural moderne
-Le décor doit TOUJOURS correspondre au niveau réel du produit. Un décor trop luxueux pour un produit simple fait faux et ridicule.
+RÈGLES PAR COMBINAISON TYPE × STYLE :
 
-RÈGLES PAR STYLE DE POST :
+═══ RESTAURANT ═══
 
-"Plat du jour" (restaurant) :
-→ Le plat reste IDENTIQUE. Adapter le décor au type de plat : barquette → table simple, fond snack coloré ; assiette dressée → nappe, couverts, fond restaurant. Le plat doit être le héros de l'image.
+"Plat du jour" + restaurant :
+→ Le plat INTACT. ANALYSER : barquette/emballage → table en bois peinte de couleurs vives, fond mur de food truck ou comptoir de snack, lumière naturelle extérieure, ambiance déjeuner de rue caribéenne. Assiette dressée → nappe en tissu, couverts en inox, verre de vin, fond salle de restaurant flou avec lumière tamisée chaude. Le plat occupe 60% de l'image, vu d'en haut ou en légère plongée.
 
-"Promotion" (tous types) :
-→ Le produit/sujet reste IDENTIQUE. Générer : un fond publicitaire professionnel, lumineux et propre. Éclairage studio, fond uni ou dégradé doux. L'image doit ressembler à une pub pro.
+"Promotion" + restaurant :
+→ Le plat INTACT, centré. Fond : surface unie de couleur contrastante (rouge vif, jaune moutarde, ou bleu profond selon les couleurs du plat). Un seul spot lumineux puissant d'en haut à droite qui crée une ombre nette. Look publicité affiche de fast-food ou carte de menu. Aucun élément décoratif — juste le plat, le fond, la lumière.
 
-"Avant / Après" (artisan, beauté, auto, sport) :
-→ Le travail/résultat reste IDENTIQUE. Générer : un fond épuré et neutre (blanc, gris clair) qui met toute l'attention sur le résultat. Éclairage net et uniforme. Clarté maximale.
+"Nouveauté" + restaurant :
+→ Le plat INTACT. Fond : plan de travail en marbre blanc ou ardoise noire, vapeur/fumée légère qui s'élève autour du plat, éclairage latéral dramatique qui crée du volume. 2-3 ingrédients bruts (épices, herbes fraîches, piment) disposés artistiquement autour. Look "reveal" de nouveau menu.
 
-"Nouveauté" (tous types) :
-→ Le produit/sujet reste IDENTIQUE. Générer : un décor moderne et frais, couleurs vives, feeling de révélation/lancement. Peut inclure des éléments décoratifs contemporains (plantes, textures).
+"Ambiance" + restaurant :
+→ Le lieu/la table INTACTS. Renforcer : lumière chaude orangée type fin d'après-midi, guirlandes lumineuses floues en arrière-plan, reflets dorés sur les surfaces. Si terrasse : ciel de coucher de soleil tropical, palmiers en silhouette. L'image doit donner envie de s'asseoir et commander.
 
-"Ambiance" (restaurant, beauté, commerce, tourisme, événementiel) :
-→ Le lieu/sujet reste IDENTIQUE mais sublimé. Générer : lumière dorée/golden hour, atmosphère chaleureuse et accueillante, renforcer l'ambiance existante. Peut ajouter des éléments d'ambiance (bougies, lumières tamisées).
+═══ BEAUTÉ ═══
 
-"Performance" (sport, événementiel) :
-→ Le sujet en action reste IDENTIQUE. Générer : un fond dynamique avec effet de mouvement, éclairage dramatique, lignes d'énergie. L'image doit transmettre la puissance et le dynamisme. Fond sombre avec spots lumineux ou fond extérieur sportif.
+"Promotion" + beauté :
+→ Le résultat (coiffure, maquillage, ongles) INTACT. Fond : couleur unie pastel (rose poudré, lilas, menthe) ou dégradé doux. Éclairage ring light frontal qui élimine les ombres et fait briller. Le sujet est centré, cadré serré. Look affiche de salon professionnel.
 
-"Le lieu" (sport, tourisme) :
-→ L'espace/lieu reste IDENTIQUE mais sublimé. Générer : lumière naturelle magnifiée, ciel bleu ou coucher de soleil, végétation tropicale renforcée. Pour un gîte/hôtel : ambiance paradisiaque. Pour une salle de sport : ambiance motivante avec éclairage pro.
+"Avant / Après" + beauté :
+→ Le résultat INTACT. Fond : mur blanc ou gris très clair, éclairage studio uniforme des deux côtés. Netteté maximale, aucune distraction. Chaque détail du travail doit être visible (mèches, texture, couleur). L'image doit prouver le savoir-faire.
+
+"Nouveauté" + beauté :
+→ Le résultat INTACT. Fond : mur végétal avec feuillage tropical, ou surface en terrazzo moderne. Éclairage naturel doux type fenêtre latérale. Des éléments tendance autour (fleurs fraîches, produits cosmétiques flous en arrière-plan). Look post Instagram d'influenceuse beauté.
+
+"Ambiance" + beauté :
+→ Le salon/lieu INTACT. Renforcer : lumière tamisée chaleureuse, bougies, serviettes roulées, produits alignés. Tons crème, or et blanc. Reflets doux sur les miroirs. L'image doit évoquer le bien-être et la détente, donner envie de prendre rendez-vous.
+
+═══ ARTISAN ═══
+
+"Promotion" + artisan :
+→ La réalisation INTACTE. Fond : mur béton brut ou brique, éclairage chantier puissant et direct. Un casque, un mètre ou un outil posé à côté pour l'échelle. Look "portfolio artisan pro". Image nette, contraste élevé.
+
+"Avant / Après" + artisan :
+→ Le résultat fini INTACT. Fond : strictement neutre (blanc ou gris clair), éclairage uniforme sans ombre. Angle droit, cadrage architectural. Chaque ligne, joint et finition doit être net et visible. L'image montre la qualité du travail.
+
+"Nouveauté" + artisan :
+→ La réalisation INTACTE. Fond : intérieur moderne et lumineux avec grandes baies vitrées, sol béton ciré ou parquet clair. Plantes vertes, lumière naturelle. L'image montre le résultat dans un cadre de vie désirable.
+
+═══ COMMERCE ═══
+
+"Promotion" + commerce :
+→ Le produit INTACT, centré. Fond : couleur unie vive et contrastante (corail, turquoise, jaune citron). Éclairage studio avec reflet blanc sur le produit. Aucun élément autour sauf peut-être une ombre portée nette. Look e-commerce premium / pub Instagram.
+
+"Nouveauté" + commerce :
+→ Le produit INTACT. Fond : surface texturée tendance (lin froissé, bois blanchi, béton ciré). 2-3 objets déco minimalistes autour (bougie, plante, livre). Lumière naturelle de fenêtre, ombres douces. Look flat lay lifestyle Instagram.
+
+"Ambiance" + commerce :
+→ La boutique/étalage INTACT. Renforcer : éclairage chaleureux, spots sur les produits phares, reflets sur les vitrines. Tons chauds, ambiance "concept store" accueillant. L'image doit donner envie de pousser la porte.
+
+═══ SPORT & BIEN-ÊTRE ═══
+
+"Promotion" + sport :
+→ Le sujet INTACT. Fond : salle de sport ou extérieur flou, éclairage latéral dramatique qui sculpte les muscles/la silhouette. Tons sombres (noir, gris) avec un accent de couleur vive (rouge, néon). Look affiche de coaching.
+
+"Avant / Après" + sport :
+→ Le résultat INTACT. Fond : blanc pur ou gris neutre, éclairage uniforme. Posture visible de la tête aux pieds. Netteté maximale pour montrer la transformation physique.
+
+"Nouveauté" + sport :
+→ Le sujet INTACT. Fond : extérieur tropical (plage, parc, montagne de Guadeloupe). Lumière du matin dorée, ciel bleu. Énergie positive et fraîcheur. Look "nouveau cours en plein air".
+
+"Performance" + sport :
+→ Le sujet en action INTACT. Fond : NOIR avec un seul spot latéral puissant. Particules de sueur/eau en suspension. Flou de mouvement sur les extrémités. Look Nike/Adidas — puissance brute, contraste extrême.
+
+"Le lieu" + sport :
+→ La salle/le studio INTACT. Renforcer : sol brillant reflétant la lumière, néons colorés au plafond, équipements alignés impeccablement. Lumière froide bleutée + accents néon. Look salle premium qui motive.
+
+═══ TOURISME & HÉBERGEMENT ═══
+
+"Promotion" + tourisme :
+→ Le lieu INTACT. Fond : ciel bleu tropical intense, mer turquoise visible. Lumière de midi, couleurs saturées. Palmiers et végétation luxuriante. Look carte postale / pub d'office de tourisme.
+
+"Nouveauté" + tourisme :
+→ Le lieu INTACT. Fond : rénové et frais, couleurs vives des volets/portes, fleurs tropicales (hibiscus, bougainvillier). Lumière du matin. Look "viens découvrir ce nouveau spot".
+
+"Ambiance" + tourisme :
+→ Le lieu INTACT. Renforcer : golden hour (coucher de soleil orange/rose), hamac ou transats, boisson tropicale posée, mer calme en fond. Tons chauds dorés partout. L'image doit vendre du rêve et de la détente.
+
+"Le lieu" + tourisme :
+→ Le gîte/hôtel INTACT. Ciel remplacé par ciel bleu parfait avec quelques nuages blancs. Végétation tropicale renforcée (palmiers, cocotiers). Piscine bleu turquoise si présente. Lumière de photo immobilière de luxe — tout est net, lumineux, invitant.
+
+═══ AUTO & MOTO ═══
+
+"Promotion" + auto :
+→ Le véhicule/la réparation INTACT. Fond : sol de garage propre et brillant (époxy gris), mur d'outils rangés, éclairage néon blanc industriel. Look "garage pro de confiance".
+
+"Avant / Après" + auto :
+→ Le résultat INTACT. Fond : blanc pur ou parking propre. Éclairage uniforme. Le véhicule/la pièce occupe 80% du cadre. Chaque détail de la réparation/carrosserie doit être visible.
+
+"Nouveauté" + auto :
+→ Le véhicule INTACT. Fond : route côtière de Guadeloupe, palmiers, ciel bleu. Reflets sur la carrosserie. Lumière latérale du soleil. Look "essai routier" magazine auto.
+
+═══ ÉVÉNEMENTIEL ═══
+
+"Promotion" + événementiel :
+→ Le sujet INTACT (DJ, décor, prestation). Fond : scène avec lumières de concert (rose, violet, bleu). Fumée/haze léger. Silhouettes de public floues. Look affiche de soirée.
+
+"Nouveauté" + événementiel :
+→ Le sujet INTACT. Fond : lieu de réception élégant, guirlandes lumineuses, tables dressées. Lumière chaude. Look "book de prestataire mariage".
+
+"Ambiance" + événementiel :
+→ La scène/le lieu INTACT. Renforcer : lumières multicolores, bokeh (cercles lumineux flous), fumée de machine. Fond sombre percé de faisceaux lumineux. L'image doit transmettre l'énergie de la fête.
+
+"Performance" + événementiel :
+→ Le sujet en action INTACT (DJ aux platines, danseur, animateur). Fond : NOIR avec projecteurs colorés en contre-jour. Silhouettes du public bras levés. Fumée et lasers. Look photo de festival.
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
