@@ -7,18 +7,24 @@ const FAL_KEY = process.env.FAL_KEY!
 const CREDITS_COST = 3
 
 const TYPE_LABELS: Record<string, string> = {
-  restaurant: 'Restaurant / Snack',
-  artisan: 'Artisan / BTP',
-  beaute: 'Salon de beauté / Coiffure',
-  commerce: 'Commerce / Boutique',
+  restaurant: 'Restaurant / Snack / Food truck',
+  artisan: 'Artisan / BTP / Rénovation',
+  beaute: 'Salon de beauté / Coiffure / Esthétique',
+  commerce: 'Commerce / Boutique / Magasin',
+  sport: 'Sport / Bien-être / Coach / Salle de sport / Yoga / Spa',
+  tourisme: 'Tourisme / Hébergement / Hôtel / Gîte / Location / Excursions',
+  auto: 'Auto / Moto / Garage / Mécanicien / Carrossier',
+  evenementiel: 'Événementiel / DJ / Photographe / Animateur / Décorateur',
 }
 
 const STYLE_LABELS: Record<string, string> = {
   plat_du_jour: 'Plat du jour — mise en valeur d\'un plat ou produit phare',
   promo: 'Promotion — offre spéciale, réduction, événement',
-  avant_apres: 'Avant / Après — montrer le résultat d\'un travail',
+  avant_apres: 'Avant / Après — montrer le résultat d\'un travail ou une transformation',
   nouveau: 'Nouveauté — nouveau produit, service ou réalisation',
   ambiance: 'Ambiance — montrer l\'atmosphère du lieu',
+  performance: 'Performance — action en mouvement, énergie et dynamisme',
+  lieu: 'Le lieu — l\'espace mis en valeur avec une ambiance qui donne envie',
 }
 
 // Agent IA unique : analyse la photo + contexte pro → génère prompt compositing + légende + hashtags
@@ -59,14 +65,20 @@ RÈGLES PAR STYLE DE POST :
 "Promotion" (tous types) :
 → Le produit/sujet reste IDENTIQUE. Générer : un fond publicitaire professionnel, lumineux et propre. Éclairage studio, fond uni ou dégradé doux. L'image doit ressembler à une pub pro.
 
-"Avant / Après" (artisan, beauté) :
+"Avant / Après" (artisan, beauté, auto, sport) :
 → Le travail/résultat reste IDENTIQUE. Générer : un fond épuré et neutre (blanc, gris clair) qui met toute l'attention sur le résultat. Éclairage net et uniforme. Clarté maximale.
 
 "Nouveauté" (tous types) :
 → Le produit/sujet reste IDENTIQUE. Générer : un décor moderne et frais, couleurs vives, feeling de révélation/lancement. Peut inclure des éléments décoratifs contemporains (plantes, textures).
 
-"Ambiance" (restaurant, beauté, commerce) :
+"Ambiance" (restaurant, beauté, commerce, tourisme, événementiel) :
 → Le lieu/sujet reste IDENTIQUE mais sublimé. Générer : lumière dorée/golden hour, atmosphère chaleureuse et accueillante, renforcer l'ambiance existante. Peut ajouter des éléments d'ambiance (bougies, lumières tamisées).
+
+"Performance" (sport, événementiel) :
+→ Le sujet en action reste IDENTIQUE. Générer : un fond dynamique avec effet de mouvement, éclairage dramatique, lignes d'énergie. L'image doit transmettre la puissance et le dynamisme. Fond sombre avec spots lumineux ou fond extérieur sportif.
+
+"Le lieu" (sport, tourisme) :
+→ L'espace/lieu reste IDENTIQUE mais sublimé. Générer : lumière naturelle magnifiée, ciel bleu ou coucher de soleil, végétation tropicale renforcée. Pour un gîte/hôtel : ambiance paradisiaque. Pour une salle de sport : ambiance motivante avec éclairage pro.
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
@@ -133,6 +145,10 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
       artisan: 'Using the provided image, keep the work/result exactly as it is and place it on a clean, neutral background with bright uniform lighting.',
       beaute: 'Using the provided image, keep the subject exactly as it is and enhance the environment with soft, flattering studio lighting and a clean backdrop.',
       commerce: 'Using the provided image, keep the product exactly as it is and place it in a professional advertising setting with clean studio lighting.',
+      sport: 'Using the provided image, keep the subject exactly as it is and place them in a dynamic sports environment with dramatic lighting and energy.',
+      tourisme: 'Using the provided image, keep the place exactly as it is and enhance with tropical paradise atmosphere, blue sky, and warm natural light.',
+      auto: 'Using the provided image, keep the vehicle/work exactly as it is and place it in a clean professional garage or showroom setting.',
+      evenementiel: 'Using the provided image, keep the subject exactly as it is and place in a festive, vibrant event atmosphere with dramatic lighting.',
     }
 
     return {

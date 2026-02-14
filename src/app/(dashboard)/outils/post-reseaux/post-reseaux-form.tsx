@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Upload, Loader2, Coins, AlertCircle, Download, RefreshCw,
   Instagram, UtensilsCrossed, Wrench, Scissors, ShoppingBag,
+  Dumbbell, Palmtree, Car, Music,
   Sparkles, Copy, Check, Hash, ImageIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,14 +22,20 @@ const BUSINESS_TYPES = [
   { id: 'artisan', label: 'Artisan', icon: Wrench, placeholder: 'Ex: Rénovation salle de bain terminée' },
   { id: 'beaute', label: 'Beauté', icon: Scissors, placeholder: 'Ex: Tresses africaines, nouveau style' },
   { id: 'commerce', label: 'Commerce', icon: ShoppingBag, placeholder: 'Ex: Nouvelle collection été -20%' },
+  { id: 'sport', label: 'Sport & Bien-être', icon: Dumbbell, placeholder: 'Ex: Cours de yoga en plein air' },
+  { id: 'tourisme', label: 'Tourisme', icon: Palmtree, placeholder: 'Ex: Gîte vue mer, 3 chambres' },
+  { id: 'auto', label: 'Auto & Moto', icon: Car, placeholder: 'Ex: Révision complète climatisation' },
+  { id: 'evenementiel', label: 'Événementiel', icon: Music, placeholder: 'Ex: DJ disponible pour mariages' },
 ]
 
 const POST_STYLES = [
   { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Ton plat mis en scène sur une belle table avec décor restaurant', forTypes: ['restaurant'] },
-  { id: 'promo', label: 'Promotion', desc: 'Ton produit sur un fond pro type pub, lumineux et attractif', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
-  { id: 'avant_apres', label: 'Avant / Après', desc: 'Ton travail sur un fond épuré qui met en valeur le résultat', forTypes: ['artisan', 'beaute'] },
-  { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit dans un décor moderne et frais, effet lancement', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce'] },
-  { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu sublimé avec lumière chaleureuse et ambiance accueillante', forTypes: ['restaurant', 'beaute', 'commerce'] },
+  { id: 'promo', label: 'Promotion', desc: 'Ton produit sur un fond pro type pub, lumineux et attractif', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'avant_apres', label: 'Avant / Après', desc: 'Ton travail sur un fond épuré qui met en valeur le résultat', forTypes: ['artisan', 'beaute', 'auto', 'sport'] },
+  { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit dans un décor moderne et frais, effet lancement', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu sublimé avec lumière chaleureuse et ambiance accueillante', forTypes: ['restaurant', 'beaute', 'commerce', 'tourisme', 'evenementiel'] },
+  { id: 'performance', label: 'Performance', desc: 'Action en mouvement, énergie et dynamisme', forTypes: ['sport', 'evenementiel'] },
+  { id: 'lieu', label: 'Le lieu', desc: 'Ton espace mis en valeur avec une ambiance qui donne envie', forTypes: ['sport', 'tourisme'] },
 ]
 
 interface PostReseauxFormProps {
