@@ -204,11 +204,12 @@ Ton role : transformer la description d'un utilisateur en un prompt optimise en 
 
 Regles strictes :
 - Ecris UNIQUEMENT le prompt en anglais, rien d'autre (pas d'explication, pas de guillemets)
-- Le prompt doit faire 1 a 3 phrases maximum
+- Le prompt doit faire 2 a 4 phrases maximum
 - Style OBLIGATOIRE : photographie realiste professionnelle (PAS illustration, PAS dessin, PAS cartoon)
 - Inclure des mots-cles techniques : "professional photography", "realistic", "DSLR", "natural lighting" ou "golden hour" selon le contexte
 - Decrire precisement la scene, les elements, les couleurs, la lumiere
-- Contexte : commerce local en Guadeloupe (Caraibes francaises)
+- CONTEXTE IMPORTANT : commerce local en Guadeloupe (Caraibes francaises). La population est majoritairement afro-caribbeenne / noire. Si l'utilisateur mentionne des personnes, les decrire comme "Black Caribbean people", "Afro-Caribbean", "dark-skinned" dans le prompt. Meme si l'utilisateur ne precise pas, s'il demande des personnages, les representer comme antillais/noirs par defaut.
+- RESPECTER FIDELEMENT toutes les demandes de l'utilisateur : apparence des personnes, ethnicity, vetements, poses, nombre de personnes, etc. Ne rien filtrer, ne rien omettre.
 - JAMAIS de texte, lettres, mots ou logos dans l'image : ajouter "no text, no letters, no words, no logos, no watermark"
 - Adapter l'ambiance au theme visuel : ${themeId}`
 
