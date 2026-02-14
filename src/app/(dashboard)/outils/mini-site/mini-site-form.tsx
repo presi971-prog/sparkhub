@@ -62,6 +62,7 @@ interface MiniSiteData {
   font_style: string
   services_layout: string
   sections_order: string[]
+  hero_prompt: string
   ai_description: string
   hero_image_url: string
   slug: string
@@ -123,6 +124,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
         font_style: existingSite.font_style || 'moderne',
         services_layout: existingSite.services_layout || 'cards',
         sections_order: existingSite.sections_order || DEFAULT_SECTIONS_ORDER,
+        hero_prompt: existingSite.hero_prompt || '',
         ai_description: existingSite.ai_description || '',
         hero_image_url: existingSite.hero_image_url || '',
         slug: existingSite.slug || '',
@@ -150,6 +152,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
       font_style: 'moderne',
       services_layout: 'cards',
       sections_order: DEFAULT_SECTIONS_ORDER,
+      hero_prompt: '',
       ai_description: '',
       hero_image_url: '',
       slug: '',
@@ -262,6 +265,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
           services: data.services.filter(s => s.name.trim()),
           address: data.address,
           theme: data.theme,
+          hero_prompt: data.hero_prompt,
           is_update: isEditing,
         }),
       })
@@ -735,6 +739,59 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                   </button>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Image de couverture — description personnalisee */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Mon image de couverture</CardTitle>
+              <CardDescription>
+                Decris l&apos;ambiance que tu veux pour la grande image en haut de ton site.
+                L&apos;IA generera une image unique a partir de ta description.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                value={data.hero_prompt}
+                onChange={e => update({ hero_prompt: e.target.value })}
+                placeholder="Ex: Un comptoir colore avec des bokits et des accras, une ambiance chaleureuse de snack antillais avec des palmiers en arriere-plan, lumiere doree de fin de journee..."
+                rows={3}
+              />
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Inspiration rapide — clique pour ajouter :</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'Plage tropicale',
+                    'Marche creole',
+                    'Cuisine antillaise',
+                    'Ambiance festive',
+                    'Coucher de soleil',
+                    'Palmiers et cocotiers',
+                    'Rue coloree',
+                    'Terrasse en bord de mer',
+                    'Ambiance zen et nature',
+                    'Neons et nuit',
+                    'Produits frais locaux',
+                    'Devanture de boutique',
+                  ].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        const separator = data.hero_prompt.trim() ? ', ' : ''
+                        update({ hero_prompt: data.hero_prompt.trim() + separator + tag.toLowerCase() })
+                      }}
+                      className="px-2.5 py-1 text-xs rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Si tu laisses vide, l&apos;IA choisira une image selon l&apos;ambiance visuelle selectionnee.
+              </p>
             </CardContent>
           </Card>
 

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
     }
 
-    const { business_name, business_type, slogan, services, address, theme, is_update } = await req.json()
+    const { business_name, business_type, slogan, services, address, theme, hero_prompt, is_update } = await req.json()
 
     if (!business_name || !business_name.trim()) {
       return NextResponse.json({ error: 'Le nom du commerce est requis' }, { status: 400 })
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       }),
 
       // 2. Image de couverture via fal.ai
-      generateHeroImage(siteTheme.aiPrompt, business_name, business_type),
+      generateHeroImage(siteTheme.aiPrompt, business_name, business_type, hero_prompt),
     ])
 
     const ai_description = textResult.status === 'fulfilled' ? textResult.value : ''
@@ -198,8 +198,19 @@ async function generateHeroImage(
   themePrompt: string,
   businessName: string,
   businessType: string,
+  heroPrompt?: string,
 ): Promise<string | null> {
-  const prompt = `${themePrompt}, representing a ${businessType || 'local business'} called "${businessName}" in Guadeloupe`
+  // Si le pro a decrit ce qu'il veut, on construit un prompt personnalise
+  // Sinon on utilise le prompt generique du theme
+  let prompt: string
+
+  if (heroPrompt && heroPrompt.trim().length > 5) {
+    // Prompt personnalise : description du pro + contexte metier + style photo
+    prompt = `Professional wide-angle photograph for a ${businessType || 'local business'} website banner: ${heroPrompt.trim()}. Caribbean Guadeloupe atmosphere, cinematic lighting, vibrant colors, high quality commercial photography, no text no letters no words no logos`
+  } else {
+    // Fallback : prompt generique du theme
+    prompt = `${themePrompt}, for a ${businessType || 'local business'} in Guadeloupe, professional commercial photography`
+  }
 
   const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
     method: 'POST',
