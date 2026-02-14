@@ -170,6 +170,7 @@ export const TOOLS_CONFIG = {
 
   // Business
   menu_generator: { credits: 3, name: 'Menu / Carte', category: 'business' },
+  mini_site_vitrine: { credits: 150, name: 'Mini Site Vitrine', category: 'business' },
 }
 
 // Niveaux de réputation (gamification sans crédits gratuits)

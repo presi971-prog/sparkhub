@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
   Instagram, Video, Camera, ShoppingBag, UtensilsCrossed,
-  Coins, ArrowRight, Lock, Sparkles, MessageCircle
+  Coins, ArrowRight, Lock, Sparkles, MessageCircle, Globe
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -53,6 +53,18 @@ const tools = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-500/10',
     borderColor: 'border-orange-500/30',
+  },
+  {
+    id: 'mini-site',
+    name: 'Mini Site Vitrine',
+    description: 'Cree un vrai site web pour ton commerce. L\'IA ecrit le texte et genere l\'image.',
+    icon: Globe,
+    credits: TOOLS_CONFIG.mini_site_vitrine.credits,
+    href: '/outils/mini-site',
+    available: true,
+    color: 'text-cyan-500',
+    bgColor: 'bg-cyan-500/10',
+    borderColor: 'border-cyan-500/30',
   },
   {
     id: 'photo-pub-pro',
