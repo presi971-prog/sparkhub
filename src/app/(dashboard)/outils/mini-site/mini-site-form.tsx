@@ -73,6 +73,7 @@ interface MiniSiteFormProps {
   credits: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   existingSite: any | null
+  isAdmin?: boolean
 }
 
 function slugify(text: string): string {
@@ -85,7 +86,7 @@ function slugify(text: string): string {
     .slice(0, 60)
 }
 
-export function MiniSiteForm({ userId, credits: initialCredits, existingSite }: MiniSiteFormProps) {
+export function MiniSiteForm({ userId, credits: initialCredits, existingSite, isAdmin }: MiniSiteFormProps) {
   const isEditing = !!existingSite
 
   const [step, setStep] = useState<Step>('commerce')
@@ -244,7 +245,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite }: 
       return
     }
 
-    if (!isEditing && credits < CREDITS_COST) {
+    if (!isEditing && !isAdmin && credits < CREDITS_COST) {
       toast.error(`Credits insuffisants. ${CREDITS_COST} credits requis.`)
       return
     }
@@ -385,7 +386,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite }: 
             <span className="text-sm font-medium">{credits} credits</span>
           </div>
           <span className="text-xs text-muted-foreground">
-            {isEditing ? 'Modifications gratuites' : `${CREDITS_COST} credits pour generer`}
+            {isAdmin ? 'Admin — gratuit' : isEditing ? 'Modifications gratuites' : `${CREDITS_COST} credits pour generer`}
           </span>
         </CardContent>
       </Card>
@@ -970,7 +971,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite }: 
                 <Button
                   size="lg"
                   onClick={handleGenerate}
-                  disabled={isGenerating || (!isEditing && credits < CREDITS_COST)}
+                  disabled={isGenerating || (!isEditing && !isAdmin && credits < CREDITS_COST)}
                   className="w-full"
                 >
                   {isGenerating ? (
@@ -981,11 +982,11 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite }: 
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generer mon site ({CREDITS_COST} credits)
+                      {isAdmin ? 'Generer mon site (gratuit)' : `Generer mon site (${CREDITS_COST} credits)`}
                     </>
                   )}
                 </Button>
-                {!isEditing && credits < CREDITS_COST && (
+                {!isEditing && !isAdmin && credits < CREDITS_COST && (
                   <p className="text-xs text-red-500">
                     Credits insuffisants. Tu as {credits} credits, il en faut {CREDITS_COST}.
                   </p>

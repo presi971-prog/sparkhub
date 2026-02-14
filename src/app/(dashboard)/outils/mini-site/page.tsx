@@ -16,18 +16,13 @@ export default async function MiniSitePage() {
     redirect('/connexion')
   }
 
-  const { data: creditData } = await supabase
-    .from('credits')
-    .select('balance')
-    .eq('profile_id', user.id)
-    .single()
+  const [creditResult, profileResult, siteResult] = await Promise.all([
+    supabase.from('credits').select('balance').eq('profile_id', user.id).single(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase.from('mini_sites').select('*').eq('profile_id', user.id).single(),
+  ])
 
-  // Charger le site existant s'il y en a un
-  const { data: existingSite } = await supabase
-    .from('mini_sites')
-    .select('*')
-    .eq('profile_id', user.id)
-    .single()
+  const isAdmin = profileResult.data?.role === 'admin'
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -40,8 +35,9 @@ export default async function MiniSitePage() {
 
       <MiniSiteForm
         userId={user.id}
-        credits={creditData?.balance || 0}
-        existingSite={existingSite}
+        credits={creditResult.data?.balance || 0}
+        existingSite={siteResult.data}
+        isAdmin={isAdmin}
       />
     </div>
   )

@@ -38,10 +38,19 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Verification et deduction credits (sauf si c'est une mise a jour)
+    // Verifier si l'utilisateur est admin (bypass credits)
+    const { data: profile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+
+    // Verification et deduction credits (sauf admin ou mise a jour)
     let creditsRemaining: number | null = null
 
-    if (!is_update) {
+    if (!is_update && !isAdmin) {
       const { data: creditData } = await adminSupabase
         .from('credits')
         .select('balance, lifetime_spent')
