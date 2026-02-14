@@ -167,6 +167,9 @@ export const TOOLS_CONFIG = {
   video_veo3_5s: { credits: 60, name: 'Vidéo Veo 3 5s', category: 'video' },
   video_sora_pro_5s: { credits: 80, name: 'Vidéo Sora Pro 5s', category: 'video' },
   video_veo3_audio_5s: { credits: 100, name: 'Vidéo Veo 3 + Audio 5s', category: 'video' },
+
+  // Business
+  menu_generator: { credits: 3, name: 'Menu / Carte', category: 'business' },
 }
 
 // Niveaux de réputation (gamification sans crédits gratuits)

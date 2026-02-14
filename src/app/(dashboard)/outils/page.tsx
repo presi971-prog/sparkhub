@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Instagram, Video, Camera, ShoppingBag,
+  Instagram, Video, Camera, ShoppingBag, UtensilsCrossed,
   Coins, ArrowRight, Lock, Sparkles, MessageCircle
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,6 +41,18 @@ const tools = [
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
     borderColor: 'border-purple-500/30',
+  },
+  {
+    id: 'menu',
+    name: 'Menu / Carte',
+    description: 'Cree ton menu pro en PDF. Photo ou saisie manuelle, l\'IA fait le reste.',
+    icon: UtensilsCrossed,
+    credits: TOOLS_CONFIG.menu_generator.credits,
+    href: '/outils/menu',
+    available: true,
+    color: 'text-orange-500',
+    bgColor: 'bg-orange-500/10',
+    borderColor: 'border-orange-500/30',
   },
   {
     id: 'photo-pub-pro',
