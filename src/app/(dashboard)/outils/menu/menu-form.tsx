@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { MENU_TEMPLATES, type MenuTemplate } from './menu-templates'
+import { MENU_THEMES, getTheme } from './menu-themes'
 import { MenuPreview } from './menu-preview'
 
 const CREDITS_COST = 3
@@ -43,7 +44,7 @@ interface MenuFormProps {
   credits: number
 }
 
-type Step = 'mode' | 'items' | 'info' | 'template' | 'preview'
+type Step = 'mode' | 'items' | 'info' | 'template' | 'theme' | 'preview'
 
 export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
   const [step, setStep] = useState<Step>('mode')
@@ -57,6 +58,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     name: '', slogan: '', address: '', phone: '', hours: '', logoUrl: '',
   })
   const [selectedTemplate, setSelectedTemplate] = useState<string>('tropical_elegant')
+  const [selectedTheme, setSelectedTheme] = useState<string>('aucun')
   const [credits, setCredits] = useState(initialCredits)
   const [creditsRemaining, setCreditsRemaining] = useState(initialCredits)
   const [isUploading, setIsUploading] = useState(false)
@@ -290,6 +292,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     setCategories(DEFAULT_CATEGORIES.map(name => ({ name, items: [] })))
     setRestaurantInfo({ name: '', slogan: '', address: '', phone: '', hours: '', logoUrl: '' })
     setSelectedTemplate('tropical_elegant')
+    setSelectedTheme('aucun')
     setShowPreview(false)
     setPhotoPreview(null)
     setPasteText('')
@@ -299,6 +302,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
 
   const totalItems = categories.reduce((sum, cat) => sum + cat.items.filter(i => i.name.trim()).length, 0)
   const template = MENU_TEMPLATES.find(t => t.id === selectedTemplate) || MENU_TEMPLATES[0]
+  const theme = getTheme(selectedTheme)
 
   // Etape 5 : Apercu
   if (showPreview) {
@@ -307,8 +311,9 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
         categories={categories.map(cat => ({ ...cat, items: cat.items.filter(i => i.name.trim()) })).filter(cat => cat.items.length > 0)}
         restaurantInfo={restaurantInfo}
         template={template}
+        theme={theme}
         creditsRemaining={creditsRemaining}
-        onBack={() => { setShowPreview(false); setStep('template') }}
+        onBack={() => { setShowPreview(false); setStep('theme') }}
         onReset={handleReset}
       />
     )
@@ -318,10 +323,10 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     <div className="space-y-6">
       {/* Barre de progression */}
       <div className="flex items-center gap-2 print:hidden">
-        {['mode', 'items', 'info', 'template'].map((s, i) => (
+        {['mode', 'items', 'info', 'template', 'theme'].map((s, i) => (
           <div key={s} className="flex items-center gap-2 flex-1">
             <div className={`h-2 flex-1 rounded-full transition-colors ${
-              ['mode', 'items', 'info', 'template'].indexOf(step) >= i
+              ['mode', 'items', 'info', 'template', 'theme'].indexOf(step) >= i
                 ? 'bg-orange-500'
                 : 'bg-muted'
             }`} />
@@ -734,6 +739,59 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setStep('info')} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Retour
+            </Button>
+            <Button
+              onClick={() => setStep('theme')}
+              className="flex-1 gap-2"
+            >
+              Suivant
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </>
+      )}
+
+      {/* Etape 5 : Theme saisonnier */}
+      {step === 'theme' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">5. Theme saisonnier (optionnel)</CardTitle>
+              <CardDescription>Ajoute une touche festive a ton menu</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {MENU_THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setSelectedTheme(t.id)}
+                    className={`relative p-4 rounded-lg border-2 text-center transition-all ${
+                      selectedTheme === t.id
+                        ? 'border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20'
+                        : 'border-border hover:border-orange-500/50'
+                    }`}
+                  >
+                    <span className="text-2xl">{t.emoji || '✨'}</span>
+                    <p className="text-sm font-medium mt-1">{t.name}</p>
+                    {t.headerDecoration && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{t.headerDecoration}</p>
+                    )}
+                    {selectedTheme === t.id && (
+                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setStep('template')} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Retour
             </Button>
