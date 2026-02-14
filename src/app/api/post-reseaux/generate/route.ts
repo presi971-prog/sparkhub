@@ -56,8 +56,9 @@ Analyse la photo et rédige un prompt en anglais pour Nano Banana Pro. Le but es
 
 Le prompt doit :
 - Commencer par "Using the provided image"
-- Garder le SUJET PRINCIPAL reconnaissable
-- Décrire la TRANSFORMATION COMPLÈTE : nouveau décor, nouveaux vêtements si c'est une personne, nouveaux accessoires, nouvelle ambiance
+- Pour les PERSONNES : garder UNIQUEMENT le VISAGE (même traits). CHANGER les vêtements, les accessoires, les chaussures. Utiliser les mots "REMOVE their current clothes" et "DRESS them in..." dans le prompt.
+- Pour les OBJETS/PLATS/LIEUX : garder le sujet principal reconnaissable
+- Décrire la TRANSFORMATION COMPLÈTE du décor, de l'environnement, de l'ambiance
 - Être cinématographique et ambitieux
 - ADAPTER au niveau du sujet : un plat en barquette → scène street food (pas gastronomique)
 
@@ -78,16 +79,16 @@ Le prompt doit :
 ═══ BEAUTÉ ═══
 
 [B1] "Promotion" :
-→ La coiffure/maquillage/ongles reconnaissables. SHOOTING INSTAGRAM PRO : la personne projetée dans un shooting photo pro avec ring light visible, fond tendance coloré (rose, lilas ou néon), pose d'influenceuse. Tenue stylée assortie au look. L'image est le genre de post qui fait 10 000 likes.
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a trendy influencer outfit (crop top, designer jacket or stylish blouse matching their hair/makeup colors). SHOOTING INSTAGRAM PRO : ring light visible, colorful trending background (pink, lilac or neon). Gold jewelry, designer sunglasses pushed up on head. The image looks like a viral Instagram post with 10,000 likes.
 
 [B2] "Avant / Après" :
-→ Les 2 photos (avant et après) fournies. COUVERTURE DE VOGUE : la personne EN PIED avec une tenue de soirée ou classique chic, bijoux en or, boucles d'oreilles assorties à la coiffure. Fond studio de luxe, éclairage de photographe de mode. Composition split screen dramatique montrant la transformation. L'image est si pro qu'on croirait une vraie couverture de magazine.
+→ 2 photos provided. Keep ONLY the person's face. REMOVE their current clothes. DRESS them in an elegant evening gown or classic chic suit (depending on gender), gold jewelry, earrings matching the hairstyle, designer heels or dress shoes. VOGUE COVER : luxury studio background, fashion photographer lighting. Dramatic split screen composition showing the transformation. So professional it looks like a real magazine cover.
 
 [B3] "Nouveauté" :
-→ Le résultat reconnaissable. CLIP MUSICAL TROPICAL : la personne sur une plage au coucher du soleil, tenue stylée qui vole au vent (robe, chemise, costume selon le genre), pieds dans l'eau. Palmiers, fleurs d'hibiscus. Lumière dorée magique. Ambiance Beyoncé/Burna Boy aux Antilles. Le look est la star.
+→ Keep ONLY the person's face and their hair/makeup result. REMOVE their current clothes. DRESS them in a flowing stylish outfit that moves in the wind (dress, linen shirt, or tailored suit depending on gender). TROPICAL MUSIC VIDEO : sunset beach, feet in the water, palm trees, hibiscus flowers. Golden magical light. Beyoncé/Burna Boy in the Caribbean vibes. The beauty result is the star.
 
 [B4] "Ambiance" :
-→ Le salon reconnaissable. SPA DE PALACE À BALI : le salon transformé avec piscine intérieure, cascades d'eau, murs en bambou et pierre volcanique, orchidées géantes partout, brume légère, lumière filtrée à travers une canopée tropicale. Clientes en peignoirs de soie. Le luxe absolu.
+→ Keep ONLY the salon's general layout. TRANSFORM everything: REPLACE the walls with bamboo and volcanic stone, ADD an indoor pool with waterfalls, COVER the space with giant orchids, ADD soft mist, filtered light through a tropical canopy. DRESS all people visible in white silk robes. BALI PALACE SPA : the ultimate luxury. Every surface is transformed.
 
 ═══ ARTISAN ═══
 
@@ -114,16 +115,16 @@ Le prompt doit :
 ═══ SPORT & BIEN-ÊTRE ═══
 
 [S1] "Promotion" :
-→ Le sujet reconnaissable. SUPER-HÉROS : le coach/l'athlète en tenue de sport futuriste, flottant légèrement au-dessus du sol, aura d'énergie bleue-électrique autour du corps. Fond sombre orageux, éclairs. Look affiche Marvel. "Ce coach va te transformer."
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a futuristic sport suit (glowing seams, high-tech fabric, like a Marvel superhero costume). SUPERHERO : floating slightly above the ground, blue-electric energy aura around the body. Dark stormy background, lightning bolts. Marvel movie poster. "This coach will transform you."
 
 [S2] "Avant / Après" :
-→ Les 2 photos (avant et après) fournies. CHRYSALIDE → PAPILLON : gauche = la personne enveloppée dans un cocon sombre et gris. Droite = la personne qui éclate de lumière, des ailes lumineuses se déploient derrière, couleurs vives. Métamorphose spectaculaire et inspirante.
+→ 2 photos provided. Keep ONLY the person's face. CHRYSALIS → BUTTERFLY : Left = the person wrapped in a dark grey cocoon. Right = the SAME person bursting with light, DRESSED in a radiant golden athletic outfit, luminous wings deploying behind them, vivid colors. Spectacular and inspiring metamorphosis.
 
 [S3] "Nouveauté" :
-→ Le sujet reconnaissable. SOMMET DE LA SOUFRIÈRE : le coach/la séance projetée au sommet du volcan de Guadeloupe, au-dessus des nuages, lever du soleil derrière, forêt tropicale en contrebas. Au-dessus du monde. Sérénité et puissance.
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in premium hiking/outdoor gear (technical jacket, trail shoes). SUMMIT OF LA SOUFRIÈRE : the person standing at the top of the Guadeloupe volcano, above the clouds, sunrise behind, tropical forest below. On top of the world. Serenity and power.
 
 [S4] "Performance" :
-→ Le sujet reconnaissable. EXPLOSION DE PUISSANCE : le sportif traverse un mur qui se brise en mille morceaux, débris figés dans l'air. Éclairs d'énergie, éclairage dramatique. Scène de film d'action hollywoodien.
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a combat/action outfit (tactical vest, armguards). EXPLOSION OF POWER : the athlete smashing through a wall that shatters into a thousand pieces, debris frozen in mid-air. Energy lightning, dramatic lighting. Hollywood action movie scene.
 
 [S5] "Le lieu" :
 → La salle reconnaissable. VAISSEAU SPATIAL DU FUTUR : hologrammes bleus flottant dans l'air, sol en verre éclairé par en dessous, néons partout, chrome et lumière. Les machines semblent extraterrestres. On est en 2050. On DOIT s'entraîner ici.
@@ -156,16 +157,16 @@ Le prompt doit :
 ═══ ÉVÉNEMENTIEL ═══
 
 [E1] "Promotion" :
-→ Le sujet reconnaissable. STADE DE 50 000 PERSONNES : le DJ/artiste sur une scène géante type Tomorrowland, écrans LED géants, 50 000 personnes avec téléphones levés. Feux d'artifice. Fumée et lasers. "Cet artiste remplit des stades."
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a flashy stage outfit (leather jacket with LED lights, designer sneakers, chains, sunglasses). STADIUM OF 50,000 : on a massive Tomorrowland-style stage, giant LED screens showing their face, 50,000 people with phones raised. Fireworks, smoke, lasers. "This artist fills stadiums."
 
 [E2] "Nouveauté" :
-→ Le sujet reconnaissable. MARIAGE ROYAL : salle de château, plafond cathédrale, milliers de roses suspendues, lustre en cristal géant, tables avec vaisselle en or. Invités en tenues de gala. Conte de fées.
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in an elegant formal outfit (tuxedo or ball gown depending on gender, bow tie or tiara). ROYAL WEDDING : castle ballroom, cathedral ceiling, thousands of hanging roses, giant crystal chandelier, tables with gold dinnerware. Guests in gala attire. A fairy tale.
 
 [E3] "Ambiance" :
-→ Le lieu reconnaissable. FESTIVAL SUR LA PLAGE : scène sur la plage des Caraïbes au coucher du soleil, foule qui danse pieds dans le sable, palmiers décorés de guirlandes, feu de camp géant, DJ booth illuminé. La fête + le paradis.
+→ Keep the general scene layout. TRANSFORM everything: BEACH FESTIVAL AT SUNSET in the Caribbean, stage on the sand, crowd dancing barefoot, palm trees with fairy lights, giant bonfire, illuminated DJ booth. The party + paradise.
 
 [E4] "Performance" :
-→ Le sujet reconnaissable. MOMENT DU DROP : confettis et flammes qui jaillissent de la scène, mains de milliers de personnes levées, lumières stroboscopiques figées. L'instant où tout le monde perd la tête.
+→ Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a rock-star stage outfit (open jacket, chains, rings). THE DROP MOMENT : confetti and flames erupting from the stage, thousands of hands raised, frozen strobe lights. The instant everyone loses their mind.
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
@@ -218,7 +219,13 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     const parsed = JSON.parse(cleanContent)
 
     // Ajouter le footer de transformation au prompt d'édition
-    const transformFooter = `\n\nCRITICAL: The MAIN SUBJECT must remain RECOGNIZABLE (same face, same dish, same product, same work). Everything else can and SHOULD be dramatically transformed: background, environment, clothing, accessories, lighting, atmosphere. Be bold and cinematic. The result should look like a professional advertising campaign or movie scene, not a simple photo edit.`
+    const transformFooter = `\n\nCRITICAL RULES:
+1. FACE ONLY: Keep the person's FACE recognizable (same facial features). For objects/dishes/places, keep the main subject recognizable.
+2. CHANGE THE CLOTHES: You MUST replace the person's current outfit with the outfit described above. Do NOT keep their original clothing. REMOVE their current clothes and DRESS them in the new outfit described.
+3. CHANGE THE BACKGROUND: Replace the entire environment as described.
+4. CHANGE ACCESSORIES: Add jewelry, shoes, props as described.
+5. Be BOLD and CINEMATIC. This should look like a Hollywood movie poster or luxury ad campaign, NOT a simple background swap.
+6. The ONLY thing preserved from the original person is their FACE and BODY SHAPE. Everything else MUST change.`
 
     return {
       editPrompt: (parsed.editPrompt || 'Using the provided image, keep the main subject recognizable and project it into a stunning, cinematic environment.') + transformFooter,
