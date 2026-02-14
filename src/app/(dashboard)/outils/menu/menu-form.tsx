@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  Camera, PenLine, Upload, Loader2, Plus, Trash2,
+  Camera, PenLine, ClipboardPaste, Upload, Loader2, Plus, Trash2,
   ArrowRight, ArrowLeft, Coins, AlertCircle,
   UtensilsCrossed, Check, Sparkles,
 } from 'lucide-react'
@@ -47,7 +47,9 @@ type Step = 'mode' | 'items' | 'info' | 'template' | 'preview'
 
 export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
   const [step, setStep] = useState<Step>('mode')
-  const [mode, setMode] = useState<'photo' | 'manual' | null>(null)
+  const [mode, setMode] = useState<'photo' | 'manual' | 'paste' | null>(null)
+  const [pasteText, setPasteText] = useState('')
+  const [isParsing, setIsParsing] = useState(false)
   const [categories, setCategories] = useState<MenuCategory[]>(
     DEFAULT_CATEGORIES.map(name => ({ name, items: [] }))
   )
@@ -120,6 +122,42 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     } finally {
       setIsUploading(false)
       setIsExtracting(false)
+    }
+  }
+
+  // Extraction depuis texte colle
+  const handleTextExtract = async () => {
+    if (!pasteText.trim()) {
+      toast.error('Colle ton menu dans le champ texte')
+      return
+    }
+
+    setIsParsing(true)
+
+    try {
+      const res = await fetch('/api/menu/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ menuText: pasteText }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || 'Erreur extraction')
+
+      if (data.categories && data.categories.length > 0) {
+        setCategories(data.categories)
+        toast.success(`${data.categories.reduce((sum: number, c: MenuCategory) => sum + c.items.length, 0)} plats detectes !`)
+      } else {
+        toast.error('Aucun plat detecte. Verifie ton texte ou saisis manuellement.')
+      }
+
+      setStep('items')
+    } catch (error) {
+      console.error('Text extract error:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'analyse')
+    } finally {
+      setIsParsing(false)
     }
   }
 
@@ -254,6 +292,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     setSelectedTemplate('tropical_elegant')
     setShowPreview(false)
     setPhotoPreview(null)
+    setPasteText('')
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (logoInputRef.current) logoInputRef.current.value = ''
   }
@@ -317,46 +356,91 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">1. Comment veux-tu creer ton menu ?</CardTitle>
-            <CardDescription>L'extraction photo est gratuite</CardDescription>
+            <CardDescription>L'extraction (photo ou texte) est gratuite</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || isExtracting}
-              className="p-6 rounded-lg border-2 border-dashed hover:border-orange-500/50 transition-all flex flex-col items-center gap-3 text-center"
-            >
-              {isUploading || isExtracting ? (
-                <>
-                  <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
-                  <span className="font-medium">{isExtracting ? 'Analyse en cours...' : 'Upload...'}</span>
-                </>
-              ) : (
-                <>
-                  <Camera className="h-10 w-10 text-orange-500" />
-                  <span className="font-medium">Photo de mon menu</span>
-                  <span className="text-xs text-muted-foreground">L'IA detecte tes plats</span>
-                </>
-              )}
-            </button>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading || isExtracting || isParsing}
+                className="p-5 rounded-lg border-2 border-dashed hover:border-orange-500/50 transition-all flex flex-col items-center gap-2 text-center"
+              >
+                {isUploading || isExtracting ? (
+                  <>
+                    <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+                    <span className="text-sm font-medium">{isExtracting ? 'Analyse...' : 'Upload...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-8 w-8 text-orange-500" />
+                    <span className="text-sm font-medium">Photo</span>
+                    <span className="text-[10px] text-muted-foreground">L'IA detecte tes plats</span>
+                  </>
+                )}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => { setMode('manual'); setStep('items') }}
-              disabled={isUploading || isExtracting}
-              className="p-6 rounded-lg border-2 border-dashed hover:border-orange-500/50 transition-all flex flex-col items-center gap-3 text-center"
-            >
-              <PenLine className="h-10 w-10 text-orange-500" />
-              <span className="font-medium">Saisie manuelle</span>
-              <span className="text-xs text-muted-foreground">Tape tes plats toi-meme</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setMode('paste')}
+                disabled={isUploading || isExtracting || isParsing}
+                className={`p-5 rounded-lg border-2 border-dashed transition-all flex flex-col items-center gap-2 text-center ${
+                  mode === 'paste' ? 'border-orange-500 bg-orange-500/5' : 'hover:border-orange-500/50'
+                }`}
+              >
+                <ClipboardPaste className="h-8 w-8 text-orange-500" />
+                <span className="text-sm font-medium">Coller</span>
+                <span className="text-[10px] text-muted-foreground">Copier-coller ton menu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMode('manual'); setStep('items') }}
+                disabled={isUploading || isExtracting || isParsing}
+                className="p-5 rounded-lg border-2 border-dashed hover:border-orange-500/50 transition-all flex flex-col items-center gap-2 text-center"
+              >
+                <PenLine className="h-8 w-8 text-orange-500" />
+                <span className="text-sm font-medium">Manuel</span>
+                <span className="text-[10px] text-muted-foreground">Tape tes plats</span>
+              </button>
+            </div>
+
+            {/* Zone de texte pour le mode coller */}
+            {mode === 'paste' && (
+              <div className="space-y-3">
+                <Textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  placeholder={"Colle ton menu ici, par exemple :\n\nEntrees\nAccras de morue 6€\nBoudin creole 5€\n\nPlats\nColombo de poulet 12€\nCourt-bouillon de poisson 14€\n\nDesserts\nFlan coco 5€\nBanane flambee 6€"}
+                  rows={10}
+                  className="font-mono text-sm"
+                />
+                <Button
+                  onClick={handleTextExtract}
+                  disabled={!pasteText.trim() || isParsing}
+                  className="w-full gap-2"
+                >
+                  {isParsing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Analyse en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Analyser mon menu
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

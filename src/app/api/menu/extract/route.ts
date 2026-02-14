@@ -12,18 +12,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
     }
 
-    const { imageUrl } = await req.json()
+    const { imageUrl, menuText } = await req.json()
 
-    if (!imageUrl) {
-      return NextResponse.json({ error: 'imageUrl est requis' }, { status: 400 })
+    if (!imageUrl && !menuText) {
+      return NextResponse.json({ error: 'imageUrl ou menuText est requis' }, { status: 400 })
     }
 
-    const systemPrompt = `Tu es un OCR intelligent specialise dans les menus de restaurants et snacks.
+    const systemPrompt = `Tu es un expert specialise dans les menus de restaurants et snacks.
 
-Analyse cette photo de menu et extrais TOUS les plats avec leurs noms, prix et categories.
+${imageUrl ? 'Analyse cette photo de menu et extrais' : 'Analyse ce texte de menu et extrais'} TOUS les plats avec leurs noms, prix et categories.
 
 REGLES :
-- Extrais chaque plat avec son nom exact tel qu'ecrit sur le menu
+- Extrais chaque plat avec son nom exact tel qu'ecrit
 - Extrais le prix (nombre uniquement, sans symbole euro)
 - Regroupe les plats par categorie (Entrees, Plats, Desserts, Boissons, etc.)
 - Si une categorie n'est pas explicite, devine-la logiquement
@@ -32,6 +32,16 @@ REGLES :
 
 Reponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
 {"categories": [{"name": "Nom de la categorie", "items": [{"name": "Nom du plat", "price": 12.50, "description": "description si visible ou null"}]}]}`
+
+    // Mode image (OCR) ou mode texte (parsing)
+    const userContent = imageUrl
+      ? [
+          { type: 'image_url', image_url: { url: imageUrl } },
+          { type: 'text', text: 'Analyse cette photo de menu et extrais tous les plats au format JSON.' },
+        ]
+      : [
+          { type: 'text', text: `Analyse ce texte de menu et extrais tous les plats au format JSON :\n\n${menuText}` },
+        ]
 
     const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
       method: 'POST',
@@ -42,10 +52,7 @@ Reponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
       body: JSON.stringify({
         messages: [
           { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
-          { role: 'user', content: [
-            { type: 'image_url', image_url: { url: imageUrl } },
-            { type: 'text', text: 'Analyse cette photo de menu et extrais tous les plats au format JSON.' },
-          ] },
+          { role: 'user', content: userContent },
         ],
         stream: false,
         include_thoughts: false,
@@ -53,8 +60,8 @@ Reponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
     })
 
     if (!response.ok) {
-      console.error('Gemini OCR error:', response.status, await response.text())
-      return NextResponse.json({ error: 'Erreur lors de l\'analyse de la photo' }, { status: 500 })
+      console.error('Gemini extract error:', response.status, await response.text())
+      return NextResponse.json({ error: 'Erreur lors de l\'analyse du menu' }, { status: 500 })
     }
 
     const data = await response.json()
