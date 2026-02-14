@@ -747,50 +747,65 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
             <CardHeader>
               <CardTitle>Mon image de couverture</CardTitle>
               <CardDescription>
-                Decris l&apos;ambiance que tu veux pour la grande image en haut de ton site.
-                L&apos;IA generera une image unique a partir de ta description.
+                C&apos;est la grande image que les visiteurs voient en premier sur ton site.
+                Plus tu es precis, plus l&apos;image correspondra a ton commerce.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
+              {/* Guide clair */}
+              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                <p className="text-sm font-medium">Decris l&apos;image ideale pour ton commerce :</p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-none">
+                  <li><span className="font-medium text-foreground">Le lieu</span> — ou se passe la scene ? (ta terrasse, ton comptoir, un marche, une plage...)</li>
+                  <li><span className="font-medium text-foreground">L&apos;ambiance</span> — quelle atmosphere ? (chaleureuse, festive, zen, luxe, familiale...)</li>
+                  <li><span className="font-medium text-foreground">Les elements cles</span> — qu&apos;est-ce qu&apos;on voit ? (tes plats, tes produits, ta devanture, des fruits tropicaux...)</li>
+                  <li><span className="font-medium text-foreground">La lumiere</span> — quel moment ? (coucher de soleil, lumiere du matin, ambiance de nuit...)</li>
+                </ul>
+              </div>
+
               <Textarea
                 value={data.hero_prompt}
                 onChange={e => update({ hero_prompt: e.target.value })}
-                placeholder="Ex: Un comptoir colore avec des bokits et des accras, une ambiance chaleureuse de snack antillais avec des palmiers en arriere-plan, lumiere doree de fin de journee..."
-                rows={3}
+                placeholder={"Exemple pour un restaurant :\n\"Une belle table dressee en terrasse face a la mer, avec des plats creoles colores, des fleurs tropicales, lumiere chaude de fin de journee, ambiance conviviale et chaleureuse\"\n\nExemple pour un salon de coiffure :\n\"Un salon moderne et lumineux avec des fauteuils en cuir, des miroirs elegants, des plantes vertes, ambiance zen et professionnelle\""}
+                rows={5}
               />
+
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Inspiration rapide — clique pour ajouter :</p>
+                <p className="text-xs font-medium mb-2">Besoin d&apos;idees ? Clique pour ajouter :</p>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    'Plage tropicale',
-                    'Marche creole',
-                    'Cuisine antillaise',
-                    'Ambiance festive',
-                    'Coucher de soleil',
-                    'Palmiers et cocotiers',
-                    'Rue coloree',
-                    'Terrasse en bord de mer',
-                    'Ambiance zen et nature',
-                    'Neons et nuit',
-                    'Produits frais locaux',
-                    'Devanture de boutique',
+                    { label: 'Plage tropicale', icon: '🏖️' },
+                    { label: 'Marche creole', icon: '🧺' },
+                    { label: 'Plats creoles colores', icon: '🍛' },
+                    { label: 'Ambiance festive', icon: '🎉' },
+                    { label: 'Coucher de soleil', icon: '🌅' },
+                    { label: 'Palmiers et cocotiers', icon: '🌴' },
+                    { label: 'Rue coloree', icon: '🎨' },
+                    { label: 'Terrasse en bord de mer', icon: '🌊' },
+                    { label: 'Ambiance zen et nature', icon: '🍃' },
+                    { label: 'Neons et nuit', icon: '🌙' },
+                    { label: 'Produits frais locaux', icon: '🥭' },
+                    { label: 'Devanture de boutique', icon: '🏪' },
+                    { label: 'Salon moderne et lumineux', icon: '💇' },
+                    { label: 'Ambiance familiale et chaleureuse', icon: '👨‍👩‍👧' },
                   ].map(tag => (
                     <button
-                      key={tag}
+                      key={tag.label}
                       type="button"
                       onClick={() => {
                         const separator = data.hero_prompt.trim() ? ', ' : ''
-                        update({ hero_prompt: data.hero_prompt.trim() + separator + tag.toLowerCase() })
+                        update({ hero_prompt: data.hero_prompt.trim() + separator + tag.label.toLowerCase() })
                       }}
                       className="px-2.5 py-1 text-xs rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
                     >
-                      {tag}
+                      {tag.icon} {tag.label}
                     </button>
                   ))}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Si tu laisses vide, l&apos;IA choisira une image selon l&apos;ambiance visuelle selectionnee.
+
+              <p className="text-xs text-muted-foreground italic">
+                Pas d&apos;inspiration ? Pas de souci — laisse vide et l&apos;IA choisira une image selon ton ambiance visuelle.
               </p>
             </CardContent>
           </Card>
