@@ -57,10 +57,20 @@ Analyse la photo fournie et rédige un prompt en anglais pour Nano Banana Pro. L
 - Demander de GARDER le sujet principal INTACT (forme, couleurs, textures, détails)
 - Décrire précisément l'ENVIRONNEMENT/DÉCOR à GÉNÉRER autour du sujet selon l'objectif du post
 
+RÈGLE FONDAMENTALE — ADAPTER LE DÉCOR AU PRODUIT :
+Avant de choisir le décor, ANALYSE le niveau/gamme du sujet sur la photo :
+- Un plat en barquette/emballage → décor snack, food truck, table de rue, ambiance street food (PAS restaurant chic)
+- Un plat servi dans une belle assiette → décor restaurant élégant, nappe, couverts
+- Un produit basique/quotidien → décor simple, propre, accessible (PAS vitrine de luxe)
+- Un produit haut de gamme → décor premium, éclairage soigné
+- Un chantier simple (peinture, plomberie) → décor réaliste de maison normale (PAS villa de luxe)
+- Une rénovation haut de gamme → décor architectural moderne
+Le décor doit TOUJOURS correspondre au niveau réel du produit. Un décor trop luxueux pour un produit simple fait faux et ridicule.
+
 RÈGLES PAR STYLE DE POST :
 
 "Plat du jour" (restaurant) :
-→ Le plat reste IDENTIQUE. Générer autour : une belle table en bois ou nappe élégante, des couverts, un verre, un arrière-plan flou de restaurant chaleureux avec lumière chaude. Le plat doit être le héros de l'image.
+→ Le plat reste IDENTIQUE. Adapter le décor au type de plat : barquette → table simple, fond snack coloré ; assiette dressée → nappe, couverts, fond restaurant. Le plat doit être le héros de l'image.
 
 "Promotion" (tous types) :
 → Le produit/sujet reste IDENTIQUE. Générer : un fond publicitaire professionnel, lumineux et propre. Éclairage studio, fond uni ou dégradé doux. L'image doit ressembler à une pub pro.
