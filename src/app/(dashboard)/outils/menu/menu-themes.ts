@@ -11,6 +11,8 @@ export interface MenuTheme {
   headerBgOverride?: string
   // Background CSS
   bgPattern?: string
+  // AI background prompt addition for fal.ai
+  aiPromptAddition?: string
 }
 
 export const MENU_THEMES: MenuTheme[] = [
@@ -32,6 +34,7 @@ export const MENU_THEMES: MenuTheme[] = [
     accentOverride: '#C41E3A',
     headerBgOverride: 'linear-gradient(135deg, #1B5E20 0%, #C41E3A 100%)',
     bgPattern: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05) 1px, transparent 1px), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.05) 1px, transparent 1px)',
+    aiPromptAddition: 'with christmas decorations, holly leaves, red berries, snowflakes, red and green festive accents, warm candlelight',
   },
   {
     id: 'nouvel_an',
@@ -43,6 +46,7 @@ export const MENU_THEMES: MenuTheme[] = [
     accentOverride: '#FFD700',
     headerBgOverride: 'linear-gradient(135deg, #0D1B2A 0%, #1B2D4F 50%, #2A1B4F 100%)',
     bgPattern: 'radial-gradient(circle at 30% 30%, rgba(255,215,0,0.03) 2px, transparent 2px), radial-gradient(circle at 70% 70%, rgba(255,215,0,0.03) 2px, transparent 2px)',
+    aiPromptAddition: 'with new year celebration, champagne glasses, gold confetti, midnight blue sparkles, fireworks',
   },
   {
     id: 'carnaval',
@@ -53,6 +57,7 @@ export const MENU_THEMES: MenuTheme[] = [
     footerDecoration: '💃 Vive le Carnaval ! 🕺',
     accentOverride: '#FF6F00',
     headerBgOverride: 'linear-gradient(135deg, #E91E63 0%, #FF9800 33%, #4CAF50 66%, #2196F3 100%)',
+    aiPromptAddition: 'with carnival masks, colorful feathers, confetti, festive and vibrant Caribbean carnival atmosphere',
   },
   {
     id: 'paques',
@@ -63,6 +68,7 @@ export const MENU_THEMES: MenuTheme[] = [
     footerDecoration: '🐰 Joyeuses Paques ! 🐰',
     accentOverride: '#AB47BC',
     headerBgOverride: 'linear-gradient(135deg, #F8BBD0 0%, #E1BEE7 50%, #B2EBF2 100%)',
+    aiPromptAddition: 'with easter eggs, spring flowers, pastel colors, fresh and cheerful spring atmosphere',
   },
   {
     id: 'saint_valentin',
@@ -73,6 +79,7 @@ export const MENU_THEMES: MenuTheme[] = [
     footerDecoration: '💝 Bonne Saint-Valentin 💝',
     accentOverride: '#E91E63',
     headerBgOverride: 'linear-gradient(135deg, #880E4F 0%, #C2185B 50%, #E91E63 100%)',
+    aiPromptAddition: 'with romantic red roses, hearts, soft pink petals, candlelight, love and elegance atmosphere',
   },
   {
     id: 'fete_meres',
@@ -83,6 +90,7 @@ export const MENU_THEMES: MenuTheme[] = [
     footerDecoration: '💖 Bonne Fete Maman ! 💖',
     accentOverride: '#EC407A',
     headerBgOverride: 'linear-gradient(135deg, #FCE4EC 0%, #F48FB1 50%, #EC407A 100%)',
+    aiPromptAddition: 'with beautiful flowers bouquet, pink roses, soft maternal warmth, floral elegance, garden feel',
   },
   {
     id: 'halloween',
@@ -93,6 +101,7 @@ export const MENU_THEMES: MenuTheme[] = [
     footerDecoration: '🎃 Happy Halloween ! 👻',
     accentOverride: '#FF6F00',
     headerBgOverride: 'linear-gradient(135deg, #1A1A1A 0%, #4A1A00 50%, #1A1A1A 100%)',
+    aiPromptAddition: 'with jack o lanterns, spider webs, dark purple and orange, spooky elegant Halloween atmosphere, bats',
   },
 ]
 

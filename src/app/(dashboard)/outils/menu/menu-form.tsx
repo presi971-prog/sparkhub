@@ -67,6 +67,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
@@ -243,7 +244,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     ))
   }
 
-  // Generer les descriptions IA
+  // Generer les descriptions IA + fond IA en parallele
   const handleGenerate = async () => {
     if (credits < CREDITS_COST) {
       toast.error(`Credits insuffisants. ${CREDITS_COST} credits requis.`)
@@ -263,7 +264,8 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     setIsGenerating(true)
 
     try {
-      const res = await fetch('/api/menu/generate', {
+      // Lancer descriptions IA + fond IA en parallele
+      const generatePromise = fetch('/api/menu/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -272,13 +274,35 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
         }),
       })
 
-      const data = await res.json()
+      const backgroundPromise = fetch('/api/menu/background', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templatePrompt: template.aiPrompt,
+          themeAddition: theme.aiPromptAddition || null,
+          width: 1080,
+          height: 1080,
+        }),
+      }).catch(() => null) // Le fond est optionnel, on ne bloque pas si ca echoue
 
-      if (!res.ok) throw new Error(data.error || 'Erreur generation')
+      const [generateRes, backgroundRes] = await Promise.all([generatePromise, backgroundPromise])
 
-      setCategories(data.categories)
-      setCreditsRemaining(data.credits_remaining)
-      setCredits(data.credits_remaining)
+      // Traiter les descriptions (obligatoire)
+      const generateData = await generateRes.json()
+      if (!generateRes.ok) throw new Error(generateData.error || 'Erreur generation')
+
+      setCategories(generateData.categories)
+      setCreditsRemaining(generateData.credits_remaining)
+      setCredits(generateData.credits_remaining)
+
+      // Traiter le fond (optionnel)
+      if (backgroundRes && backgroundRes.ok) {
+        const bgData = await backgroundRes.json()
+        if (bgData.backgroundUrl) {
+          setBackgroundUrl(bgData.backgroundUrl)
+        }
+      }
+
       setShowPreview(true)
       setStep('preview')
       toast.success('Menu genere avec succes !')
@@ -298,6 +322,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
     setSelectedTemplate('tropical_elegant')
     setSelectedTheme('aucun')
     setShowPreview(false)
+    setBackgroundUrl(null)
     setPhotoPreview(null)
     setPasteText('')
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -317,6 +342,7 @@ export function MenuForm({ userId, credits: initialCredits }: MenuFormProps) {
         template={template}
         theme={theme}
         creditsRemaining={creditsRemaining}
+        backgroundUrl={backgroundUrl}
         onBack={() => { setShowPreview(false); setStep('theme') }}
         onReset={handleReset}
       />

@@ -19,6 +19,8 @@ export interface MenuTemplate {
   // Preview colors for thumbnail
   previewBg: string
   previewAccent: string
+  // AI background prompt for fal.ai
+  aiPrompt: string
 }
 
 export const MENU_TEMPLATES: MenuTemplate[] = [
@@ -39,6 +41,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px dashed #C5993A',
     previewBg: 'bg-gradient-to-br from-green-900 to-green-800',
     previewAccent: 'text-yellow-400',
+    aiPrompt: 'Elegant tropical restaurant menu background, lush palm leaves and golden botanical ornaments on rich dark green, soft warm lighting, luxury dining atmosphere, subtle gold leaf accents and foliage borders, watercolor style, no text no letters no words',
   },
   {
     id: 'street_food',
@@ -57,6 +60,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px solid #333333',
     previewBg: 'bg-gradient-to-br from-red-600 to-yellow-500',
     previewAccent: 'text-black',
+    aiPrompt: 'Vibrant street food menu background, bold colorful graffiti wall texture with neon light accents, urban food truck aesthetic, warm amber and cool cyan lighting, energetic mood, concrete texture, no text no letters no words',
   },
   {
     id: 'moderne_epure',
@@ -75,6 +79,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px solid #F0F0F0',
     previewBg: 'bg-gradient-to-br from-gray-100 to-white',
     previewAccent: 'text-gray-800',
+    aiPrompt: 'Minimalist clean restaurant menu background, soft white marble texture with subtle grey geometric patterns, elegant negative space, modern fine dining aesthetic, minimal and refined, light and airy, no text no letters no words',
   },
   {
     id: 'creole_authentique',
@@ -93,6 +98,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px dashed #E8B84B',
     previewBg: 'bg-gradient-to-br from-red-600 via-yellow-500 to-green-600',
     previewAccent: 'text-white',
+    aiPrompt: 'Caribbean creole restaurant menu background, warm tropical wood texture with colorful madras fabric pattern accents, hibiscus flowers, authentic Caribbean kitchen atmosphere, warm golden light, Guadeloupe vibes, no text no letters no words',
   },
   {
     id: 'cocktail_bar',
@@ -111,6 +117,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px solid #1A1A2E',
     previewBg: 'bg-gradient-to-br from-purple-900 to-pink-600',
     previewAccent: 'text-cyan-400',
+    aiPrompt: 'Dark moody cocktail bar menu background, deep navy and black with glowing neon pink and blue light accents, bokeh lights, elegant glass reflections, nightlife ambiance, smoky atmosphere, no text no letters no words',
   },
   {
     id: 'traiteur_premium',
@@ -129,6 +136,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     itemBorder: '1px solid #E8D5B7',
     previewBg: 'bg-gradient-to-br from-red-900 to-red-800',
     previewAccent: 'text-yellow-300',
+    aiPrompt: 'Luxury catering service menu background, rich burgundy and gold ornamental borders on ivory parchment texture, classic French gastronomy aesthetic, gold foil accents, premium and sophisticated, damask pattern, no text no letters no words',
   },
 ]
 

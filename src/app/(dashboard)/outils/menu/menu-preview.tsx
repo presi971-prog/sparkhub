@@ -32,6 +32,7 @@ interface MenuPreviewProps {
   template: MenuTemplate
   theme: MenuTheme
   creditsRemaining: number
+  backgroundUrl?: string | null
   onBack: () => void
   onReset: () => void
 }
@@ -142,6 +143,7 @@ export function MenuPreview({
   template,
   theme,
   creditsRemaining,
+  backgroundUrl,
   onBack,
   onReset,
 }: MenuPreviewProps) {
@@ -295,14 +297,23 @@ export function MenuPreview({
     }
   }
 
+  const hasAiBg = !!backgroundUrl
+
   // Style interne du menu (taille reelle pour capture)
   const getMenuStyle = (): React.CSSProperties => {
+    const bgImage = backgroundUrl
+      ? `url(${backgroundUrl})`
+      : (theme.bgPattern || undefined)
+
     if (selectedFormat === 'a4') {
       return {
         backgroundColor: template.bgColor,
         color: template.textColor,
         fontFamily: template.bodyFont,
-        backgroundImage: theme.bgPattern || undefined,
+        backgroundImage: bgImage,
+        backgroundSize: backgroundUrl ? 'cover' : undefined,
+        backgroundPosition: backgroundUrl ? 'center' : undefined,
+        position: 'relative' as const,
       }
     }
     const maxScreenWidth = 540
@@ -313,10 +324,13 @@ export function MenuPreview({
       backgroundColor: template.bgColor,
       color: template.textColor,
       fontFamily: template.bodyFont,
-      backgroundImage: theme.bgPattern || undefined,
+      backgroundImage: bgImage,
+      backgroundSize: backgroundUrl ? 'cover' : undefined,
+      backgroundPosition: backgroundUrl ? 'center' : undefined,
       transform: `scale(${scale})`,
       transformOrigin: 'top left',
       overflow: 'hidden',
+      position: 'relative' as const,
     }
   }
 
@@ -430,174 +444,215 @@ export function MenuPreview({
             id="menu-printable"
             style={getMenuStyle()}
           >
-            {/* Decoration theme en haut */}
-            {hasTheme && theme.headerDecoration && (
-              <div className="text-center py-2 text-2xl tracking-[0.5em]" style={{ backgroundColor: template.bgColor }}>
-                {theme.headerDecoration}
-              </div>
+            {/* Overlay semi-transparent pour lisibilite du texte sur fond IA */}
+            {hasAiBg && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: template.bgColor,
+                  opacity: 0.75,
+                  zIndex: 0,
+                }}
+              />
             )}
 
-            {/* Header du menu */}
-            {isFirstPage || !isSocialFormat ? (
-              // Header complet (page 1 ou A4)
-              <div
-                className={`${padX} ${headerPadY} text-center`}
-                style={{ background: headerBg }}
-              >
-                {restaurantInfo.logoUrl && (
-                  <img
-                    src={restaurantInfo.logoUrl}
-                    alt="Logo"
-                    className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-2"
-                    style={{ borderColor: accentColor }}
-                    crossOrigin="anonymous"
-                  />
-                )}
-                <h1
-                  className={`${titleSize} font-bold tracking-wide`}
-                  style={{
-                    fontFamily: template.titleFont,
-                    color: isLightHeader ? template.textColor : '#FFFFFF',
-                    textShadow: isLightHeader ? 'none' : '0 2px 4px rgba(0,0,0,0.3)',
-                  }}
+            {/* Contenu du menu (au-dessus de l'overlay) */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Decoration theme en haut */}
+              {hasTheme && theme.headerDecoration && (
+                <div
+                  className="text-center py-2 text-2xl tracking-[0.5em]"
+                  style={{ backgroundColor: hasAiBg ? 'transparent' : template.bgColor }}
                 >
-                  {restaurantInfo.name}
-                </h1>
-                {restaurantInfo.slogan && (
-                  <p
-                    className="mt-2 text-lg italic opacity-90"
-                    style={{
-                      color: isLightHeader ? template.accentColor : '#FFFFFF',
-                    }}
-                  >
-                    {restaurantInfo.slogan}
-                  </p>
-                )}
-              </div>
-            ) : (
-              // Header compact (pages 2+ en social)
-              <div
-                className={`${padX} ${miniHeaderPadY} text-center`}
-                style={{ background: headerBg }}
-              >
-                <h1
-                  className={`${miniTitleSize} font-bold tracking-wide`}
-                  style={{
-                    fontFamily: template.titleFont,
-                    color: isLightHeader ? template.textColor : '#FFFFFF',
-                    textShadow: isLightHeader ? 'none' : '0 2px 4px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  {restaurantInfo.name}
-                </h1>
-              </div>
-            )}
+                  {theme.headerDecoration}
+                </div>
+              )}
 
-            {/* Corps du menu */}
-            <div className={`${padX} ${padY} ${spacing}`} style={{ flex: 1 }}>
-              {currentCategories.map((category, catIdx) => (
-                <div key={catIdx} className="break-inside-avoid">
-                  {/* Divider theme entre categories */}
-                  {hasTheme && theme.divider && catIdx > 0 && (
-                    <div className="text-center py-2 text-lg tracking-[0.3em] opacity-60">
-                      {theme.divider}
-                    </div>
+              {/* Header du menu */}
+              {isFirstPage || !isSocialFormat ? (
+                // Header complet (page 1 ou A4)
+                <div
+                  className={`${padX} ${headerPadY} text-center`}
+                  style={{
+                    background: hasAiBg ? 'rgba(0,0,0,0.4)' : headerBg,
+                    backdropFilter: hasAiBg ? 'blur(2px)' : undefined,
+                  }}
+                >
+                  {restaurantInfo.logoUrl && (
+                    <img
+                      src={restaurantInfo.logoUrl}
+                      alt="Logo"
+                      className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-2"
+                      style={{ borderColor: hasAiBg ? '#FFFFFF' : accentColor }}
+                      crossOrigin="anonymous"
+                    />
                   )}
-
-                  {/* Titre categorie */}
-                  <div
-                    className="px-4 py-3 mb-4 text-center"
+                  <h1
+                    className={`${titleSize} font-bold tracking-wide`}
                     style={{
-                      backgroundColor: template.categoryBg,
-                      borderLeft: `4px solid ${accentColor}`,
-                      borderRight: `4px solid ${accentColor}`,
+                      fontFamily: template.titleFont,
+                      color: hasAiBg ? '#FFFFFF' : (isLightHeader ? template.textColor : '#FFFFFF'),
+                      textShadow: '0 2px 8px rgba(0,0,0,0.5)',
                     }}
                   >
-                    <h2
-                      className={`${catSize} font-bold uppercase tracking-widest`}
+                    {restaurantInfo.name}
+                  </h1>
+                  {restaurantInfo.slogan && (
+                    <p
+                      className="mt-2 text-lg italic opacity-90"
                       style={{
-                        fontFamily: template.titleFont,
-                        color: template.categoryColor,
+                        color: hasAiBg ? '#FFFFFF' : (isLightHeader ? template.accentColor : '#FFFFFF'),
+                        textShadow: hasAiBg ? '0 1px 4px rgba(0,0,0,0.5)' : undefined,
                       }}
                     >
-                      {category.name}
-                    </h2>
-                  </div>
+                      {restaurantInfo.slogan}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                // Header compact (pages 2+ en social)
+                <div
+                  className={`${padX} ${miniHeaderPadY} text-center`}
+                  style={{
+                    background: hasAiBg ? 'rgba(0,0,0,0.4)' : headerBg,
+                    backdropFilter: hasAiBg ? 'blur(2px)' : undefined,
+                  }}
+                >
+                  <h1
+                    className={`${miniTitleSize} font-bold tracking-wide`}
+                    style={{
+                      fontFamily: template.titleFont,
+                      color: hasAiBg ? '#FFFFFF' : (isLightHeader ? template.textColor : '#FFFFFF'),
+                      textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {restaurantInfo.name}
+                  </h1>
+                </div>
+              )}
 
-                  {/* Items */}
-                  <div className={itemSpacing}>
-                    {category.items.map((item, itemIdx) => (
-                      <div
-                        key={itemIdx}
-                        className={`px-4 ${itemPadY}`}
-                        style={{ borderBottom: template.itemBorder }}
+              {/* Corps du menu */}
+              <div className={`${padX} ${padY} ${spacing}`} style={{ flex: 1 }}>
+                {currentCategories.map((category, catIdx) => (
+                  <div key={catIdx} className="break-inside-avoid">
+                    {/* Divider theme entre categories */}
+                    {hasTheme && theme.divider && catIdx > 0 && (
+                      <div className="text-center py-2 text-lg tracking-[0.3em] opacity-60">
+                        {theme.divider}
+                      </div>
+                    )}
+
+                    {/* Titre categorie */}
+                    <div
+                      className="px-4 py-3 mb-4 text-center"
+                      style={{
+                        backgroundColor: hasAiBg ? 'rgba(0,0,0,0.25)' : template.categoryBg,
+                        borderLeft: `4px solid ${hasAiBg ? accentColor : accentColor}`,
+                        borderRight: `4px solid ${hasAiBg ? accentColor : accentColor}`,
+                        backdropFilter: hasAiBg ? 'blur(4px)' : undefined,
+                        borderRadius: hasAiBg ? '8px' : undefined,
+                      }}
+                    >
+                      <h2
+                        className={`${catSize} font-bold uppercase tracking-widest`}
+                        style={{
+                          fontFamily: template.titleFont,
+                          color: hasAiBg ? '#FFFFFF' : template.categoryColor,
+                          textShadow: hasAiBg ? '0 1px 4px rgba(0,0,0,0.5)' : undefined,
+                        }}
                       >
-                        <div className="flex justify-between items-baseline gap-4">
-                          <span
-                            className={`font-semibold ${itemNameSize}`}
-                            style={{ color: template.textColor }}
-                          >
-                            {item.name}
-                          </span>
-                          {item.price !== null && item.price !== undefined && (
+                        {category.name}
+                      </h2>
+                    </div>
+
+                    {/* Items */}
+                    <div className={itemSpacing}>
+                      {category.items.map((item, itemIdx) => (
+                        <div
+                          key={itemIdx}
+                          className={`px-4 ${itemPadY}`}
+                          style={{
+                            borderBottom: hasAiBg ? '1px solid rgba(255,255,255,0.15)' : template.itemBorder,
+                          }}
+                        >
+                          <div className="flex justify-between items-baseline gap-4">
                             <span
-                              className={`font-bold ${priceSize} whitespace-nowrap`}
-                              style={{ color: theme.accentOverride || template.priceColor }}
+                              className={`font-semibold ${itemNameSize}`}
+                              style={{
+                                color: hasAiBg ? '#FFFFFF' : template.textColor,
+                                textShadow: hasAiBg ? '0 1px 3px rgba(0,0,0,0.4)' : undefined,
+                              }}
                             >
-                              {formatPrice(item.price)}
+                              {item.name}
                             </span>
+                            {item.price !== null && item.price !== undefined && (
+                              <span
+                                className={`font-bold ${priceSize} whitespace-nowrap`}
+                                style={{
+                                  color: hasAiBg ? accentColor : (theme.accentOverride || template.priceColor),
+                                  textShadow: hasAiBg ? '0 1px 3px rgba(0,0,0,0.4)' : undefined,
+                                }}
+                              >
+                                {formatPrice(item.price)}
+                              </span>
+                            )}
+                          </div>
+                          {item.description && !isCompact && (
+                            <p
+                              className={`mt-1 ${descSize} italic opacity-75`}
+                              style={{
+                                color: hasAiBg ? 'rgba(255,255,255,0.85)' : template.textColor,
+                              }}
+                            >
+                              {item.description}
+                            </p>
                           )}
                         </div>
-                        {item.description && !isCompact && (
-                          <p
-                            className={`mt-1 ${descSize} italic opacity-75`}
-                            style={{ color: template.textColor }}
-                          >
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Indicateur de page dans l'image */}
-            {isMultiPage && (
-              <div className="text-center py-1" style={{ opacity: 0.5 }}>
-                <span className="text-xs" style={{ color: template.textColor }}>
-                  {currentPageIdx + 1} / {totalPages}
-                </span>
+                ))}
               </div>
-            )}
 
-            {/* Footer */}
-            <div
-              className={`${padX} py-6 text-center text-sm space-y-1`}
-              style={{
-                borderTop: `2px solid ${accentColor}`,
-                opacity: 0.8,
-              }}
-            >
-              {/* Decoration theme en bas */}
-              {hasTheme && theme.footerDecoration && (
-                <p className="text-lg mb-2">{theme.footerDecoration}</p>
+              {/* Indicateur de page dans l'image */}
+              {isMultiPage && (
+                <div className="text-center py-1" style={{ opacity: 0.5 }}>
+                  <span className="text-xs" style={{ color: hasAiBg ? '#FFFFFF' : template.textColor }}>
+                    {currentPageIdx + 1} / {totalPages}
+                  </span>
+                </div>
               )}
-              {/* Footer complet page 1 / A4, reduit pages suivantes */}
-              {isFirstPage || !isSocialFormat ? (
-                <>
-                  {restaurantInfo.address && <p>{restaurantInfo.address}</p>}
-                  {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
-                  {!isCompact && restaurantInfo.hours && (
-                    <p className="whitespace-pre-line">{restaurantInfo.hours}</p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
-                </>
-              )}
+
+              {/* Footer */}
+              <div
+                className={`${padX} py-6 text-center text-sm space-y-1`}
+                style={{
+                  borderTop: `2px solid ${accentColor}`,
+                  opacity: 0.8,
+                  color: hasAiBg ? '#FFFFFF' : undefined,
+                  textShadow: hasAiBg ? '0 1px 3px rgba(0,0,0,0.4)' : undefined,
+                }}
+              >
+                {/* Decoration theme en bas */}
+                {hasTheme && theme.footerDecoration && (
+                  <p className="text-lg mb-2">{theme.footerDecoration}</p>
+                )}
+                {/* Footer complet page 1 / A4, reduit pages suivantes */}
+                {isFirstPage || !isSocialFormat ? (
+                  <>
+                    {restaurantInfo.address && <p>{restaurantInfo.address}</p>}
+                    {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
+                    {!isCompact && restaurantInfo.hours && (
+                      <p className="whitespace-pre-line">{restaurantInfo.hours}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {restaurantInfo.phone && <p>Tel : {restaurantInfo.phone}</p>}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
