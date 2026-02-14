@@ -31,7 +31,7 @@ const BUSINESS_TYPES = [
 const POST_STYLES = [
   { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Ton plat projeté dans une scène de pub TV avec ingrédients qui explosent', forTypes: ['restaurant'] },
   { id: 'promo', label: 'Promotion', desc: 'Ton sujet mis en scène comme une vraie campagne de pub pro', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
-  { id: 'avant_apres', label: 'Avant / Après', desc: 'Upload 2 photos et obtiens un split screen spectaculaire', forTypes: ['artisan', 'beaute', 'auto', 'sport'] },
+  { id: 'avant_apres', label: 'Avant / Après', desc: 'L\'IA crée un split screen : ta photo + une version transformée', forTypes: ['artisan', 'beaute', 'auto', 'sport'] },
   { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit ou ta création révélée de manière épique', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
   { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu transformé en endroit de rêve magique', forTypes: ['restaurant', 'beaute', 'commerce', 'tourisme', 'evenementiel'] },
   { id: 'performance', label: 'Performance', desc: 'Action, puissance et énergie : une scène de film', forTypes: ['sport', 'evenementiel'] },
@@ -53,7 +53,7 @@ const BUSINESS_GUIDES: Record<string, { title: string; tips: string[]; photo: st
     tips: [
       'Prends le résultat en photo (coiffure, maquillage, ongles)',
       'Promotion = shooting Instagram pro, Nouveauté = clip tropical',
-      'Avant/Après : envoie 2 photos, l\'IA crée un visuel magazine',
+      'Avant/Après : envoie ta photo, l\'IA crée le avant/après en split screen',
       'L\'IA ajoute tenue et accessoires assortis au look',
     ],
     photo: 'Photo du résultat (coiffure, maquillage, ongles, soin...)',
@@ -63,7 +63,7 @@ const BUSINESS_GUIDES: Record<string, { title: string; tips: string[]; photo: st
     tips: [
       'Prends ta réalisation en photo (salle de bain, cuisine, carrelage...)',
       'Promotion = page de magazine déco, Nouveauté = maison créole',
-      'Avant/Après : envoie la photo AVANT et la photo APRÈS',
+      'Avant/Après : envoie ta photo, l\'IA génère la version transformée',
     ],
     photo: 'Photo de ta réalisation terminée',
   },
@@ -99,7 +99,7 @@ const BUSINESS_GUIDES: Record<string, { title: string; tips: string[]; photo: st
     tips: [
       'Photo du véhicule terminé ou en cours de travail',
       'Promotion = scène Fast & Furious, Nouveauté = shooting Top Gear',
-      'Avant/Après : envoie la photo AVANT et APRÈS réparation',
+      'Avant/Après : envoie ta photo, l\'IA crée la version réparée',
     ],
     photo: 'Photo du véhicule ou de ton travail',
   },
@@ -122,14 +122,11 @@ interface PostReseauxFormProps {
 export function PostReseauxForm({ userId, credits: initialCredits }: PostReseauxFormProps) {
   const [imageUrl, setImageUrl] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [imageUrl2, setImageUrl2] = useState('')
-  const [imagePreview2, setImagePreview2] = useState<string | null>(null)
   const [businessType, setBusinessType] = useState('restaurant')
   const [businessName, setBusinessName] = useState('')
   const [postStyle, setPostStyle] = useState('plat_du_jour')
   const [message, setMessage] = useState('')
   const [isUploading, setIsUploading] = useState(false)
-  const [isUploading2, setIsUploading2] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [result, setResult] = useState<{
@@ -144,13 +141,11 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   const [copiedCaption, setCopiedCaption] = useState(false)
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const fileInputRef2 = useRef<HTMLInputElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentBusinessType = BUSINESS_TYPES.find(b => b.id === businessType)
   const availableStyles = POST_STYLES.filter(s => s.forTypes.includes(businessType))
   const currentGuide = BUSINESS_GUIDES[businessType]
-  const isAvantApres = postStyle === 'avant_apres'
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -166,14 +161,6 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     }
   }, [businessType])
 
-  // Nettoyer la 2e photo quand on quitte Avant/Après
-  useEffect(() => {
-    if (!isAvantApres) {
-      setImageUrl2('')
-      setImagePreview2(null)
-      if (fileInputRef2.current) fileInputRef2.current.value = ''
-    }
-  }, [isAvantApres])
 
   // Polling fal.ai côté client
   const pollEnhancedImage = useCallback(async (statusUrl: string, responseUrl: string, attempt = 0) => {
@@ -256,48 +243,6 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     }
   }
 
-  const handleFileUpload2 = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Veuillez sélectionner une image')
-      return
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image trop volumineuse (max 10 Mo)')
-      return
-    }
-
-    setIsUploading2(true)
-
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de l\'upload')
-      }
-
-      setImageUrl2(data.url)
-      setImagePreview2(URL.createObjectURL(file))
-      toast.success('Photo APRÈS uploadée')
-    } catch (error) {
-      console.error('Upload error:', error)
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
-    } finally {
-      setIsUploading2(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -319,7 +264,6 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageUrl,
-          ...(isAvantApres && imageUrl2 ? { imageUrl2 } : {}),
           businessType,
           businessName,
           postStyle,
@@ -377,16 +321,13 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     setResult(null)
     setImageUrl('')
     setImagePreview(null)
-    setImageUrl2('')
-    setImagePreview2(null)
     setMessage('')
     setBusinessName('')
     setIsEnhancing(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
-    if (fileInputRef2.current) fileInputRef2.current.value = ''
   }
 
-  const canSubmit = imageUrl && credits >= CREDITS_COST && !isGenerating && (!isAvantApres || imageUrl2)
+  const canSubmit = imageUrl && credits >= CREDITS_COST && !isGenerating
 
   // Affichage du résultat
   if (result) {
@@ -641,7 +582,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            {isAvantApres ? '3. Ta photo AVANT' : '3. Ta photo'}
+            3. Ta photo
           </CardTitle>
           <CardDescription>
             {currentGuide?.photo || 'Photo de ton plat, produit, réalisation ou lieu'}
@@ -706,89 +647,21 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         </CardContent>
       </Card>
 
-      {/* Upload 2e photo (Avant/Après uniquement) */}
-      {isAvantApres && (
-        <Card className="border-orange-500/20">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Upload className="h-5 w-5 text-orange-500" />
-              Photo APRÈS
-            </CardTitle>
-            <CardDescription>
-              Le résultat final de ton travail
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <input
-              ref={fileInputRef2}
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload2}
-              className="hidden"
-            />
-
-            {imagePreview2 ? (
-              <div className="relative">
-                <img
-                  src={imagePreview2}
-                  alt="Aperçu APRÈS"
-                  className="w-full max-w-xs mx-auto rounded-lg border"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 w-full"
-                  onClick={() => fileInputRef2.current?.click()}
-                  disabled={isUploading2}
-                >
-                  {isUploading2 ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Upload en cours...
-                    </>
-                  ) : (
-                    'Changer la photo APRÈS'
-                  )}
-                </Button>
-              </div>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-40 border-dashed border-orange-500/30"
-                onClick={() => fileInputRef2.current?.click()}
-                disabled={isUploading2}
-              >
-                {isUploading2 ? (
-                  <>
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    Upload en cours...
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <Upload className="h-8 w-8 text-orange-400" />
-                    <span>Photo du résultat (APRÈS)</span>
-                    <span className="text-xs text-muted-foreground">PNG, JPG (max 10 Mo)</span>
-                  </div>
-                )}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Message */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">4. Ton message</CardTitle>
           <CardDescription>
-            Dis-nous ce que tu veux mettre en avant
+            {postStyle === 'avant_apres'
+              ? 'Décris à quoi tu veux ressembler et dans quel cadre / environnement'
+              : 'Dis-nous ce que tu veux mettre en avant'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Textarea
-            placeholder={currentBusinessType?.placeholder || 'Décris ce que tu veux poster...'}
+            placeholder={postStyle === 'avant_apres'
+              ? 'Ex: Je veux me voir en robe de soirée sur un tapis rouge / Mon salon rénové moderne et lumineux / Mon véhicule comme neuf dans un showroom...'
+              : (currentBusinessType?.placeholder || 'Décris ce que tu veux poster...')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             maxLength={300}

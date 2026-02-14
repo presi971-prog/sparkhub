@@ -34,7 +34,6 @@ async function analyzeAndGenerate(
   postStyle: string,
   businessName: string,
   message: string,
-  photoUrl2?: string
 ): Promise<{ editPrompt: string; caption: string; hashtags: string }> {
 
   const systemPrompt = `Tu es un expert à DOUBLE compétence :
@@ -82,7 +81,7 @@ Le prompt doit :
 → Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a trendy influencer outfit (crop top, designer jacket or stylish blouse matching their hair/makeup colors). SHOOTING INSTAGRAM PRO : ring light visible, colorful trending background (pink, lilac or neon). Gold jewelry, designer sunglasses pushed up on head. The image looks like a viral Instagram post with 10,000 likes.
 
 [B2] "Avant / Après" :
-→ 2 photos provided. Keep ONLY the person's face. REMOVE their current clothes. DRESS them in an elegant evening gown or classic chic suit (depending on gender), gold jewelry, earrings matching the hairstyle, designer heels or dress shoes. VOGUE COVER : luxury studio background, fashion photographer lighting. Dramatic split screen composition showing the transformation. So professional it looks like a real magazine cover.
+→ SPLIT SCREEN COMPOSITION. LEFT side = the original photo exactly as provided (the BEFORE). RIGHT side = the SAME person dramatically transformed based on the user's message: keep ONLY their face, REMOVE current clothes, DRESS them in the outfit and environment they described (or default: elegant evening gown/chic suit, gold jewelry, luxury studio). The contrast between LEFT and RIGHT must be SPECTACULAR. Magazine cover quality.
 
 [B3] "Nouveauté" :
 → Keep ONLY the person's face and their hair/makeup result. REMOVE their current clothes. DRESS them in a flowing stylish outfit that moves in the wind (dress, linen shirt, or tailored suit depending on gender). TROPICAL MUSIC VIDEO : sunset beach, feet in the water, palm trees, hibiscus flowers. Golden magical light. Beyoncé/Burna Boy in the Caribbean vibes. The beauty result is the star.
@@ -96,7 +95,7 @@ Le prompt doit :
 → La réalisation reconnaissable. PAGE DE MAGAZINE DÉCO (type Côté Maison) : la réalisation présentée avec un éclairage parfait, tout brille, serviettes roulées si salle de bain, plante verte, accessoires déco. Le cadrage et la lumière sont ceux d'un photographe professionnel de déco. Le client se dit "je veux la même chez moi".
 
 [A2] "Avant / Après" :
-→ Les 2 photos (avant et après) fournies. SPLIT SCREEN TV (type émission de rénovation) : gauche = le chantier avant, sombre et vieillot. Droite = le résultat qui brille, lumineux, moderne. Le contraste est spectaculaire et prouve le savoir-faire. Présentation dramatique comme dans les émissions télé.
+→ SPLIT SCREEN COMPOSITION. LEFT side = the original photo exactly as provided (the BEFORE — the work in progress or the space before renovation). RIGHT side = the SAME space DRAMATICALLY transformed based on the user's message: bright, modern, magazine-worthy result. If the user described a specific result, follow it. Otherwise default: bright modern renovation, perfect lighting, decor accessories. TV renovation show style. The contrast must be SPECTACULAR.
 
 [A3] "Nouveauté" :
 → La réalisation reconnaissable. BELLE MAISON CRÉOLE DE GUADELOUPE : la réalisation intégrée dans une maison créole lumineuse avec vue jardin tropical. Pas une villa de millionnaire — une belle maison dans laquelle les gens du coin se projettent. "Il a fait ça chez mon voisin, je le veux aussi."
@@ -118,7 +117,7 @@ Le prompt doit :
 → Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a futuristic sport suit (glowing seams, high-tech fabric, like a Marvel superhero costume). SUPERHERO : floating slightly above the ground, blue-electric energy aura around the body. Dark stormy background, lightning bolts. Marvel movie poster. "This coach will transform you."
 
 [S2] "Avant / Après" :
-→ 2 photos provided. Keep ONLY the person's face. CHRYSALIS → BUTTERFLY : Left = the person wrapped in a dark grey cocoon. Right = the SAME person bursting with light, DRESSED in a radiant golden athletic outfit, luminous wings deploying behind them, vivid colors. Spectacular and inspiring metamorphosis.
+→ SPLIT SCREEN COMPOSITION. LEFT side = the original photo exactly as provided (the BEFORE). RIGHT side = the SAME person dramatically transformed based on the user's message: keep ONLY their face, REMOVE current clothes, DRESS them as described (or default: radiant golden athletic outfit, luminous wings deploying, vivid colors — CHRYSALIS → BUTTERFLY metamorphosis). The contrast must be SPECTACULAR and inspiring.
 
 [S3] "Nouveauté" :
 → Keep ONLY the person's face. REMOVE their current clothes. DRESS them in premium hiking/outdoor gear (technical jacket, trail shoes). SUMMIT OF LA SOUFRIÈRE : the person standing at the top of the Guadeloupe volcano, above the clouds, sunrise behind, tropical forest below. On top of the world. Serenity and power.
@@ -149,7 +148,7 @@ Le prompt doit :
 → Le véhicule reconnaissable. SCÈNE FAST & FURIOUS : le véhicule sur une route de nuit, lumières de ville floues, traînées lumineuses des phares, étincelles de la route. Look cinématographique de film d'action. L'image transpire la vitesse et le professionnalisme.
 
 [V2] "Avant / Après" :
-→ Les 2 photos (avant et après) fournies. RÉSURRECTION : gauche = l'épave dans une casse automobile (rouille, poussière, ciel gris, corbeau). Droite = le MÊME véhicule rutilant sous les projecteurs d'un salon automobile, sol miroir, velours rouge. De la mort à la gloire.
+→ SPLIT SCREEN COMPOSITION. LEFT side = the original photo exactly as provided (the BEFORE — the vehicle before work). RIGHT side = the SAME vehicle DRAMATICALLY transformed based on the user's message: gleaming under showroom spotlights, mirror floor, red velvet. If the user described the result, follow it. Otherwise default: RESURRECTION — from junkyard wreck to auto show star. The contrast must be SPECTACULAR.
 
 [V3] "Nouveauté" :
 → Le véhicule reconnaissable. SHOOTING TOP GEAR : Route de la Traversée en Guadeloupe, forêt tropicale, brume matinale. Prise de vue dynamique type hélicoptère. Le véhicule brille. Magazine automobile de luxe.
@@ -183,8 +182,8 @@ Génère aussi 10-15 hashtags pertinents (minuscules, sans espaces, séparés pa
 IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
 {"editPrompt": "Using the provided image... (en anglais)", "caption": "ta légende ici (en français)", "hashtags": "#tag1 #tag2 #tag3"}`
 
-  const userPrompt = postStyle === 'avant_apres' && photoUrl2
-    ? `Tu as reçu 2 photos : la première est le AVANT, la deuxième est le APRÈS. Compose une image spectaculaire qui montre la transformation. Exécute tes 2 missions.`
+  const userPrompt = postStyle === 'avant_apres'
+    ? `Cette photo est le AVANT. Tu dois créer un split screen spectaculaire : à gauche le AVANT (cette photo) et à droite le APRÈS (la version transformée que TU génères). Exécute tes 2 missions.`
     : `Analyse cette photo et exécute tes 2 missions. Projette le sujet dans l'univers décrit ci-dessus. Sois AUDACIEUX et CINÉMATOGRAPHIQUE.`
 
   try {
@@ -199,7 +198,6 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
           { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
           { role: 'user', content: [
             { type: 'image_url', image_url: { url: photoUrl } },
-            ...(photoUrl2 ? [{ type: 'image_url' as const, image_url: { url: photoUrl2 } }] : []),
             { type: 'text', text: userPrompt },
           ] },
         ],
@@ -266,7 +264,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const { imageUrl, imageUrl2, businessType, businessName, postStyle, message } = await req.json()
+    const { imageUrl, businessType, businessName, postStyle, message } = await req.json()
 
     if (!imageUrl || !businessType || !postStyle) {
       return NextResponse.json(
@@ -314,7 +312,7 @@ export async function POST(req: Request) {
 
     // 1. Agent IA : analyse photo + contexte → prompt d'édition + légende + hashtags
     const { editPrompt, caption, hashtags } = await analyzeAndGenerate(
-      imageUrl, businessType, postStyle, businessName || '', message || '', imageUrl2 || undefined
+      imageUrl, businessType, postStyle, businessName || '', message || ''
     )
 
     console.log('Edit prompt generated:', editPrompt.slice(0, 200))
@@ -333,7 +331,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           prompt: editPrompt,
-          image_urls: imageUrl2 ? [imageUrl, imageUrl2] : [imageUrl],
+          image_urls: [imageUrl],
           resolution: '2K',
         }),
       })
