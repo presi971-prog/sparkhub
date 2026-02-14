@@ -29,14 +29,90 @@ const BUSINESS_TYPES = [
 ]
 
 const POST_STYLES = [
-  { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Ton plat mis en scène sur une belle table avec décor restaurant', forTypes: ['restaurant'] },
-  { id: 'promo', label: 'Promotion', desc: 'Ton produit sur un fond pro type pub, lumineux et attractif', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
-  { id: 'avant_apres', label: 'Avant / Après', desc: 'Ton travail sur un fond épuré qui met en valeur le résultat', forTypes: ['artisan', 'beaute', 'auto', 'sport'] },
-  { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit dans un décor moderne et frais, effet lancement', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
-  { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu sublimé avec lumière chaleureuse et ambiance accueillante', forTypes: ['restaurant', 'beaute', 'commerce', 'tourisme', 'evenementiel'] },
-  { id: 'performance', label: 'Performance', desc: 'Action en mouvement, énergie et dynamisme', forTypes: ['sport', 'evenementiel'] },
-  { id: 'lieu', label: 'Le lieu', desc: 'Ton espace mis en valeur avec une ambiance qui donne envie', forTypes: ['sport', 'tourisme'] },
+  { id: 'plat_du_jour', label: 'Plat du jour', desc: 'Ton plat projeté dans une scène de pub TV avec ingrédients qui explosent', forTypes: ['restaurant'] },
+  { id: 'promo', label: 'Promotion', desc: 'Ton sujet mis en scène comme une vraie campagne de pub pro', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'avant_apres', label: 'Avant / Après', desc: 'Upload 2 photos et obtiens un split screen spectaculaire', forTypes: ['artisan', 'beaute', 'auto', 'sport'] },
+  { id: 'nouveau', label: 'Nouveauté', desc: 'Ton produit ou ta création révélée de manière épique', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu transformé en endroit de rêve magique', forTypes: ['restaurant', 'beaute', 'commerce', 'tourisme', 'evenementiel'] },
+  { id: 'performance', label: 'Performance', desc: 'Action, puissance et énergie : une scène de film', forTypes: ['sport', 'evenementiel'] },
+  { id: 'lieu', label: 'Le lieu', desc: 'Ton espace projeté dans un univers futuriste ou paradisiaque', forTypes: ['sport', 'tourisme'] },
 ]
+
+const BUSINESS_GUIDES: Record<string, { title: string; tips: string[]; photo: string }> = {
+  restaurant: {
+    title: 'Guide Restaurant',
+    tips: [
+      'Prends ton plat en photo avec ton téléphone, même en barquette',
+      'L\'IA adapte le décor au niveau du plat (street food ou gastronomique)',
+      'Plat du jour = pub TV, Promotion = musée, Nouveauté = MasterChef, Ambiance = paradis',
+    ],
+    photo: 'Photo de ton plat (assiette, barquette, plateau...)',
+  },
+  beaute: {
+    title: 'Guide Beauté',
+    tips: [
+      'Prends le résultat en photo (coiffure, maquillage, ongles)',
+      'Promotion = shooting Instagram pro, Nouveauté = clip tropical',
+      'Avant/Après : envoie 2 photos, l\'IA crée un visuel magazine',
+      'L\'IA ajoute tenue et accessoires assortis au look',
+    ],
+    photo: 'Photo du résultat (coiffure, maquillage, ongles, soin...)',
+  },
+  artisan: {
+    title: 'Guide Artisan',
+    tips: [
+      'Prends ta réalisation en photo (salle de bain, cuisine, carrelage...)',
+      'Promotion = page de magazine déco, Nouveauté = maison créole',
+      'Avant/Après : envoie la photo AVANT et la photo APRÈS',
+    ],
+    photo: 'Photo de ta réalisation terminée',
+  },
+  commerce: {
+    title: 'Guide Commerce',
+    tips: [
+      'Prends ton produit en photo sur fond simple',
+      'Promotion = pub type Nike/Apple, Nouveauté = unboxing de luxe',
+      'Ambiance = ta boutique transformée en concept store de rêve',
+    ],
+    photo: 'Photo de ton produit ou de ta boutique',
+  },
+  sport: {
+    title: 'Guide Sport & Bien-être',
+    tips: [
+      'Photo de toi en action ou de ta salle',
+      'Promotion = super-héros, Nouveauté = sommet de la Soufrière',
+      'Performance = scène de film d\'action, Le lieu = salle du futur',
+    ],
+    photo: 'Photo en action, de ta salle ou de ton activité',
+  },
+  tourisme: {
+    title: 'Guide Tourisme',
+    tips: [
+      'Photo de ton hébergement, piscine, vue ou activité',
+      'Promotion = paradis irréel, Nouveauté = spot secret',
+      'Ambiance = nuit enchantée, Le lieu = vue drone de rêve',
+    ],
+    photo: 'Photo de ton lieu, hébergement ou activité',
+  },
+  auto: {
+    title: 'Guide Auto & Moto',
+    tips: [
+      'Photo du véhicule terminé ou en cours de travail',
+      'Promotion = scène Fast & Furious, Nouveauté = shooting Top Gear',
+      'Avant/Après : envoie la photo AVANT et APRÈS réparation',
+    ],
+    photo: 'Photo du véhicule ou de ton travail',
+  },
+  evenementiel: {
+    title: 'Guide Événementiel',
+    tips: [
+      'Photo de toi en action, de ta déco ou de ton événement',
+      'Promotion = stade de 50 000 personnes, Nouveauté = mariage royal',
+      'Ambiance = festival sur la plage, Performance = le moment du DROP',
+    ],
+    photo: 'Photo de ton événement, prestation ou setup',
+  },
+}
 
 interface PostReseauxFormProps {
   userId: string
@@ -46,11 +122,14 @@ interface PostReseauxFormProps {
 export function PostReseauxForm({ userId, credits: initialCredits }: PostReseauxFormProps) {
   const [imageUrl, setImageUrl] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageUrl2, setImageUrl2] = useState('')
+  const [imagePreview2, setImagePreview2] = useState<string | null>(null)
   const [businessType, setBusinessType] = useState('restaurant')
   const [businessName, setBusinessName] = useState('')
   const [postStyle, setPostStyle] = useState('plat_du_jour')
   const [message, setMessage] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [isUploading2, setIsUploading2] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [result, setResult] = useState<{
@@ -65,10 +144,13 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
   const [copiedCaption, setCopiedCaption] = useState(false)
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef2 = useRef<HTMLInputElement>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentBusinessType = BUSINESS_TYPES.find(b => b.id === businessType)
   const availableStyles = POST_STYLES.filter(s => s.forTypes.includes(businessType))
+  const currentGuide = BUSINESS_GUIDES[businessType]
+  const isAvantApres = postStyle === 'avant_apres'
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -165,6 +247,48 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     }
   }
 
+  const handleFileUpload2 = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image trop volumineuse (max 10 Mo)')
+      return
+    }
+
+    setIsUploading2(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de l\'upload')
+      }
+
+      setImageUrl2(data.url)
+      setImagePreview2(URL.createObjectURL(file))
+      toast.success('Photo APRÈS uploadée')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'upload')
+    } finally {
+      setIsUploading2(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -186,6 +310,7 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageUrl,
+          ...(isAvantApres && imageUrl2 ? { imageUrl2 } : {}),
           businessType,
           businessName,
           postStyle,
@@ -243,13 +368,16 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
     setResult(null)
     setImageUrl('')
     setImagePreview(null)
+    setImageUrl2('')
+    setImagePreview2(null)
     setMessage('')
     setBusinessName('')
     setIsEnhancing(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
+    if (fileInputRef2.current) fileInputRef2.current.value = ''
   }
 
-  const canSubmit = imageUrl && credits >= CREDITS_COST && !isGenerating
+  const canSubmit = imageUrl && credits >= CREDITS_COST && !isGenerating && (!isAvantApres || imageUrl2)
 
   // Affichage du résultat
   if (result) {
@@ -420,15 +548,32 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
         </CardContent>
       </Card>
 
+      {/* Guide par profil */}
+      {currentGuide && (
+        <Card className="border-purple-500/20 bg-purple-500/5">
+          <CardContent className="pt-6">
+            <p className="font-medium text-sm mb-2">{currentGuide.title}</p>
+            <ul className="space-y-1">
+              {currentGuide.tips.map((tip, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                  <span className="text-purple-400 shrink-0">•</span>
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Upload photo */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            1. Ta photo
+            {isAvantApres ? '1. Ta photo AVANT' : '1. Ta photo'}
           </CardTitle>
           <CardDescription>
-            Photo de ton plat, produit, réalisation ou lieu
+            {currentGuide?.photo || 'Photo de ton plat, produit, réalisation ou lieu'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -489,6 +634,78 @@ export function PostReseauxForm({ userId, credits: initialCredits }: PostReseaux
           )}
         </CardContent>
       </Card>
+
+      {/* Upload 2e photo (Avant/Après uniquement) */}
+      {isAvantApres && (
+        <Card className="border-orange-500/20">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Upload className="h-5 w-5 text-orange-500" />
+              Photo APRÈS
+            </CardTitle>
+            <CardDescription>
+              Le résultat final de ton travail
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <input
+              ref={fileInputRef2}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload2}
+              className="hidden"
+            />
+
+            {imagePreview2 ? (
+              <div className="relative">
+                <img
+                  src={imagePreview2}
+                  alt="Aperçu APRÈS"
+                  className="w-full max-w-xs mx-auto rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 w-full"
+                  onClick={() => fileInputRef2.current?.click()}
+                  disabled={isUploading2}
+                >
+                  {isUploading2 ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Upload en cours...
+                    </>
+                  ) : (
+                    'Changer la photo APRÈS'
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-40 border-dashed border-orange-500/30"
+                onClick={() => fileInputRef2.current?.click()}
+                disabled={isUploading2}
+              >
+                {isUploading2 ? (
+                  <>
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    Upload en cours...
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="h-8 w-8 text-orange-400" />
+                    <span>Photo du résultat (APRÈS)</span>
+                    <span className="text-xs text-muted-foreground">PNG, JPG (max 10 Mo)</span>
+                  </div>
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Type de business */}
       <Card>

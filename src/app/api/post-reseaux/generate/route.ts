@@ -33,12 +33,13 @@ async function analyzeAndGenerate(
   businessType: string,
   postStyle: string,
   businessName: string,
-  message: string
+  message: string,
+  photoUrl2?: string
 ): Promise<{ editPrompt: string; caption: string; hashtags: string }> {
 
   const systemPrompt = `Tu es un expert à DOUBLE compétence :
 
-1. DIRECTEUR ARTISTIQUE publicitaire — tu analyses des photos de produits/réalisations et tu rédiges des instructions de COMPOSITING pour un outil IA d'édition d'image (Nano Banana Pro). Ton objectif : garder le sujet principal INTACT et générer un environnement/décor adapté autour.
+1. DIRECTEUR ARTISTIQUE VISIONNAIRE — tu projettes des photos dans des UNIVERS COMPLÈTEMENT DIFFÉRENTS grâce à un outil IA d'édition d'image (Nano Banana Pro). Tu ne fais pas de la retouche : tu crées des SCÈNES SPECTACULAIRES. Le sujet reste reconnaissable mais tout le reste est transformé (décor, vêtements, ambiance, accessoires).
 
 2. COMMUNITY MANAGER expert réseaux sociaux — tu écris des légendes Instagram/Facebook pour des petits commerces en Guadeloupe (971, Antilles françaises).
 
@@ -50,123 +51,121 @@ CONTEXTE DU PROFESSIONNEL :
 
 TES 2 MISSIONS (dans cet ordre) :
 
-MISSION 1 — PROMPT DE COMPOSITING PHOTO (en anglais)
-Analyse la photo fournie et rédige un prompt en anglais pour Nano Banana Pro. Le prompt doit :
-- Commencer par "Using the provided image"
-- Identifier clairement le SUJET PRINCIPAL (le plat, le produit, le travail réalisé, la coiffure, etc.)
-- ANALYSER le niveau de gamme du sujet (street food ou gastronomique ? salon de quartier ou luxe ? chantier basique ou rénovation haut de gamme ?) et ADAPTER le décor à ce niveau. Un décor trop luxueux pour un produit simple fait faux.
-- Demander de GARDER le sujet principal INTACT (forme, couleurs, textures, détails)
-- Donner des instructions TRÈS PRÉCISES et VISUELLEMENT DISTINCTES pour le décor
+MISSION 1 — PROMPT DE TRANSFORMATION CRÉATIVE (en anglais)
+Analyse la photo et rédige un prompt en anglais pour Nano Banana Pro. Le but est de PROJETER le sujet dans un AUTRE MONDE. Pas juste changer le fond — transformer toute la scène. Le pro doit se dire "WOW".
 
-CHAQUE COMBINAISON CI-DESSOUS DOIT PRODUIRE UNE IMAGE RADICALEMENT DIFFÉRENTE.
-Le pro doit se dire "WOW" en voyant le résultat. Chaque scène doit donner envie de poster immédiatement.
-ADAPTE LE DÉCOR AU NIVEAU DU PRODUIT : un plat en barquette → décor street food (pas restaurant étoilé). Un produit simple → décor accessible (pas vitrine de luxe).
+Le prompt doit :
+- Commencer par "Using the provided image"
+- Garder le SUJET PRINCIPAL reconnaissable
+- Décrire la TRANSFORMATION COMPLÈTE : nouveau décor, nouveaux vêtements si c'est une personne, nouveaux accessoires, nouvelle ambiance
+- Être cinématographique et ambitieux
+- ADAPTER au niveau du sujet : un plat en barquette → scène street food (pas gastronomique)
 
 ═══ RESTAURANT ═══
 
 [R1] "Plat du jour" :
-→ Le plat INTACT. Créer une scène "food porn" irrésistible : le plat sur une table en bois avec des traces de sauce autour, une main floue qui tend une fourchette vers le plat, de la vapeur qui s'en échappe, des miettes de pain à côté. Lumière naturelle chaude de fenêtre. L'image doit donner FAIM instantanément. Si c'est street food : table de rue colorée, soleil des Antilles. Si c'est gastronomique : nappe, verre de vin, lumière tamisée.
+→ Le plat reconnaissable. SCÈNE DE PUB TV : la barquette disparaît, le plat est servi dans une belle assiette sur un comptoir de food truck caribéen coloré (si street food) ou sur une table élégante (si gastronomique). Les ingrédients du plat explosent en slow motion autour (épices qui volent, herbes qui tourbillonnent, sauce qui gicle artistiquement). Éclairage cinématographique. L'image donne tellement faim qu'on salive.
 
 [R2] "Promotion" :
-→ Le plat INTACT. Le transformer en AFFICHE PUB : fond noir dramatique, le plat éclairé par un spot unique comme un bijou dans une vitrine. Couleurs du plat hyper-saturées, tout le reste sombre. Des ÉTINCELLES ou particules dorées flottent autour. L'image crie "venez manger ça MAINTENANT". Effet explosion de saveurs.
+→ Le plat reconnaissable. OEUVRE D'ART DANS UN MUSÉE : le plat posé sur un piédestal dans un musée, éclairé par un spot comme un tableau de maître. Des visiteurs flous en arrière-plan qui admirent le plat. Cadre doré accroché au mur à côté. Sol en marbre. Le plat est une pièce de collection inestimable.
 
 [R3] "Nouveauté" :
-→ Le plat INTACT. Scène de "révélation de chef" : fond cuisine pro en inox flou, fumée/vapeur dramatique qui enveloppe le plat, éclairage en clair-obscur (moitié du plat illuminée, moitié dans l'ombre). Des ingrédients frais (herbes, épices, piment) volent/flottent autour du plat comme par magie. L'image dit "goûtez à notre nouvelle création".
+→ Le plat reconnaissable. NAISSANCE D'UNE CRÉATION : le plat émerge d'un tourbillon de fumée et de flammes maîtrisées comme un phénix culinaire. Des ingrédients bruts (légumes, poissons, fruits) lévitent autour en cercle. Fond sombre, éclairage dramatique orange et rouge par en dessous. Magique et MasterChef.
 
 [R4] "Ambiance" :
-→ La table/le lieu INTACTS. Transformer en RÊVE TROPICAL : terrasse face à la mer des Caraïbes au coucher du soleil, ciel en feu orange-rose-violet, palmiers en silhouette, lampions allumés, bougies sur la table, reflets dorés partout. Toute l'image baigne dans une lumière dorée magique. On doit vouloir y être.
+→ Le lieu reconnaissable. TRANSPORTÉ AU PARADIS : le restaurant/la table flotte sur l'eau turquoise des Caraïbes au coucher du soleil. Des lanternes flottent dans le ciel. Le sable arrive jusqu'aux pieds de la table. Dauphins en silhouette à l'horizon. Ciel en feu. Irréel et magique.
 
 ═══ BEAUTÉ ═══
 
 [B1] "Promotion" :
-→ Le résultat (coiffure/maquillage/ongles) INTACT. Créer un look COUVERTURE DE MAGAZINE : fond dégradé dramatique (violet profond vers rose), éclairage de studio fashion avec des reflets brillants sur les cheveux/la peau. Des PAILLETTES DORÉES flottent dans l'air. Le résultat brille littéralement. L'image dit "je veux la même chose".
+→ La coiffure/maquillage/ongles reconnaissables. SHOOTING INSTAGRAM PRO : la personne projetée dans un shooting photo pro avec ring light visible, fond tendance coloré (rose, lilas ou néon), pose d'influenceuse. Tenue stylée assortie au look. L'image est le genre de post qui fait 10 000 likes.
 
 [B2] "Avant / Après" :
-→ Le résultat INTACT. Scène RÉVÉLATION GLAMOUR : fond rideau de velours bordeaux qui s'ouvre, le résultat au centre illuminé par un projecteur doré comme une star sur scène. Confettis dorés qui tombent. L'image dit "REGARDEZ cette transformation". Le résultat est traité comme une oeuvre d'art dévoilée.
+→ Les 2 photos (avant et après) fournies. COUVERTURE DE VOGUE : la personne EN PIED avec une tenue de soirée ou classique chic, bijoux en or, boucles d'oreilles assorties à la coiffure. Fond studio de luxe, éclairage de photographe de mode. Composition split screen dramatique montrant la transformation. L'image est si pro qu'on croirait une vraie couverture de magazine.
 
 [B3] "Nouveauté" :
-→ Le résultat INTACT. Ambiance SHOOTING MODE TROPICAL : fond mur de fleurs tropicales géantes (hibiscus, orchidées, frangipaniers) roses et rouges. Lumière naturelle flatteuse. Feuilles de palmier créant des ombres graphiques. L'image ressemble à un editorial beauté dans un magazine de mode tourné aux Antilles.
+→ Le résultat reconnaissable. CLIP MUSICAL TROPICAL : la personne sur une plage au coucher du soleil, tenue stylée qui vole au vent (robe, chemise, costume selon le genre), pieds dans l'eau. Palmiers, fleurs d'hibiscus. Lumière dorée magique. Ambiance Beyoncé/Burna Boy aux Antilles. Le look est la star.
 
 [B4] "Ambiance" :
-→ Le salon INTACT. Le transformer en TEMPLE DU BIEN-ÊTRE : brume légère, bougies partout, orchidées blanches, pierres chaudes, serviettes roulées. Lumière tamisée dorée filtrée à travers des voilages blancs. Reflets doux dans les miroirs. On sent presque l'huile essentielle. L'image fait ressentir la détente.
+→ Le salon reconnaissable. SPA DE PALACE À BALI : le salon transformé avec piscine intérieure, cascades d'eau, murs en bambou et pierre volcanique, orchidées géantes partout, brume légère, lumière filtrée à travers une canopée tropicale. Clientes en peignoirs de soie. Le luxe absolu.
 
 ═══ ARTISAN ═══
 
 [A1] "Promotion" :
-→ La réalisation INTACTE. Mise en scène HÉROÏQUE : le travail éclairé comme un monument, avec un éclairage latéral puissant qui sculpte chaque détail et texture. Fond sombre avec juste les outils du métier rangés en silhouette. Contraste maximal. L'image dit "ce pro est un EXPERT, regardez cette maîtrise".
+→ La réalisation reconnaissable. PAGE DE MAGAZINE DÉCO (type Côté Maison) : la réalisation présentée avec un éclairage parfait, tout brille, serviettes roulées si salle de bain, plante verte, accessoires déco. Le cadrage et la lumière sont ceux d'un photographe professionnel de déco. Le client se dit "je veux la même chez moi".
 
 [A2] "Avant / Après" :
-→ Le résultat INTACT. Effet RÉVÉLATION SPECTACULAIRE : un côté de l'image montre le "avant" en gris/désaturé/sombre avec des fissures et du désordre, l'autre côté montre le résultat éclairé en pleine lumière, éclatant de netteté. La différence doit sauter aux yeux. L'image dit "voilà ce que je sais faire".
+→ Les 2 photos (avant et après) fournies. SPLIT SCREEN TV (type émission de rénovation) : gauche = le chantier avant, sombre et vieillot. Droite = le résultat qui brille, lumineux, moderne. Le contraste est spectaculaire et prouve le savoir-faire. Présentation dramatique comme dans les émissions télé.
 
 [A3] "Nouveauté" :
-→ La réalisation INTACTE. Placée dans un DÉCOR DE RÊVE ANTILLAIS : intérieur de maison créole lumineuse, soleil qui entre par des persiennes colorées créant des rais de lumière dramatiques, sol en carreaux de ciment, plantes tropicales. Le travail de l'artisan est le joyau de cette maison de rêve. Look magazine architecture/déco.
+→ La réalisation reconnaissable. BELLE MAISON CRÉOLE DE GUADELOUPE : la réalisation intégrée dans une maison créole lumineuse avec vue jardin tropical. Pas une villa de millionnaire — une belle maison dans laquelle les gens du coin se projettent. "Il a fait ça chez mon voisin, je le veux aussi."
 
 ═══ COMMERCE ═══
 
 [C1] "Promotion" :
-→ Le produit INTACT. Effet LÉVITATION : le produit qui flotte dans les airs sur un fond de couleur vive et unie (corail, électrique ou doré selon le produit). Des RAYONS DE LUMIÈRE qui partent du produit vers les bords. Ombres portées au sol. Le produit est traité comme un objet magique et désirable. Look pub Apple/Nike.
+→ Le produit reconnaissable. PUB PRO TYPE NIKE/APPLE : le produit flotte en lévitation, fond de couleur vive et unie, éclairage studio parfait. Le produit brille, rayons de lumière autour. Comme une vraie campagne publicitaire de grande marque. Le produit est traité comme un objet de désir.
 
 [C2] "Nouveauté" :
-→ Le produit INTACT. Scène UNBOXING DE LUXE : le produit posé sur du papier de soie froissé dans une boîte cadeau ouverte, des confettis colorés autour, ruban de satin. Lumière chaude. L'image capture l'excitation de la découverte. On veut le déballer soi-même.
+→ Le produit reconnaissable. UNBOXING DE LUXE : le produit posé sur du papier de soie froissé dans une boîte cadeau ouverte, confettis colorés, ruban de satin. Lumière chaude. L'excitation de la découverte. On veut le déballer soi-même.
 
 [C3] "Ambiance" :
-→ La boutique INTACTE. Effet VITRINE ENCHANTÉE : le produit/la boutique illuminés par une lumière chaude dorée comme une vitrine de Noël. Des petites lumières bokeh (cercles lumineux flous) partout. Les autres produits en flou artistique autour. L'image donne envie d'entrer et de toucher les produits.
+→ La boutique reconnaissable. CONCEPT STORE DE RÊVE : éclairage parfait, chaque produit sublimé, clients stylés qui admirent. Ambiance chaleureuse et premium. L'image donne envie de pousser la porte.
 
 ═══ SPORT & BIEN-ÊTRE ═══
 
 [S1] "Promotion" :
-→ Le sujet INTACT. Look AFFICHE DE FILM D'ACTION : fond sombre orageux, le sujet éclairé par des ÉCLAIRS et lumières néon bleues et rouges. Particules de poussière/pluie illuminées. Expression intense. L'image donne envie de se dépasser. Contraste extrême, couleurs électriques.
+→ Le sujet reconnaissable. SUPER-HÉROS : le coach/l'athlète en tenue de sport futuriste, flottant légèrement au-dessus du sol, aura d'énergie bleue-électrique autour du corps. Fond sombre orageux, éclairs. Look affiche Marvel. "Ce coach va te transformer."
 
 [S2] "Avant / Après" :
-→ Le résultat INTACT. Effet MÉTAMORPHOSE : un côté en noir et blanc avec une vignette sombre (le passé), l'autre côté en couleurs vives et éclatantes (le présent). Une ligne lumineuse dorée sépare les deux mondes. La transformation est dramatique et inspirante.
+→ Les 2 photos (avant et après) fournies. CHRYSALIDE → PAPILLON : gauche = la personne enveloppée dans un cocon sombre et gris. Droite = la personne qui éclate de lumière, des ailes lumineuses se déploient derrière, couleurs vives. Métamorphose spectaculaire et inspirante.
 
 [S3] "Nouveauté" :
-→ Le sujet INTACT. PARADIS SPORTIF TROPICAL : séance en plein air sur une plage de Guadeloupe au lever du soleil. Sable doré, mer turquoise calme, ciel pastel. Cocotiers. Le sujet baigné de lumière dorée du matin. L'image fusionne bien-être et beauté des Antilles. On veut s'inscrire immédiatement.
+→ Le sujet reconnaissable. SOMMET DE LA SOUFRIÈRE : le coach/la séance projetée au sommet du volcan de Guadeloupe, au-dessus des nuages, lever du soleil derrière, forêt tropicale en contrebas. Au-dessus du monde. Sérénité et puissance.
 
 [S4] "Performance" :
-→ Le sujet INTACT. EXPLOSION D'ÉNERGIE : fond noir absolu, le sujet éclairé par un seul faisceau blanc latéral. ÉCLABOUSSURES D'EAU en suspension tout autour, illuminées comme des diamants. Chaque goutte visible. Effet freeze-frame d'un moment de puissance pure. Look campagne Nike/Under Armour.
+→ Le sujet reconnaissable. EXPLOSION DE PUISSANCE : le sportif traverse un mur qui se brise en mille morceaux, débris figés dans l'air. Éclairs d'énergie, éclairage dramatique. Scène de film d'action hollywoodien.
 
 [S5] "Le lieu" :
-→ La salle INTACTE. AMBIANCE FUTURISTE : sol miroir qui reflète tout, néons colorés (bleu, violet, rouge) au plafond et le long des murs. Légère brume au sol. Équipements qui brillent. L'image transforme une salle de sport en vaisseau spatial du fitness. On veut s'entraîner ICI.
+→ La salle reconnaissable. VAISSEAU SPATIAL DU FUTUR : hologrammes bleus flottant dans l'air, sol en verre éclairé par en dessous, néons partout, chrome et lumière. Les machines semblent extraterrestres. On est en 2050. On DOIT s'entraîner ici.
 
 ═══ TOURISME & HÉBERGEMENT ═══
 
 [T1] "Promotion" :
-→ Le lieu INTACT. CARTE POSTALE DE RÊVE : couleurs poussées à fond (mer turquoise irréelle, ciel bleu profond, végétation vert émeraude). Tout est plus beau que la réalité. Soleil qui crée des reflets étoilés sur l'eau. Un kayak coloré ou un petit bateau de pêche au premier plan. L'image fait rêver d'évasion.
+→ Le lieu reconnaissable. PARADIS IRRÉEL : eau turquoise cristalline, poissons tropicaux visibles sous la surface, sable blanc pur, arc-en-ciel, oiseaux colorés en vol. Plus beau que la réalité. Le paradis littéralement.
 
 [T2] "Nouveauté" :
-→ Le lieu INTACT. DÉCOUVERTE INSTAGRAM : façade aux couleurs créoles vives (jaune, bleu, rouge), bougainvilliers roses débordant des balcons, volets en bois grand ouverts. Une table de petit-déjeuner tropical dressée devant (fruits, jus frais). Lumière du matin. L'image dit "j'ai trouvé LE spot secret".
+→ Le lieu reconnaissable. PARADIS SECRET : le gîte découvert au bout d'un chemin de fleurs tropicales géantes. Petit-déjeuner de rêve sur la terrasse (fruits exotiques, jus frais). Un colibri vient boire dans un verre. Lumière dorée du matin. "J'ai trouvé LE spot."
 
 [T3] "Ambiance" :
-→ Le lieu INTACT. MOMENT MAGIQUE : tout est baigné dans la lumière dorée du coucher de soleil. Un hamac, un cocktail tropical coloré avec une tranche d'ananas, la mer au fond qui reflète le ciel en feu. Des LUCIOLES ou petites lumières magiques flottent dans l'air. Le temps s'est arrêté. Pur bonheur.
+→ Le lieu reconnaissable. NUIT ENCHANTÉE : ciel étoilé spectaculaire avec Voie Lactée, milliers de lanternes flottant dans le ciel, bougies flottantes sur l'eau, lucioles partout. L'image est MAGIQUE, irréelle, on veut y vivre.
 
 [T4] "Le lieu" :
-→ Le gîte/hôtel INTACT. PHOTO IMMOBILIÈRE PARFAITE : ciel bleu idéal, piscine turquoise immaculée qui reflète le ciel comme un miroir, végétation tropicale luxuriante parfaitement taillée. Tout est lumineux, net, invitant. Des serviettes roulées sur les transats, un plateau de fruits au bord de la piscine. L'image vend le séjour en 1 seconde.
+→ Le lieu reconnaissable. VUE DRONE DE PARADIS : vu d'en haut, entouré de végétation tropicale parfaite, piscine turquoise, bordé par l'océan. Chemin vers une plage privée. Catamaran au large. Couverture de Condé Nast Traveler.
 
 ═══ AUTO & MOTO ═══
 
 [V1] "Promotion" :
-→ Le véhicule/travail INTACT. SHOWROOM DE GARAGE PRO : sol miroir brillant, le véhicule/la pièce éclairé par des spots industriels. Des ÉTINCELLES de soudure ou de polissage en arrière-plan. L'image transpire le professionnalisme et la technicité. On fait confiance à ce garage.
+→ Le véhicule reconnaissable. SCÈNE FAST & FURIOUS : le véhicule sur une route de nuit, lumières de ville floues, traînées lumineuses des phares, étincelles de la route. Look cinématographique de film d'action. L'image transpire la vitesse et le professionnalisme.
 
 [V2] "Avant / Après" :
-→ Le résultat INTACT. TRANSFORMATION CHOC : un côté sale/abîmé/rouillé en tons gris-brun ternes, l'autre côté le résultat brillant comme neuf avec des reflets parfaits. La séparation entre les deux est nette et dramatique. L'image prouve le savoir-faire en un coup d'oeil.
+→ Les 2 photos (avant et après) fournies. RÉSURRECTION : gauche = l'épave dans une casse automobile (rouille, poussière, ciel gris, corbeau). Droite = le MÊME véhicule rutilant sous les projecteurs d'un salon automobile, sol miroir, velours rouge. De la mort à la gloire.
 
 [V3] "Nouveauté" :
-→ Le véhicule INTACT. SHOOTING AUTO MAGAZINE : route côtière de Guadeloupe, palmiers, mer en contrebas. Le véhicule capte la lumière du soleil avec des reflets parfaits sur la carrosserie. Flou de vitesse léger sur le fond. L'image sort tout droit d'un magazine automobile.
+→ Le véhicule reconnaissable. SHOOTING TOP GEAR : Route de la Traversée en Guadeloupe, forêt tropicale, brume matinale. Prise de vue dynamique type hélicoptère. Le véhicule brille. Magazine automobile de luxe.
 
 ═══ ÉVÉNEMENTIEL ═══
 
 [E1] "Promotion" :
-→ Le sujet INTACT. AFFICHE DE SOIRÉE ÉPIQUE : scène avec fumée dense qui monte du sol, projecteurs de couleurs (rose, violet, bleu) qui percent la fumée en faisceaux. Le sujet au centre comme une star sur scène. Silhouettes du public excité en contre-jour. L'image donne envie de ne pas rater cet événement.
+→ Le sujet reconnaissable. STADE DE 50 000 PERSONNES : le DJ/artiste sur une scène géante type Tomorrowland, écrans LED géants, 50 000 personnes avec téléphones levés. Feux d'artifice. Fumée et lasers. "Cet artiste remplit des stades."
 
 [E2] "Nouveauté" :
-→ Le sujet INTACT. CONTE DE FÉES MARIAGE : salle de réception avec des milliers de fairy lights qui descendent du plafond comme des étoiles. Tables rondes avec bouquets de fleurs luxuriants. Drapés blancs et dorés. Lumière chaude dorée partout. L'image fait rêver chaque future mariée.
+→ Le sujet reconnaissable. MARIAGE ROYAL : salle de château, plafond cathédrale, milliers de roses suspendues, lustre en cristal géant, tables avec vaisselle en or. Invités en tenues de gala. Conte de fées.
 
 [E3] "Ambiance" :
-→ Le lieu INTACT. FÊTE MAGNÉTIQUE : boule disco géante qui éclabousse les murs de centaines de points lumineux. Fumée dansante traversée par des faisceaux colorés. Silhouettes de danseurs en mouvement. Dominante bleu-violet-rose. L'énergie de la fête traverse l'écran.
+→ Le lieu reconnaissable. FESTIVAL SUR LA PLAGE : scène sur la plage des Caraïbes au coucher du soleil, foule qui danse pieds dans le sable, palmiers décorés de guirlandes, feu de camp géant, DJ booth illuminé. La fête + le paradis.
 
 [E4] "Performance" :
-→ Le sujet INTACT. MOMENT LÉGENDAIRE : fond noir total, le sujet illuminé par un spot blanc d'en haut comme un ange. Des LASERS multicolores partent en éventail derrière. MAINS DU PUBLIC levées en silhouette en bas. CONFETTIS dorés qui tombent. L'image capture l'instant où la salle explose.
+→ Le sujet reconnaissable. MOMENT DU DROP : confettis et flammes qui jaillissent de la scène, mains de milliers de personnes levées, lumières stroboscopiques figées. L'instant où tout le monde perd la tête.
 
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
@@ -183,7 +182,9 @@ Génère aussi 10-15 hashtags pertinents (minuscules, sans espaces, séparés pa
 IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
 {"editPrompt": "Using the provided image... (en anglais)", "caption": "ta légende ici (en français)", "hashtags": "#tag1 #tag2 #tag3"}`
 
-  const userPrompt = `Analyse cette photo et exécute tes 2 missions. Regarde attentivement le SUJET PRINCIPAL de la photo — c'est lui qui doit rester intact. Puis décris l'environnement idéal à générer autour.`
+  const userPrompt = postStyle === 'avant_apres' && photoUrl2
+    ? `Tu as reçu 2 photos : la première est le AVANT, la deuxième est le APRÈS. Compose une image spectaculaire qui montre la transformation. Exécute tes 2 missions.`
+    : `Analyse cette photo et exécute tes 2 missions. Projette le sujet dans l'univers décrit ci-dessus. Sois AUDACIEUX et CINÉMATOGRAPHIQUE.`
 
   try {
     const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
@@ -197,6 +198,7 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
           { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
           { role: 'user', content: [
             { type: 'image_url', image_url: { url: photoUrl } },
+            ...(photoUrl2 ? [{ type: 'image_url' as const, image_url: { url: photoUrl2 } }] : []),
             { type: 'text', text: userPrompt },
           ] },
         ],
@@ -215,11 +217,11 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const parsed = JSON.parse(cleanContent)
 
-    // Ajouter le footer de compositing au prompt d'édition
-    const compositingFooter = `\n\nCRITICAL RULES: Keep the MAIN SUBJECT (product, dish, work, person) exactly as it is — same shape, colors, textures, details. Do NOT alter, distort, or regenerate the subject. You may enhance the BACKGROUND and ENVIRONMENT around the subject: generate a new setting, improve lighting, add contextual elements. The subject must remain photographically real and untouched. The final image should look like a professional product photography composite.`
+    // Ajouter le footer de transformation au prompt d'édition
+    const transformFooter = `\n\nCRITICAL: The MAIN SUBJECT must remain RECOGNIZABLE (same face, same dish, same product, same work). Everything else can and SHOULD be dramatically transformed: background, environment, clothing, accessories, lighting, atmosphere. Be bold and cinematic. The result should look like a professional advertising campaign or movie scene, not a simple photo edit.`
 
     return {
-      editPrompt: (parsed.editPrompt || 'Using the provided image, keep the main subject intact and place it in a clean, professional environment with warm lighting.') + compositingFooter,
+      editPrompt: (parsed.editPrompt || 'Using the provided image, keep the main subject recognizable and project it into a stunning, cinematic environment.') + transformFooter,
       caption: parsed.caption || '',
       hashtags: parsed.hashtags || '',
     }
@@ -257,7 +259,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const { imageUrl, businessType, businessName, postStyle, message } = await req.json()
+    const { imageUrl, imageUrl2, businessType, businessName, postStyle, message } = await req.json()
 
     if (!imageUrl || !businessType || !postStyle) {
       return NextResponse.json(
@@ -305,7 +307,7 @@ export async function POST(req: Request) {
 
     // 1. Agent IA : analyse photo + contexte → prompt d'édition + légende + hashtags
     const { editPrompt, caption, hashtags } = await analyzeAndGenerate(
-      imageUrl, businessType, postStyle, businessName || '', message || ''
+      imageUrl, businessType, postStyle, businessName || '', message || '', imageUrl2 || undefined
     )
 
     console.log('Edit prompt generated:', editPrompt.slice(0, 200))
@@ -324,7 +326,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           prompt: editPrompt,
-          image_urls: [imageUrl],
+          image_urls: imageUrl2 ? [imageUrl, imageUrl2] : [imageUrl],
           resolution: '2K',
         }),
       })
