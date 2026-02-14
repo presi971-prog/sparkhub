@@ -111,21 +111,23 @@ export interface ExportFormat {
 }
 
 export const EXPORT_FORMATS: ExportFormat[] = [
+  // Impression
   {
     id: 'a4',
     name: 'Impression A4',
     description: 'PDF pret a imprimer',
-    width: 794, // A4 at 96dpi
+    width: 794,
     height: 'auto',
     icon: '🖨️',
   },
+  // Instagram
   {
     id: 'instagram_post',
     name: 'Instagram Post',
     description: '1080 x 1080 (carre)',
     width: 1080,
     height: 1080,
-    icon: '📱',
+    icon: '📷',
   },
   {
     id: 'instagram_story',
@@ -133,14 +135,84 @@ export const EXPORT_FORMATS: ExportFormat[] = [
     description: '1080 x 1920 (vertical)',
     width: 1080,
     height: 1920,
-    icon: '📲',
+    icon: '📱',
   },
   {
-    id: 'facebook',
-    name: 'Facebook',
+    id: 'instagram_reel',
+    name: 'Instagram Reel',
+    description: '1080 x 1920 (vertical)',
+    width: 1080,
+    height: 1920,
+    icon: '🎬',
+  },
+  // Facebook
+  {
+    id: 'facebook_post',
+    name: 'Facebook Post',
     description: '1200 x 630 (paysage)',
     width: 1200,
     height: 630,
-    icon: '💻',
+    icon: '👍',
+  },
+  {
+    id: 'facebook_story',
+    name: 'Facebook Story',
+    description: '1080 x 1920 (vertical)',
+    width: 1080,
+    height: 1920,
+    icon: '📘',
+  },
+  {
+    id: 'facebook_cover',
+    name: 'Facebook Couverture',
+    description: '820 x 312 (banniere)',
+    width: 820,
+    height: 312,
+    icon: '🏞️',
+  },
+  // TikTok
+  {
+    id: 'tiktok',
+    name: 'TikTok',
+    description: '1080 x 1920 (vertical)',
+    width: 1080,
+    height: 1920,
+    icon: '🎵',
+  },
+  // LinkedIn
+  {
+    id: 'linkedin_post',
+    name: 'LinkedIn Post',
+    description: '1200 x 627 (paysage)',
+    width: 1200,
+    height: 627,
+    icon: '💼',
+  },
+  // X (Twitter)
+  {
+    id: 'x_post',
+    name: 'X (Twitter)',
+    description: '1200 x 675 (paysage)',
+    width: 1200,
+    height: 675,
+    icon: '𝕏',
+  },
+  // Pinterest
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    description: '1000 x 1500 (vertical)',
+    width: 1000,
+    height: 1500,
+    icon: '📌',
+  },
+  // WhatsApp
+  {
+    id: 'whatsapp_status',
+    name: 'WhatsApp Status',
+    description: '1080 x 1920 (vertical)',
+    width: 1080,
+    height: 1920,
+    icon: '💬',
   },
 ]

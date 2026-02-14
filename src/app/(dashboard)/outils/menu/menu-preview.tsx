@@ -134,18 +134,20 @@ export function MenuPreview({
   }
 
   // Ajuster les tailles de police pour formats compacts
-  const isCompact = selectedFormat === 'facebook'
-  const titleSize = isCompact ? 'text-2xl' : 'text-4xl'
-  const catSize = isCompact ? 'text-lg' : 'text-2xl'
-  const itemNameSize = isCompact ? 'text-sm' : 'text-lg'
+  // Formats paysage = texte compact (peu de hauteur)
+  const isCompact = ['facebook_post', 'facebook_cover', 'linkedin_post', 'x_post'].includes(selectedFormat)
+  const isBanner = selectedFormat === 'facebook_cover'
+  const titleSize = isBanner ? 'text-xl' : isCompact ? 'text-2xl' : 'text-4xl'
+  const catSize = isBanner ? 'text-sm' : isCompact ? 'text-lg' : 'text-2xl'
+  const itemNameSize = isBanner ? 'text-xs' : isCompact ? 'text-sm' : 'text-lg'
   const descSize = isCompact ? 'text-[10px]' : 'text-sm'
-  const priceSize = isCompact ? 'text-sm' : 'text-lg'
-  const padX = isCompact ? 'px-4' : 'px-8'
-  const padY = isCompact ? 'py-4' : 'py-8'
-  const headerPadY = isCompact ? 'py-4' : 'py-10'
-  const spacing = isCompact ? 'space-y-3' : 'space-y-8'
-  const itemSpacing = isCompact ? 'space-y-1' : 'space-y-3'
-  const itemPadY = isCompact ? 'py-1' : 'py-2'
+  const priceSize = isBanner ? 'text-xs' : isCompact ? 'text-sm' : 'text-lg'
+  const padX = isBanner ? 'px-3' : isCompact ? 'px-4' : 'px-8'
+  const padY = isBanner ? 'py-2' : isCompact ? 'py-4' : 'py-8'
+  const headerPadY = isBanner ? 'py-2' : isCompact ? 'py-4' : 'py-10'
+  const spacing = isBanner ? 'space-y-1' : isCompact ? 'space-y-3' : 'space-y-8'
+  const itemSpacing = isBanner ? 'space-y-0' : isCompact ? 'space-y-1' : 'space-y-3'
+  const itemPadY = isBanner ? 'py-0' : isCompact ? 'py-1' : 'py-2'
 
   return (
     <div className="space-y-6">
@@ -169,21 +171,19 @@ export function MenuPreview({
       {/* Selecteur de format */}
       <div className="print:hidden">
         <p className="text-sm font-medium mb-2">Format d'export</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="flex flex-wrap gap-2">
           {EXPORT_FORMATS.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setSelectedFormat(f.id)}
-              className={`p-3 rounded-lg border text-center transition-all ${
+              className={`px-3 py-2 rounded-lg border text-center transition-all ${
                 selectedFormat === f.id
                   ? 'border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20'
                   : 'border-border hover:border-orange-500/50'
               }`}
             >
-              <span className="text-lg">{f.icon}</span>
-              <p className="text-xs font-medium mt-1">{f.name}</p>
-              <p className="text-[10px] text-muted-foreground">{f.description}</p>
+              <span className="text-sm">{f.icon} {f.name}</span>
             </button>
           ))}
         </div>
