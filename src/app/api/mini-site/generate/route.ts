@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     // Verification et deduction credits (sauf admin ou mise a jour)
     let creditsRemaining: number | null = null
 
-    if (!is_update && !isAdmin) {
+    if (!isAdmin) {
       const { data: creditData } = await adminSupabase
         .from('credits')
         .select('balance, lifetime_spent')
