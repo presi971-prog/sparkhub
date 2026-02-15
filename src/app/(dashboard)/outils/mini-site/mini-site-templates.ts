@@ -260,23 +260,32 @@ export const DAYS_OF_WEEK = [
 ]
 
 // --- Questionnaire image de couverture ---
+// Structure d'un vrai prompt pro : Style + Sujet + Description precise + Cadrage + Personnes + Ambiance + Lumiere + Couleurs + Decor + Elements
 
 export interface HeroImageConfig {
+  // 1. Style visuel
+  style: string
+  // 2. Sujet principal (categorie)
   subject: string
-  // Personnes
+  // 3. Description precise (texte libre pour les besoins specifiques)
+  subject_detail: string
+  // 4. Cadrage
+  framing: string
+  // 5. Personnes (si sujet = personnes ou si on veut des gens en plus)
+  include_people: boolean
   people_count?: string
   people_age?: string
   people_origin?: string
   people_action?: string
   people_clothing?: string
-  // Commerce
+  // 6. Commerce
   commerce_view?: string
-  // Produits
+  // 7. Produits
   product_type?: string
   product_presentation?: string
-  // Paysage
+  // 8. Paysage
   landscape_type?: string
-  // Universel
+  // 9. Universels
   ambiance?: string
   lumiere?: string
   couleurs?: string
@@ -285,16 +294,21 @@ export interface HeroImageConfig {
 }
 
 export const HERO_IMAGE_DEFAULTS: HeroImageConfig = {
+  style: '',
   subject: '',
+  subject_detail: '',
+  framing: '',
+  include_people: false,
 }
 
-interface HeroOption {
+export interface HeroOption {
   id: string
   label: string
   icon: string
+  desc?: string
 }
 
-interface HeroQuestion {
+export interface HeroQuestion {
   id: string
   title: string
   subtitle: string
@@ -302,21 +316,54 @@ interface HeroQuestion {
   multiSelect?: boolean
 }
 
-// Question 1 : Sujet principal
+// ====== Q1 — STYLE VISUEL (composante #1 d'un prompt) ======
+export const HERO_Q_STYLE: HeroQuestion = {
+  id: 'style',
+  title: 'Quel style d\'image ?',
+  subtitle: 'Le rendu visuel que tu veux obtenir',
+  options: [
+    { id: 'photo_realiste', label: 'Photo realiste', icon: '📸', desc: 'Comme une vraie photo pro' },
+    { id: 'photo_hyper_realiste', label: 'Hyper-realiste', icon: '🔬', desc: 'Ultra-detaille, plus vrai que nature' },
+    { id: 'illustration', label: 'Illustration digitale', icon: '🎨', desc: 'Dessin numerique moderne' },
+    { id: '3d_render', label: '3D / Render', icon: '💎', desc: 'Image 3D lisse et moderne' },
+    { id: 'anime', label: 'Anime / Manga', icon: '⚡', desc: 'Style japonais anime' },
+    { id: 'aquarelle', label: 'Aquarelle / Peinture', icon: '🖌️', desc: 'Effet peinture artistique' },
+    { id: 'flat_design', label: 'Flat / Minimaliste', icon: '◼️', desc: 'Formes simples et epurees' },
+    { id: 'art_conceptuel', label: 'Art conceptuel', icon: '🌀', desc: 'Creatif, abstrait, artistique' },
+  ],
+}
+
+// ====== Q2 — SUJET PRINCIPAL ======
 export const HERO_Q_SUBJECT: HeroQuestion = {
   id: 'subject',
-  title: 'Que veux-tu montrer sur ton image ?',
-  subtitle: 'Choisis ce qui represente le mieux ton activite',
+  title: 'Que veux-tu montrer ?',
+  subtitle: 'Le sujet principal de ton image',
   options: [
     { id: 'personnes', label: 'Des personnes', icon: '👥' },
     { id: 'commerce', label: 'Mon lieu / commerce', icon: '🏪' },
     { id: 'produits', label: 'Mes produits / plats', icon: '🍽️' },
-    { id: 'paysage', label: 'Un paysage', icon: '🌴' },
-    { id: 'ambiance', label: 'Une ambiance / emotion', icon: '✨' },
+    { id: 'paysage', label: 'Un paysage / decor', icon: '🌴' },
+    { id: 'concept', label: 'Un concept / une idee', icon: '💡', desc: 'Cerveau, technologie, symbole...' },
+    { id: 'objet', label: 'Un objet precis', icon: '🎯' },
   ],
 }
 
-// Questions conditionnelles — Personnes
+// ====== Q3 — CADRAGE (composante essentielle du prompt) ======
+export const HERO_Q_FRAMING: HeroQuestion = {
+  id: 'framing',
+  title: 'Quel cadrage ?',
+  subtitle: 'Comment la scene est filmee',
+  options: [
+    { id: 'gros_plan', label: 'Gros plan', icon: '🔍', desc: 'Focus sur un detail' },
+    { id: 'plan_moyen', label: 'Plan moyen', icon: '📐', desc: 'Sujet + environnement' },
+    { id: 'plan_large', label: 'Plan large / Panoramique', icon: '🖼️', desc: 'Vue d\'ensemble' },
+    { id: 'plongee', label: 'Vue du dessus', icon: '🦅', desc: 'Camera au-dessus' },
+    { id: 'contre_plongee', label: 'Contre-plongee', icon: '⬆️', desc: 'Camera en dessous, effet puissant' },
+    { id: 'face', label: 'De face / Portrait', icon: '🧑', desc: 'Droit devant' },
+  ],
+}
+
+// ====== PERSONNES ======
 export const HERO_Q_PEOPLE_COUNT: HeroQuestion = {
   id: 'people_count',
   title: 'Combien de personnes ?',
@@ -380,7 +427,7 @@ export const HERO_Q_PEOPLE_CLOTHING: HeroQuestion = {
   ],
 }
 
-// Questions conditionnelles — Commerce
+// ====== COMMERCE ======
 export const HERO_Q_COMMERCE_VIEW: HeroQuestion = {
   id: 'commerce_view',
   title: 'Quelle vue de ton commerce ?',
@@ -394,7 +441,7 @@ export const HERO_Q_COMMERCE_VIEW: HeroQuestion = {
   ],
 }
 
-// Questions conditionnelles — Produits
+// ====== PRODUITS ======
 export const HERO_Q_PRODUCT_TYPE: HeroQuestion = {
   id: 'product_type',
   title: 'Quel type de produits ?',
@@ -423,7 +470,7 @@ export const HERO_Q_PRODUCT_PRESENTATION: HeroQuestion = {
   ],
 }
 
-// Questions conditionnelles — Paysage
+// ====== PAYSAGE ======
 export const HERO_Q_LANDSCAPE_TYPE: HeroQuestion = {
   id: 'landscape_type',
   title: 'Quel type de paysage ?',
@@ -438,7 +485,7 @@ export const HERO_Q_LANDSCAPE_TYPE: HeroQuestion = {
   ],
 }
 
-// Questions universelles (toujours affichees)
+// ====== UNIVERSELS ======
 export const HERO_Q_AMBIANCE: HeroQuestion = {
   id: 'ambiance',
   title: 'Quelle ambiance ?',
@@ -450,19 +497,23 @@ export const HERO_Q_AMBIANCE: HeroQuestion = {
     { id: 'luxe', label: 'Chic & Raffinee', icon: '💎' },
     { id: 'dynamique', label: 'Dynamique & Energique', icon: '⚡' },
     { id: 'romantique', label: 'Romantique & Douce', icon: '🌹' },
+    { id: 'futuriste', label: 'Futuriste & Tech', icon: '🚀' },
+    { id: 'mysterieuse', label: 'Mysterieuse & Sombre', icon: '🌑' },
   ],
 }
 
 export const HERO_Q_LUMIERE: HeroQuestion = {
   id: 'lumiere',
   title: 'Quelle lumiere ?',
-  subtitle: 'Le moment de la journee change tout',
+  subtitle: 'Le moment et le type d\'eclairage',
   options: [
     { id: 'matin', label: 'Matin lumineux', icon: '🌅' },
     { id: 'apres_midi', label: 'Plein soleil', icon: '☀️' },
     { id: 'golden_hour', label: 'Coucher de soleil', icon: '🌇' },
     { id: 'nuit', label: 'Nuit / Neons', icon: '🌙' },
     { id: 'tamisee', label: 'Tamisee / Intime', icon: '🕯️' },
+    { id: 'studio', label: 'Eclairage studio', icon: '💡' },
+    { id: 'dramatique', label: 'Dramatique / Contrastee', icon: '🎭' },
   ],
 }
 
@@ -477,6 +528,8 @@ export const HERO_Q_COULEURS: HeroQuestion = {
     { id: 'pastels', label: 'Pastels & Doux', icon: '🌸' },
     { id: 'naturels', label: 'Naturels (bois, terre, vert)', icon: '🌿' },
     { id: 'sombres', label: 'Sombres & Contrastes', icon: '🖤' },
+    { id: 'neon', label: 'Neon / Electrique', icon: '💜' },
+    { id: 'noir_et_or', label: 'Noir & Or', icon: '✨' },
   ],
 }
 
@@ -491,6 +544,8 @@ export const HERO_Q_LIEU: HeroQuestion = {
     { id: 'rue', label: 'Rue animee', icon: '🛤️' },
     { id: 'marche', label: 'Marche', icon: '🧺' },
     { id: 'nature', label: 'Nature / Vegetation', icon: '🌺' },
+    { id: 'abstrait', label: 'Fond abstrait / Uni', icon: '🌀' },
+    { id: 'aucun', label: 'Pas d\'arriere-plan', icon: '⬜' },
   ],
 }
 
@@ -507,6 +562,8 @@ export const HERO_Q_ELEMENTS: HeroQuestion = {
     { id: 'architecture', label: 'Architecture creole', icon: '🏡' },
     { id: 'bougies', label: 'Bougies / Lumieres', icon: '🕯️' },
     { id: 'musique', label: 'Instruments / Musique', icon: '🎶' },
-    { id: 'drapeaux', label: 'Couleurs locales', icon: '🏴' },
+    { id: 'technologie', label: 'Technologie / Digital', icon: '💻' },
+    { id: 'particules', label: 'Particules / Effets lumineux', icon: '✨' },
+    { id: 'fumee', label: 'Fumee / Brume', icon: '🌫️' },
   ],
 }

@@ -19,7 +19,7 @@ import {
   SECTIONS_CONFIG, DEFAULT_SECTIONS_ORDER,
   BUSINESS_TYPES, DAYS_OF_WEEK,
   HERO_IMAGE_DEFAULTS,
-  HERO_Q_SUBJECT,
+  HERO_Q_STYLE, HERO_Q_SUBJECT, HERO_Q_FRAMING,
   HERO_Q_PEOPLE_COUNT, HERO_Q_PEOPLE_AGE, HERO_Q_PEOPLE_ORIGIN,
   HERO_Q_PEOPLE_ACTION, HERO_Q_PEOPLE_CLOTHING,
   HERO_Q_COMMERCE_VIEW,
@@ -825,29 +825,101 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Q1 — Sujet */}
+              {/* ===== STYLE VISUEL ===== */}
               <HeroQuestionBlock
-                question={HERO_Q_SUBJECT}
-                value={data.hero_config.subject}
-                onChange={(val) => {
-                  // Reset les champs conditionnels quand on change de sujet
-                  update({
-                    hero_config: {
-                      ...HERO_IMAGE_DEFAULTS,
-                      subject: val,
-                      // Garder les universels
-                      ambiance: data.hero_config.ambiance,
-                      lumiere: data.hero_config.lumiere,
-                      couleurs: data.hero_config.couleurs,
-                      lieu: data.hero_config.lieu,
-                      elements: data.hero_config.elements,
-                    },
-                  })
-                }}
+                question={HERO_Q_STYLE}
+                value={data.hero_config.style}
+                onChange={(val) => update({ hero_config: { ...data.hero_config, style: val } })}
               />
 
-              {/* Questions conditionnelles — Personnes */}
-              {data.hero_config.subject === 'personnes' && (
+              {/* ===== SUJET PRINCIPAL ===== */}
+              {data.hero_config.style && (
+                <HeroQuestionBlock
+                  question={HERO_Q_SUBJECT}
+                  value={data.hero_config.subject}
+                  onChange={(val) => {
+                    update({
+                      hero_config: {
+                        ...data.hero_config,
+                        subject: val,
+                        subject_detail: '',
+                        include_people: val === 'personnes',
+                        people_count: undefined,
+                        people_age: undefined,
+                        people_origin: undefined,
+                        people_action: undefined,
+                        people_clothing: undefined,
+                        commerce_view: undefined,
+                        product_type: undefined,
+                        product_presentation: undefined,
+                        landscape_type: undefined,
+                      },
+                    })
+                  }}
+                />
+              )}
+
+              {/* ===== DESCRIPTION PRECISE — pour les besoins specifiques ===== */}
+              {data.hero_config.subject && (
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm font-medium">Decris precisement ce que tu veux voir</p>
+                    <p className="text-xs text-muted-foreground">
+                      {data.hero_config.subject === 'concept'
+                        ? 'Ex: "Un cerveau lumineux avec des connexions neuronales", "Un arbre qui pousse a partir d\'un livre"'
+                        : data.hero_config.subject === 'objet'
+                          ? 'Ex: "Un telephone pose sur une table en bois", "Un bouquet de fleurs tropicales"'
+                          : data.hero_config.subject === 'personnes'
+                            ? 'Ex: "Un chef cuisinier fier devant ses plats", "Une famille souriante a table"'
+                            : data.hero_config.subject === 'produits'
+                              ? 'Ex: "Des bokits dores et croustillants", "Des cocktails colores face a la mer"'
+                              : data.hero_config.subject === 'commerce'
+                                ? 'Ex: "Un restaurant chaleureux avec des tables en terrasse", "Un salon moderne et lumineux"'
+                                : 'Ex: "Un coucher de soleil sur la plage de Sainte-Anne"'
+                      }
+                    </p>
+                  </div>
+                  <Input
+                    value={data.hero_config.subject_detail}
+                    onChange={e => update({ hero_config: { ...data.hero_config, subject_detail: e.target.value } })}
+                    placeholder="Decris en quelques mots ce que tu imagines..."
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              {/* ===== CADRAGE ===== */}
+              {data.hero_config.subject && (
+                <HeroQuestionBlock
+                  question={HERO_Q_FRAMING}
+                  value={data.hero_config.framing}
+                  onChange={(val) => update({ hero_config: { ...data.hero_config, framing: val } })}
+                />
+              )}
+
+              {/* ===== QUESTIONS CONDITIONNELLES — Personnes ===== */}
+              {data.hero_config.subject && data.hero_config.subject !== 'personnes' && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => update({ hero_config: { ...data.hero_config, include_people: !data.hero_config.include_people } })}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${
+                        data.hero_config.include_people ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                        data.hero_config.include_people ? 'translate-x-5' : ''
+                      }`} />
+                    </button>
+                    <div>
+                      <p className="text-sm font-medium">Ajouter des personnes dans l&apos;image ?</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(data.hero_config.subject === 'personnes' || data.hero_config.include_people) && (
                 <>
                   <HeroQuestionBlock
                     question={HERO_Q_PEOPLE_COUNT}
@@ -877,7 +949,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                 </>
               )}
 
-              {/* Questions conditionnelles — Commerce */}
+              {/* ===== QUESTIONS CONDITIONNELLES — Commerce ===== */}
               {data.hero_config.subject === 'commerce' && (
                 <HeroQuestionBlock
                   question={HERO_Q_COMMERCE_VIEW}
@@ -886,7 +958,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                 />
               )}
 
-              {/* Questions conditionnelles — Produits */}
+              {/* ===== QUESTIONS CONDITIONNELLES — Produits ===== */}
               {data.hero_config.subject === 'produits' && (
                 <>
                   <HeroQuestionBlock
@@ -902,7 +974,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                 </>
               )}
 
-              {/* Questions conditionnelles — Paysage */}
+              {/* ===== QUESTIONS CONDITIONNELLES — Paysage ===== */}
               {data.hero_config.subject === 'paysage' && (
                 <HeroQuestionBlock
                   question={HERO_Q_LANDSCAPE_TYPE}
@@ -911,7 +983,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                 />
               )}
 
-              {/* Separateur — Questions universelles */}
+              {/* ===== SEPARATEUR — QUESTIONS UNIVERSELLES ===== */}
               {data.hero_config.subject && (
                 <>
                   <div className="relative py-2">
@@ -919,7 +991,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                       <div className="w-full border-t border-border" />
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-card px-3 text-xs text-muted-foreground">Ambiance & style</span>
+                      <span className="bg-card px-3 text-xs text-muted-foreground">Ambiance & atmosphere</span>
                     </div>
                   </div>
 
