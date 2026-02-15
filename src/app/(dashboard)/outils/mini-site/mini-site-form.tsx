@@ -96,23 +96,25 @@ function HeroQuestionBlock({
   multiValue,
   onMultiChange,
 }: {
-  question: { id: string; title: string; subtitle: string; options: { id: string; label: string; icon: string }[]; multiSelect?: boolean }
+  question: { id: string; title: string; subtitle: string; options: { id: string; label: string; icon: string; desc?: string }[]; multiSelect?: boolean }
   value?: string
   onChange: (val: string) => void
   multiValue?: string[]
   onMultiChange?: (vals: string[]) => void
 }) {
   const isMulti = question.multiSelect && onMultiChange
+  // Si au moins une option a une description, on affiche en mode grille (plus spacieux)
+  const hasDescs = question.options.some(o => o.desc)
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div>
         <p className="text-sm font-medium">{question.title}</p>
         {question.subtitle && (
           <p className="text-xs text-muted-foreground">{question.subtitle}</p>
         )}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className={hasDescs ? 'grid grid-cols-2 gap-2' : 'flex flex-wrap gap-2'}>
         {question.options.map((opt) => {
           const isSelected = isMulti
             ? (multiValue || []).includes(opt.id)
@@ -134,15 +136,22 @@ function HeroQuestionBlock({
                   onChange(value === opt.id ? '' : opt.id)
                 }
               }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+              className={`flex items-start gap-2 px-3 py-2 rounded-lg border-2 text-sm text-left transition-all ${
                 isSelected
                   ? 'border-primary bg-primary/10 text-primary font-medium'
                   : 'border-border hover:border-primary/40 hover:bg-muted/50'
               }`}
             >
-              <span className="text-base">{opt.icon}</span>
-              <span>{opt.label}</span>
-              {isSelected && <Check className="h-3.5 w-3.5 ml-1" />}
+              <span className="text-base mt-0.5 shrink-0">{opt.icon}</span>
+              <div className="min-w-0">
+                <span className="flex items-center gap-1">
+                  {opt.label}
+                  {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                </span>
+                {opt.desc && (
+                  <span className="block text-[11px] text-muted-foreground font-normal mt-0.5">{opt.desc}</span>
+                )}
+              </div>
             </button>
           )
         })}
@@ -863,19 +872,23 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
               {data.hero_config.subject && (
                 <div className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium">Decris precisement ce que tu veux voir</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium">Decris precisement ce que tu veux voir (optionnel mais recommande)</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      C&apos;est ici que tu peux donner des details precis. Plus tu es precis, meilleur sera le resultat.
+                      Decris la scene comme si tu l&apos;expliquais a un photographe ou a un dessinateur.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 italic">
                       {data.hero_config.subject === 'concept'
-                        ? 'Ex: "Un cerveau lumineux avec des connexions neuronales", "Un arbre qui pousse a partir d\'un livre"'
+                        ? 'Ex: "Un cerveau lumineux avec des connexions neuronales en bleu electrique", "Un arbre qui pousse a partir d\'un livre ouvert"'
                         : data.hero_config.subject === 'objet'
-                          ? 'Ex: "Un telephone pose sur une table en bois", "Un bouquet de fleurs tropicales"'
+                          ? 'Ex: "Un telephone pose sur une table en bois avec des plantes autour", "Un bouquet de fleurs tropicales dans un vase en ceramique"'
                           : data.hero_config.subject === 'personnes'
-                            ? 'Ex: "Un chef cuisinier fier devant ses plats", "Une famille souriante a table"'
+                            ? 'Ex: "Un chef cuisinier antillais fier devant ses plats creoles", "Une famille souriante autour d\'une grande table"'
                             : data.hero_config.subject === 'produits'
-                              ? 'Ex: "Des bokits dores et croustillants", "Des cocktails colores face a la mer"'
+                              ? 'Ex: "Des bokits dores et croustillants garnis de poulet sur une table en bois", "Des cocktails colores dans des verres givres face a la mer"'
                               : data.hero_config.subject === 'commerce'
-                                ? 'Ex: "Un restaurant chaleureux avec des tables en terrasse", "Un salon moderne et lumineux"'
-                                : 'Ex: "Un coucher de soleil sur la plage de Sainte-Anne"'
+                                ? 'Ex: "Un restaurant chaleureux avec des tables en terrasse sous les cocotiers", "Un salon de coiffure moderne et lumineux avec des fauteuils design"'
+                                : 'Ex: "Un coucher de soleil rose et orange sur la plage de Sainte-Anne avec des cocotiers"'
                       }
                     </p>
                   </div>
@@ -914,6 +927,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                     </button>
                     <div>
                       <p className="text-sm font-medium">Ajouter des personnes dans l&apos;image ?</p>
+                      <p className="text-xs text-muted-foreground">Active cette option si tu veux voir des gens sur ton image (clients, equipe, etc.), en plus de ton sujet principal.</p>
                     </div>
                   </div>
                 </div>

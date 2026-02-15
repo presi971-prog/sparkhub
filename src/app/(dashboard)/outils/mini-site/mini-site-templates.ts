@@ -320,31 +320,31 @@ export interface HeroQuestion {
 export const HERO_Q_STYLE: HeroQuestion = {
   id: 'style',
   title: 'Quel style d\'image ?',
-  subtitle: 'Le rendu visuel que tu veux obtenir',
+  subtitle: 'C\'est le rendu visuel de ton image. Choisis celui qui correspond le mieux a ton activite.',
   options: [
-    { id: 'photo_realiste', label: 'Photo realiste', icon: '📸', desc: 'Comme une vraie photo pro' },
-    { id: 'photo_hyper_realiste', label: 'Hyper-realiste', icon: '🔬', desc: 'Ultra-detaille, plus vrai que nature' },
-    { id: 'illustration', label: 'Illustration digitale', icon: '🎨', desc: 'Dessin numerique moderne' },
-    { id: '3d_render', label: '3D / Render', icon: '💎', desc: 'Image 3D lisse et moderne' },
-    { id: 'anime', label: 'Anime / Manga', icon: '⚡', desc: 'Style japonais anime' },
-    { id: 'aquarelle', label: 'Aquarelle / Peinture', icon: '🖌️', desc: 'Effet peinture artistique' },
-    { id: 'flat_design', label: 'Flat / Minimaliste', icon: '◼️', desc: 'Formes simples et epurees' },
-    { id: 'art_conceptuel', label: 'Art conceptuel', icon: '🌀', desc: 'Creatif, abstrait, artistique' },
+    { id: 'photo_realiste', label: 'Photo realiste', icon: '📸', desc: 'Comme une vraie photo prise par un photographe pro' },
+    { id: 'photo_hyper_realiste', label: 'Hyper-realiste', icon: '🔬', desc: 'Ultra-detaille, chaque detail est net, plus vrai que nature' },
+    { id: 'illustration', label: 'Illustration', icon: '🎨', desc: 'Un dessin numerique moderne, colore et creatif' },
+    { id: '3d_render', label: '3D', icon: '💎', desc: 'Image en 3 dimensions, lisse et moderne comme dans un jeu video' },
+    { id: 'anime', label: 'Anime / Manga', icon: '⚡', desc: 'Style dessin anime japonais avec des couleurs vives' },
+    { id: 'aquarelle', label: 'Aquarelle', icon: '🖌️', desc: 'Effet peinture artistique avec des couleurs qui se melangent' },
+    { id: 'flat_design', label: 'Minimaliste', icon: '◼️', desc: 'Formes simples et epurees, comme une icone ou une affiche' },
+    { id: 'art_conceptuel', label: 'Art conceptuel', icon: '🌀', desc: 'Creatif et original, peut etre abstrait ou surrealiste' },
   ],
 }
 
 // ====== Q2 — SUJET PRINCIPAL ======
 export const HERO_Q_SUBJECT: HeroQuestion = {
   id: 'subject',
-  title: 'Que veux-tu montrer ?',
-  subtitle: 'Le sujet principal de ton image',
+  title: 'Que veux-tu montrer sur cette image ?',
+  subtitle: 'C\'est le sujet principal, ce que les gens verront en premier en arrivant sur ton site.',
   options: [
-    { id: 'personnes', label: 'Des personnes', icon: '👥' },
-    { id: 'commerce', label: 'Mon lieu / commerce', icon: '🏪' },
-    { id: 'produits', label: 'Mes produits / plats', icon: '🍽️' },
-    { id: 'paysage', label: 'Un paysage / decor', icon: '🌴' },
-    { id: 'concept', label: 'Un concept / une idee', icon: '💡', desc: 'Cerveau, technologie, symbole...' },
-    { id: 'objet', label: 'Un objet precis', icon: '🎯' },
+    { id: 'personnes', label: 'Des personnes', icon: '👥', desc: 'Des gens : toi, tes employes, des clients...' },
+    { id: 'commerce', label: 'Mon commerce', icon: '🏪', desc: 'Ton local, ta boutique, ton restaurant...' },
+    { id: 'produits', label: 'Mes produits', icon: '🍽️', desc: 'Tes plats, tes creations, ce que tu vends...' },
+    { id: 'paysage', label: 'Un paysage', icon: '🌴', desc: 'Une plage, une vue, un decor naturel...' },
+    { id: 'concept', label: 'Un concept / une idee', icon: '💡', desc: 'Quelque chose d\'abstrait : un cerveau, la technologie, un symbole...' },
+    { id: 'objet', label: 'Un objet precis', icon: '🎯', desc: 'Un outil, un accessoire, quelque chose de specifique...' },
   ],
 }
 
@@ -352,14 +352,14 @@ export const HERO_Q_SUBJECT: HeroQuestion = {
 export const HERO_Q_FRAMING: HeroQuestion = {
   id: 'framing',
   title: 'Quel cadrage ?',
-  subtitle: 'Comment la scene est filmee',
+  subtitle: 'C\'est la distance entre la camera et le sujet. Ca change completement le rendu.',
   options: [
-    { id: 'gros_plan', label: 'Gros plan', icon: '🔍', desc: 'Focus sur un detail' },
-    { id: 'plan_moyen', label: 'Plan moyen', icon: '📐', desc: 'Sujet + environnement' },
-    { id: 'plan_large', label: 'Plan large / Panoramique', icon: '🖼️', desc: 'Vue d\'ensemble' },
-    { id: 'plongee', label: 'Vue du dessus', icon: '🦅', desc: 'Camera au-dessus' },
-    { id: 'contre_plongee', label: 'Contre-plongee', icon: '⬆️', desc: 'Camera en dessous, effet puissant' },
-    { id: 'face', label: 'De face / Portrait', icon: '🧑', desc: 'Droit devant' },
+    { id: 'gros_plan', label: 'Gros plan', icon: '🔍', desc: 'Tres proche, on voit les details (un plat, un visage, un objet)' },
+    { id: 'plan_moyen', label: 'Plan moyen', icon: '📐', desc: 'On voit le sujet et un peu de l\'environnement autour' },
+    { id: 'plan_large', label: 'Plan large', icon: '🖼️', desc: 'Vue d\'ensemble, on voit tout le decor (ideal pour un paysage ou un lieu)' },
+    { id: 'plongee', label: 'Vue du dessus', icon: '🦅', desc: 'Comme si on regardait d\'en haut (beau pour un plat ou une table)' },
+    { id: 'contre_plongee', label: 'Contre-plongee', icon: '⬆️', desc: 'Vue d\'en bas qui donne un effet puissant et imposant' },
+    { id: 'face', label: 'De face', icon: '🧑', desc: 'Droit devant, comme un portrait ou une devanture de face' },
   ],
 }
 
@@ -367,63 +367,63 @@ export const HERO_Q_FRAMING: HeroQuestion = {
 export const HERO_Q_PEOPLE_COUNT: HeroQuestion = {
   id: 'people_count',
   title: 'Combien de personnes ?',
-  subtitle: '',
+  subtitle: 'Le nombre de personnes visibles sur l\'image. Plus il y en a, moins on voit les details de chacune.',
   options: [
-    { id: '1', label: 'Une seule', icon: '🧑' },
-    { id: '2-3', label: '2 ou 3', icon: '👫' },
-    { id: 'groupe', label: 'Un groupe', icon: '👨‍👩‍👧‍👦' },
+    { id: '1', label: 'Une seule', icon: '🧑', desc: 'Portrait ou silhouette unique — ideal pour mettre en avant un chef, un artisan, toi-meme' },
+    { id: '2-3', label: '2 ou 3', icon: '👫', desc: 'Un petit groupe — parfait pour montrer une equipe ou des clients' },
+    { id: 'groupe', label: 'Un groupe', icon: '👨‍👩‍👧‍👦', desc: 'Plusieurs personnes — donne un effet convivial, festif ou communautaire' },
   ],
 }
 
 export const HERO_Q_PEOPLE_AGE: HeroQuestion = {
   id: 'people_age',
   title: 'Quel age ?',
-  subtitle: '',
+  subtitle: 'L\'age des personnes sur l\'image. Choisis celui qui represente le mieux ta clientele ou ton equipe.',
   options: [
-    { id: 'enfants', label: 'Enfants', icon: '👶' },
-    { id: 'jeunes', label: 'Jeunes (18-30)', icon: '🧑' },
-    { id: 'adultes', label: 'Adultes (30-50)', icon: '🧔' },
-    { id: 'seniors', label: 'Seniors (50+)', icon: '👴' },
-    { id: 'mix', label: 'Ages melanges', icon: '👨‍👩‍👧' },
+    { id: 'enfants', label: 'Enfants', icon: '👶', desc: 'Bebes ou enfants — pour les activites familiales, creches, etc.' },
+    { id: 'jeunes', label: 'Jeunes (18-30)', icon: '🧑', desc: 'Jeunes adultes dynamiques — ideal pour les activites branchees' },
+    { id: 'adultes', label: 'Adultes (30-50)', icon: '🧔', desc: 'Adultes actifs — le choix le plus courant pour les pros' },
+    { id: 'seniors', label: 'Seniors (50+)', icon: '👴', desc: 'Personnes matures — pour les services seniors ou pour inspirer confiance' },
+    { id: 'mix', label: 'Ages melanges', icon: '👨‍👩‍👧', desc: 'Un melange de generations — donne un cote familial et inclusif' },
   ],
 }
 
 export const HERO_Q_PEOPLE_ORIGIN: HeroQuestion = {
   id: 'people_origin',
   title: 'Quelle apparence ?',
-  subtitle: 'Pour que l\'image te ressemble',
+  subtitle: 'L\'apparence des personnes sur l\'image. Choisis ce qui represente le mieux ta clientele ou ton equipe.',
   options: [
-    { id: 'antillaise', label: 'Antillaise / Caribbeenne', icon: '🌺' },
-    { id: 'africaine', label: 'Africaine', icon: '🌍' },
-    { id: 'europeenne', label: 'Europeenne', icon: '🏔️' },
-    { id: 'asiatique', label: 'Asiatique', icon: '🏯' },
-    { id: 'mixte', label: 'Mixte / Diverse', icon: '🌈' },
+    { id: 'antillaise', label: 'Antillaise / Caribbeenne', icon: '🌺', desc: 'Peau noire ou metissee, style caribbeen — le choix naturel en Guadeloupe' },
+    { id: 'africaine', label: 'Africaine', icon: '🌍', desc: 'Peau noire, traits africains — pour representer la diaspora' },
+    { id: 'europeenne', label: 'Europeenne', icon: '🏔️', desc: 'Peau claire, traits europeens' },
+    { id: 'asiatique', label: 'Asiatique', icon: '🏯', desc: 'Traits asiatiques — pour les restos asiatiques, etc.' },
+    { id: 'mixte', label: 'Mixte / Diverse', icon: '🌈', desc: 'Un melange d\'origines — reflete la diversite de la Guadeloupe' },
   ],
 }
 
 export const HERO_Q_PEOPLE_ACTION: HeroQuestion = {
   id: 'people_action',
   title: 'Que font-ils ?',
-  subtitle: '',
+  subtitle: 'L\'action des personnes sur l\'image. Ca donne vie et contexte a ta photo.',
   options: [
-    { id: 'sourient', label: 'Sourient / Posent', icon: '😊' },
-    { id: 'mangent', label: 'Mangent / Boivent', icon: '🍴' },
-    { id: 'travaillent', label: 'Travaillent', icon: '💼' },
-    { id: 'discutent', label: 'Discutent', icon: '💬' },
-    { id: 'dansent', label: 'Dansent / Font la fete', icon: '💃' },
-    { id: 'cuisinent', label: 'Cuisinent', icon: '👨‍🍳' },
+    { id: 'sourient', label: 'Sourient / Posent', icon: '😊', desc: 'Regardent la camera avec le sourire — classique et accueillant' },
+    { id: 'mangent', label: 'Mangent / Boivent', icon: '🍴', desc: 'En train de deguster un plat ou une boisson — parfait pour la restauration' },
+    { id: 'travaillent', label: 'Travaillent', icon: '💼', desc: 'Concentres sur leur metier — montre le savoir-faire et le professionnalisme' },
+    { id: 'discutent', label: 'Discutent', icon: '💬', desc: 'En conversation — donne un cote chaleureux et social' },
+    { id: 'dansent', label: 'Dansent / Font la fete', icon: '💃', desc: 'En mouvement, festifs — ideal pour les bars, les evenements' },
+    { id: 'cuisinent', label: 'Cuisinent', icon: '👨‍🍳', desc: 'En cuisine, preparent des plats — montre le cote artisanal' },
   ],
 }
 
 export const HERO_Q_PEOPLE_CLOTHING: HeroQuestion = {
   id: 'people_clothing',
   title: 'Comment sont-ils habilles ?',
-  subtitle: '',
+  subtitle: 'La tenue vestimentaire donne tout de suite le ton : decontracte, pro, chic ou culturel.',
   options: [
-    { id: 'decontracte', label: 'Decontracte', icon: '👕' },
-    { id: 'elegant', label: 'Elegant / Chic', icon: '👔' },
-    { id: 'professionnel', label: 'Tenue pro / Uniforme', icon: '👨‍🍳' },
-    { id: 'traditionnel', label: 'Tenue traditionnelle', icon: '👗' },
+    { id: 'decontracte', label: 'Decontracte', icon: '👕', desc: 'T-shirt, short, tenue legere — ambiance relax et naturelle' },
+    { id: 'elegant', label: 'Elegant / Chic', icon: '👔', desc: 'Chemise, robe, tenue soignee — pour un look premium et raffinee' },
+    { id: 'professionnel', label: 'Tenue pro / Uniforme', icon: '👨‍🍳', desc: 'Toque de chef, blouse, tablier — montre le metier clairement' },
+    { id: 'traditionnel', label: 'Tenue traditionnelle', icon: '👗', desc: 'Madras, robe creole — met en valeur la culture antillaise' },
   ],
 }
 
@@ -431,13 +431,13 @@ export const HERO_Q_PEOPLE_CLOTHING: HeroQuestion = {
 export const HERO_Q_COMMERCE_VIEW: HeroQuestion = {
   id: 'commerce_view',
   title: 'Quelle vue de ton commerce ?',
-  subtitle: '',
+  subtitle: 'Quelle partie de ton commerce veux-tu montrer ? C\'est la premiere impression que les visiteurs auront.',
   options: [
-    { id: 'devanture', label: 'La devanture / facade', icon: '🏠' },
-    { id: 'interieur', label: 'L\'interieur / la salle', icon: '🛋️' },
-    { id: 'comptoir', label: 'Le comptoir / bar', icon: '🍸' },
-    { id: 'cuisine', label: 'La cuisine / atelier', icon: '🔥' },
-    { id: 'terrasse', label: 'La terrasse', icon: '☀️' },
+    { id: 'devanture', label: 'La devanture / facade', icon: '🏠', desc: 'L\'exterieur de ton commerce vu depuis la rue — montre ou te trouver' },
+    { id: 'interieur', label: 'L\'interieur / la salle', icon: '🛋️', desc: 'L\'ambiance a l\'interieur — tables, decoration, espace d\'accueil' },
+    { id: 'comptoir', label: 'Le comptoir / bar', icon: '🍸', desc: 'Le bar ou le comptoir — ideal pour les bars, snacks, boulangeries' },
+    { id: 'cuisine', label: 'La cuisine / atelier', icon: '🔥', desc: 'Les coulisses, la ou tu crees — montre ton savoir-faire' },
+    { id: 'terrasse', label: 'La terrasse', icon: '☀️', desc: 'L\'espace en plein air — met en avant le beau temps et la convivialite' },
   ],
 }
 
@@ -445,28 +445,28 @@ export const HERO_Q_COMMERCE_VIEW: HeroQuestion = {
 export const HERO_Q_PRODUCT_TYPE: HeroQuestion = {
   id: 'product_type',
   title: 'Quel type de produits ?',
-  subtitle: '',
+  subtitle: 'Dis-nous ce que tu vends pour que l\'image colle parfaitement a ton activite.',
   options: [
-    { id: 'plats_creoles', label: 'Plats creoles', icon: '🍛' },
-    { id: 'patisseries', label: 'Patisseries / Desserts', icon: '🧁' },
-    { id: 'boissons', label: 'Boissons / Cocktails', icon: '🍹' },
-    { id: 'fruits', label: 'Fruits tropicaux', icon: '🥭' },
-    { id: 'cosmetiques', label: 'Cosmetiques / Soins', icon: '🧴' },
-    { id: 'artisanat', label: 'Artisanat / Bijoux', icon: '💍' },
-    { id: 'vetements', label: 'Vetements / Mode', icon: '👗' },
+    { id: 'plats_creoles', label: 'Plats creoles', icon: '🍛', desc: 'Colombo, bokit, accras, court-bouillon... la cuisine antillaise' },
+    { id: 'patisseries', label: 'Patisseries / Desserts', icon: '🧁', desc: 'Gateaux, tourments d\'amour, flan coco, pains au beurre...' },
+    { id: 'boissons', label: 'Boissons / Cocktails', icon: '🍹', desc: 'Ti-punch, jus de fruits frais, cocktails, smoothies...' },
+    { id: 'fruits', label: 'Fruits tropicaux', icon: '🥭', desc: 'Mangues, ananas, goyaves, fruits de la passion, bananes...' },
+    { id: 'cosmetiques', label: 'Cosmetiques / Soins', icon: '🧴', desc: 'Cremes, huiles, savons, soins capillaires, produits naturels' },
+    { id: 'artisanat', label: 'Artisanat / Bijoux', icon: '💍', desc: 'Creations artisanales, bijoux, objets faits main' },
+    { id: 'vetements', label: 'Vetements / Mode', icon: '👗', desc: 'Robes, chemises, accessoires, mode locale ou importee' },
   ],
 }
 
 export const HERO_Q_PRODUCT_PRESENTATION: HeroQuestion = {
   id: 'product_presentation',
   title: 'Quelle mise en scene ?',
-  subtitle: '',
+  subtitle: 'Comment veux-tu presenter tes produits ? La mise en scene change completement l\'impact visuel.',
   options: [
-    { id: 'gros_plan', label: 'Gros plan (focus produit)', icon: '🔍' },
-    { id: 'table_dressee', label: 'Table dressee', icon: '🍽️' },
-    { id: 'etalage', label: 'Etalage / Vitrine', icon: '🏬' },
-    { id: 'en_preparation', label: 'En preparation', icon: '👨‍🍳' },
-    { id: 'dans_les_mains', label: 'Tenu dans les mains', icon: '🤲' },
+    { id: 'gros_plan', label: 'Gros plan (focus produit)', icon: '🔍', desc: 'Le produit occupe toute l\'image — on voit chaque detail, chaque texture' },
+    { id: 'table_dressee', label: 'Table dressee', icon: '🍽️', desc: 'Produits poses sur une belle table decoree — style food photography' },
+    { id: 'etalage', label: 'Etalage / Vitrine', icon: '🏬', desc: 'Plusieurs produits presentes ensemble — comme dans une boutique' },
+    { id: 'en_preparation', label: 'En preparation', icon: '👨‍🍳', desc: 'Le produit en train d\'etre fabrique — montre le processus de creation' },
+    { id: 'dans_les_mains', label: 'Tenu dans les mains', icon: '🤲', desc: 'Quelqu\'un tient le produit — ajoute un cote humain et authentique' },
   ],
 }
 
@@ -474,14 +474,14 @@ export const HERO_Q_PRODUCT_PRESENTATION: HeroQuestion = {
 export const HERO_Q_LANDSCAPE_TYPE: HeroQuestion = {
   id: 'landscape_type',
   title: 'Quel type de paysage ?',
-  subtitle: '',
+  subtitle: 'Le paysage en arriere-plan de ton image. Choisis celui qui rappelle le mieux ton environnement.',
   options: [
-    { id: 'plage', label: 'Plage / Bord de mer', icon: '🏖️' },
-    { id: 'montagne', label: 'Montagne / Volcan', icon: '🏔️' },
-    { id: 'foret', label: 'Foret tropicale', icon: '🌿' },
-    { id: 'ville', label: 'Ville / Rue', icon: '🏙️' },
-    { id: 'campagne', label: 'Campagne / Champs', icon: '🌾' },
-    { id: 'port', label: 'Port / Marina', icon: '⛵' },
+    { id: 'plage', label: 'Plage / Bord de mer', icon: '🏖️', desc: 'Sable blanc, eau turquoise, cocotiers — l\'image classique des Antilles' },
+    { id: 'montagne', label: 'Montagne / Volcan', icon: '🏔️', desc: 'La Soufriere, mornes verdoyants — pour un cote nature et puissant' },
+    { id: 'foret', label: 'Foret tropicale', icon: '🌿', desc: 'Vegetation luxuriante, cascades, lianes — ambiance jungle et aventure' },
+    { id: 'ville', label: 'Ville / Rue', icon: '🏙️', desc: 'Rues animees, maisons colorees, vie urbaine — Pointe-a-Pitre, Basse-Terre...' },
+    { id: 'campagne', label: 'Campagne / Champs', icon: '🌾', desc: 'Champs de canne a sucre, bananeraies, campagne verdoyante' },
+    { id: 'port', label: 'Port / Marina', icon: '⛵', desc: 'Bateaux, quais, marina — ambiance maritime et detendue' },
   ],
 }
 
@@ -489,81 +489,81 @@ export const HERO_Q_LANDSCAPE_TYPE: HeroQuestion = {
 export const HERO_Q_AMBIANCE: HeroQuestion = {
   id: 'ambiance',
   title: 'Quelle ambiance ?',
-  subtitle: 'L\'emotion que ton client doit ressentir',
+  subtitle: 'L\'emotion que les visiteurs de ton site doivent ressentir en voyant l\'image. C\'est le "feeling" general.',
   options: [
-    { id: 'chaleureuse', label: 'Chaleureuse & Familiale', icon: '🤗' },
-    { id: 'festive', label: 'Festive & Coloree', icon: '🎊' },
-    { id: 'zen', label: 'Zen & Apaisante', icon: '🧘' },
-    { id: 'luxe', label: 'Chic & Raffinee', icon: '💎' },
-    { id: 'dynamique', label: 'Dynamique & Energique', icon: '⚡' },
-    { id: 'romantique', label: 'Romantique & Douce', icon: '🌹' },
-    { id: 'futuriste', label: 'Futuriste & Tech', icon: '🚀' },
-    { id: 'mysterieuse', label: 'Mysterieuse & Sombre', icon: '🌑' },
+    { id: 'chaleureuse', label: 'Chaleureuse & Familiale', icon: '🤗', desc: 'Accueillante, rassurante — on se sent comme a la maison' },
+    { id: 'festive', label: 'Festive & Coloree', icon: '🎊', desc: 'Joyeuse, animee, pleine de vie — envie de faire la fete' },
+    { id: 'zen', label: 'Zen & Apaisante', icon: '🧘', desc: 'Calme, sereine, relaxante — on se detend rien qu\'en regardant' },
+    { id: 'luxe', label: 'Chic & Raffinee', icon: '💎', desc: 'Elegante, haut de gamme — pour un positionnement premium' },
+    { id: 'dynamique', label: 'Dynamique & Energique', icon: '⚡', desc: 'Pleine d\'energie, ca bouge — pour les activites sportives ou fast food' },
+    { id: 'romantique', label: 'Romantique & Douce', icon: '🌹', desc: 'Tendre, poetique, delicate — pour les fleuristes, wedding planners...' },
+    { id: 'futuriste', label: 'Futuriste & Tech', icon: '🚀', desc: 'Moderne, technologique, avant-gardiste — pour les services digitaux' },
+    { id: 'mysterieuse', label: 'Mysterieuse & Sombre', icon: '🌑', desc: 'Intrigante, profonde, un peu sombre — pour les bars, clubs, escape games' },
   ],
 }
 
 export const HERO_Q_LUMIERE: HeroQuestion = {
   id: 'lumiere',
   title: 'Quelle lumiere ?',
-  subtitle: 'Le moment et le type d\'eclairage',
+  subtitle: 'La lumiere donne le ton a toute l\'image. Un coucher de soleil et un neon ne racontent pas la meme histoire.',
   options: [
-    { id: 'matin', label: 'Matin lumineux', icon: '🌅' },
-    { id: 'apres_midi', label: 'Plein soleil', icon: '☀️' },
-    { id: 'golden_hour', label: 'Coucher de soleil', icon: '🌇' },
-    { id: 'nuit', label: 'Nuit / Neons', icon: '🌙' },
-    { id: 'tamisee', label: 'Tamisee / Intime', icon: '🕯️' },
-    { id: 'studio', label: 'Eclairage studio', icon: '💡' },
-    { id: 'dramatique', label: 'Dramatique / Contrastee', icon: '🎭' },
+    { id: 'matin', label: 'Matin lumineux', icon: '🌅', desc: 'Lumiere douce et fraiche du matin — sensation de nouveau depart' },
+    { id: 'apres_midi', label: 'Plein soleil', icon: '☀️', desc: 'Soleil eclatant, couleurs vives — l\'energie des tropiques' },
+    { id: 'golden_hour', label: 'Coucher de soleil', icon: '🌇', desc: 'Lumiere doree et chaude du soir — la plus belle lumiere pour les photos' },
+    { id: 'nuit', label: 'Nuit / Neons', icon: '🌙', desc: 'Eclairage nocturne, neons, lumieres de ville — ambiance nightlife' },
+    { id: 'tamisee', label: 'Tamisee / Intime', icon: '🕯️', desc: 'Lumiere basse, bougies, reflets — ambiance cozy et romantique' },
+    { id: 'studio', label: 'Eclairage studio', icon: '💡', desc: 'Lumiere artificielle propre et nette — rendu professionnel type catalogue' },
+    { id: 'dramatique', label: 'Dramatique / Contrastee', icon: '🎭', desc: 'Forts contrastes ombre/lumiere — effet artistique et impactant' },
   ],
 }
 
 export const HERO_Q_COULEURS: HeroQuestion = {
   id: 'couleurs',
   title: 'Quelles couleurs dominantes ?',
-  subtitle: '',
+  subtitle: 'Les couleurs principales de ton image. Elles influencent fortement l\'emotion ressentie par le visiteur.',
   options: [
-    { id: 'chauds', label: 'Tons chauds (rouge, orange, jaune)', icon: '🔥' },
-    { id: 'froids', label: 'Tons froids (bleu, vert)', icon: '🧊' },
-    { id: 'vifs', label: 'Vifs & Colores', icon: '🎨' },
-    { id: 'pastels', label: 'Pastels & Doux', icon: '🌸' },
-    { id: 'naturels', label: 'Naturels (bois, terre, vert)', icon: '🌿' },
-    { id: 'sombres', label: 'Sombres & Contrastes', icon: '🖤' },
-    { id: 'neon', label: 'Neon / Electrique', icon: '💜' },
-    { id: 'noir_et_or', label: 'Noir & Or', icon: '✨' },
+    { id: 'chauds', label: 'Tons chauds (rouge, orange, jaune)', icon: '🔥', desc: 'Energie, passion, appetit — parfait pour la cuisine et les ambiances festives' },
+    { id: 'froids', label: 'Tons froids (bleu, vert)', icon: '🧊', desc: 'Calme, confiance, fraicheur — ideal pour le bien-etre et la tech' },
+    { id: 'vifs', label: 'Vifs & Colores', icon: '🎨', desc: 'Toutes les couleurs intenses — joyeux, pop, carnaval' },
+    { id: 'pastels', label: 'Pastels & Doux', icon: '🌸', desc: 'Couleurs adoucies, tendres — elegance discrete et delicatesse' },
+    { id: 'naturels', label: 'Naturels (bois, terre, vert)', icon: '🌿', desc: 'Marron, vert feuille, beige — bio, eco, authentique' },
+    { id: 'sombres', label: 'Sombres & Contrastes', icon: '🖤', desc: 'Noir, gris fonce, touches de lumiere — mystere et sophistication' },
+    { id: 'neon', label: 'Neon / Electrique', icon: '💜', desc: 'Rose fluo, bleu electrique, violet — nightlife, urbain, moderne' },
+    { id: 'noir_et_or', label: 'Noir & Or', icon: '✨', desc: 'Le duo luxe par excellence — premium, bijouterie, gastronomie' },
   ],
 }
 
 export const HERO_Q_LIEU: HeroQuestion = {
   id: 'lieu',
   title: 'Quel decor / arriere-plan ?',
-  subtitle: '',
+  subtitle: 'C\'est ce qu\'on voit derriere le sujet principal. Le decor plante le contexte de ton activite.',
   options: [
-    { id: 'interieur', label: 'Interieur', icon: '🏠' },
-    { id: 'terrasse', label: 'Terrasse', icon: '☂️' },
-    { id: 'plage', label: 'Plage', icon: '🏖️' },
-    { id: 'rue', label: 'Rue animee', icon: '🛤️' },
-    { id: 'marche', label: 'Marche', icon: '🧺' },
-    { id: 'nature', label: 'Nature / Vegetation', icon: '🌺' },
-    { id: 'abstrait', label: 'Fond abstrait / Uni', icon: '🌀' },
-    { id: 'aucun', label: 'Pas d\'arriere-plan', icon: '⬜' },
+    { id: 'interieur', label: 'Interieur', icon: '🏠', desc: 'A l\'interieur d\'un lieu — salon, restaurant, boutique...' },
+    { id: 'terrasse', label: 'Terrasse', icon: '☂️', desc: 'Espace ouvert avec toit ou parasol — le meilleur des deux mondes' },
+    { id: 'plage', label: 'Plage', icon: '🏖️', desc: 'Sable, mer, ciel bleu — l\'image carte postale des Antilles' },
+    { id: 'rue', label: 'Rue animee', icon: '🛤️', desc: 'Rue coloree, passants, commerces — vie urbaine et dynamisme' },
+    { id: 'marche', label: 'Marche', icon: '🧺', desc: 'Etals colores, fruits, epices — authenticite et tradition' },
+    { id: 'nature', label: 'Nature / Vegetation', icon: '🌺', desc: 'Arbres, fleurs, verdure — nature tropicale luxuriante' },
+    { id: 'abstrait', label: 'Fond abstrait / Uni', icon: '🌀', desc: 'Fond de couleur ou motif — pour mettre tout le focus sur le sujet' },
+    { id: 'aucun', label: 'Pas d\'arriere-plan', icon: '⬜', desc: 'Fond blanc ou transparent — style catalogue, epure au maximum' },
   ],
 }
 
 export const HERO_Q_ELEMENTS: HeroQuestion = {
   id: 'elements',
   title: 'Des elements en plus ?',
-  subtitle: 'Tu peux en choisir plusieurs',
+  subtitle: 'Des petits details qui enrichissent l\'image. Tu peux en choisir plusieurs pour personnaliser encore plus.',
   multiSelect: true,
   options: [
-    { id: 'vegetation', label: 'Vegetation tropicale', icon: '🌴' },
-    { id: 'fleurs', label: 'Fleurs', icon: '🌺' },
-    { id: 'fruits', label: 'Fruits tropicaux', icon: '🍍' },
-    { id: 'mer', label: 'Mer / Ocean', icon: '🌊' },
-    { id: 'architecture', label: 'Architecture creole', icon: '🏡' },
-    { id: 'bougies', label: 'Bougies / Lumieres', icon: '🕯️' },
-    { id: 'musique', label: 'Instruments / Musique', icon: '🎶' },
-    { id: 'technologie', label: 'Technologie / Digital', icon: '💻' },
-    { id: 'particules', label: 'Particules / Effets lumineux', icon: '✨' },
-    { id: 'fumee', label: 'Fumee / Brume', icon: '🌫️' },
+    { id: 'vegetation', label: 'Vegetation tropicale', icon: '🌴', desc: 'Palmiers, bananiers, feuilles exotiques en bordure de l\'image' },
+    { id: 'fleurs', label: 'Fleurs', icon: '🌺', desc: 'Hibiscus, bougainvilliers, frangipanier — touches de couleur naturelles' },
+    { id: 'fruits', label: 'Fruits tropicaux', icon: '🍍', desc: 'Ananas, mangues, noix de coco — rappelle la gastronomie locale' },
+    { id: 'mer', label: 'Mer / Ocean', icon: '🌊', desc: 'Eau turquoise, vagues, ecume — l\'appel de la Caraibe' },
+    { id: 'architecture', label: 'Architecture creole', icon: '🏡', desc: 'Cases colorees, balcons en bois, toits en tole — le patrimoine local' },
+    { id: 'bougies', label: 'Bougies / Lumieres', icon: '🕯️', desc: 'Bougies, guirlandes, lanternes — ambiance chaleureuse et intime' },
+    { id: 'musique', label: 'Instruments / Musique', icon: '🎶', desc: 'Ka, guitare, maracas — la musique fait partie de la culture' },
+    { id: 'technologie', label: 'Technologie / Digital', icon: '💻', desc: 'Ecrans, circuits, hologrammes — pour les metiers du digital et de la tech' },
+    { id: 'particules', label: 'Particules / Effets lumineux', icon: '✨', desc: 'Paillettes, etincelles, effets de lumiere — ajoute de la magie et du wow' },
+    { id: 'fumee', label: 'Fumee / Brume', icon: '🌫️', desc: 'Brume legere, vapeur, fumee — ajoute du mystere et de la profondeur' },
   ],
 }
