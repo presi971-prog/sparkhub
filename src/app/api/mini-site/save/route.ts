@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       font_style: body.font_style || 'moderne',
       services_layout: body.services_layout || 'cards',
       sections_order: body.sections_order || ['hero', 'about', 'services', 'gallery', 'hours', 'contact', 'social'],
+      hero_config: body.hero_config || null,
       ai_description: body.ai_description || null,
       hero_image_url: body.hero_image_url || null,
       published: body.published ?? false,

@@ -18,6 +18,16 @@ import {
   PRESET_COLORS,
   SECTIONS_CONFIG, DEFAULT_SECTIONS_ORDER,
   BUSINESS_TYPES, DAYS_OF_WEEK,
+  HERO_IMAGE_DEFAULTS,
+  HERO_Q_SUBJECT,
+  HERO_Q_PEOPLE_COUNT, HERO_Q_PEOPLE_AGE, HERO_Q_PEOPLE_ORIGIN,
+  HERO_Q_PEOPLE_ACTION, HERO_Q_PEOPLE_CLOTHING,
+  HERO_Q_COMMERCE_VIEW,
+  HERO_Q_PRODUCT_TYPE, HERO_Q_PRODUCT_PRESENTATION,
+  HERO_Q_LANDSCAPE_TYPE,
+  HERO_Q_AMBIANCE, HERO_Q_LUMIERE, HERO_Q_COULEURS,
+  HERO_Q_LIEU, HERO_Q_ELEMENTS,
+  type HeroImageConfig,
 } from './mini-site-templates'
 
 const CREDITS_COST = 150
@@ -62,7 +72,7 @@ interface MiniSiteData {
   font_style: string
   services_layout: string
   sections_order: string[]
-  hero_prompt: string
+  hero_config: HeroImageConfig
   ai_description: string
   hero_image_url: string
   slug: string
@@ -75,6 +85,70 @@ interface MiniSiteFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   existingSite: any | null
   isAdmin?: boolean
+}
+
+// --- Composant question image de couverture ---
+
+function HeroQuestionBlock({
+  question,
+  value,
+  onChange,
+  multiValue,
+  onMultiChange,
+}: {
+  question: { id: string; title: string; subtitle: string; options: { id: string; label: string; icon: string }[]; multiSelect?: boolean }
+  value?: string
+  onChange: (val: string) => void
+  multiValue?: string[]
+  onMultiChange?: (vals: string[]) => void
+}) {
+  const isMulti = question.multiSelect && onMultiChange
+
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-medium">{question.title}</p>
+        {question.subtitle && (
+          <p className="text-xs text-muted-foreground">{question.subtitle}</p>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {question.options.map((opt) => {
+          const isSelected = isMulti
+            ? (multiValue || []).includes(opt.id)
+            : value === opt.id
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => {
+                if (isMulti && onMultiChange) {
+                  const current = multiValue || []
+                  if (current.includes(opt.id)) {
+                    onMultiChange(current.filter(v => v !== opt.id))
+                  } else {
+                    onMultiChange([...current, opt.id])
+                  }
+                } else {
+                  onChange(value === opt.id ? '' : opt.id)
+                }
+              }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+                isSelected
+                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                  : 'border-border hover:border-primary/40 hover:bg-muted/50'
+              }`}
+            >
+              <span className="text-base">{opt.icon}</span>
+              <span>{opt.label}</span>
+              {isSelected && <Check className="h-3.5 w-3.5 ml-1" />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function slugify(text: string): string {
@@ -124,7 +198,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
         font_style: existingSite.font_style || 'moderne',
         services_layout: existingSite.services_layout || 'cards',
         sections_order: existingSite.sections_order || DEFAULT_SECTIONS_ORDER,
-        hero_prompt: existingSite.hero_prompt || '',
+        hero_config: existingSite.hero_config || HERO_IMAGE_DEFAULTS,
         ai_description: existingSite.ai_description || '',
         hero_image_url: existingSite.hero_image_url || '',
         slug: existingSite.slug || '',
@@ -152,7 +226,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
       font_style: 'moderne',
       services_layout: 'cards',
       sections_order: DEFAULT_SECTIONS_ORDER,
-      hero_prompt: '',
+      hero_config: HERO_IMAGE_DEFAULTS,
       ai_description: '',
       hero_image_url: '',
       slug: '',
@@ -265,7 +339,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
           services: data.services.filter(s => s.name.trim()),
           address: data.address,
           theme: data.theme,
-          hero_prompt: data.hero_prompt,
+          hero_config: data.hero_config,
           is_update: isEditing,
         }),
       })
@@ -742,71 +816,142 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
             </CardContent>
           </Card>
 
-          {/* Image de couverture — description personnalisee */}
+          {/* Image de couverture — questionnaire intelligent */}
           <Card>
             <CardHeader>
               <CardTitle>Mon image de couverture</CardTitle>
               <CardDescription>
-                C&apos;est la grande image que les visiteurs voient en premier sur ton site.
-                Plus tu es precis, plus l&apos;image correspondra a ton commerce.
+                Reponds a ces questions et l&apos;IA creera une image sur mesure pour ton site.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Guide clair */}
-              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
-                <p className="text-sm font-medium">Decris l&apos;image ideale pour ton commerce :</p>
-                <ul className="text-xs text-muted-foreground space-y-1 list-none">
-                  <li><span className="font-medium text-foreground">Le lieu</span> — ou se passe la scene ? (ta terrasse, ton comptoir, un marche, une plage...)</li>
-                  <li><span className="font-medium text-foreground">L&apos;ambiance</span> — quelle atmosphere ? (chaleureuse, festive, zen, luxe, familiale...)</li>
-                  <li><span className="font-medium text-foreground">Les elements cles</span> — qu&apos;est-ce qu&apos;on voit ? (tes plats, tes produits, ta devanture, des fruits tropicaux...)</li>
-                  <li><span className="font-medium text-foreground">La lumiere</span> — quel moment ? (coucher de soleil, lumiere du matin, ambiance de nuit...)</li>
-                </ul>
-              </div>
-
-              <Textarea
-                value={data.hero_prompt}
-                onChange={e => update({ hero_prompt: e.target.value })}
-                placeholder={"Exemple pour un restaurant :\n\"Une belle table dressee en terrasse face a la mer, avec des plats creoles colores, des fleurs tropicales, lumiere chaude de fin de journee, ambiance conviviale et chaleureuse\"\n\nExemple pour un salon de coiffure :\n\"Un salon moderne et lumineux avec des fauteuils en cuir, des miroirs elegants, des plantes vertes, ambiance zen et professionnelle\""}
-                rows={5}
+            <CardContent className="space-y-5">
+              {/* Q1 — Sujet */}
+              <HeroQuestionBlock
+                question={HERO_Q_SUBJECT}
+                value={data.hero_config.subject}
+                onChange={(val) => {
+                  // Reset les champs conditionnels quand on change de sujet
+                  update({
+                    hero_config: {
+                      ...HERO_IMAGE_DEFAULTS,
+                      subject: val,
+                      // Garder les universels
+                      ambiance: data.hero_config.ambiance,
+                      lumiere: data.hero_config.lumiere,
+                      couleurs: data.hero_config.couleurs,
+                      lieu: data.hero_config.lieu,
+                      elements: data.hero_config.elements,
+                    },
+                  })
+                }}
               />
 
-              <div>
-                <p className="text-xs font-medium mb-2">Besoin d&apos;idees ? Clique pour ajouter :</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { label: 'Plage tropicale', icon: '🏖️' },
-                    { label: 'Marche creole', icon: '🧺' },
-                    { label: 'Plats creoles colores', icon: '🍛' },
-                    { label: 'Ambiance festive', icon: '🎉' },
-                    { label: 'Coucher de soleil', icon: '🌅' },
-                    { label: 'Palmiers et cocotiers', icon: '🌴' },
-                    { label: 'Rue coloree', icon: '🎨' },
-                    { label: 'Terrasse en bord de mer', icon: '🌊' },
-                    { label: 'Ambiance zen et nature', icon: '🍃' },
-                    { label: 'Neons et nuit', icon: '🌙' },
-                    { label: 'Produits frais locaux', icon: '🥭' },
-                    { label: 'Devanture de boutique', icon: '🏪' },
-                    { label: 'Salon moderne et lumineux', icon: '💇' },
-                    { label: 'Ambiance familiale et chaleureuse', icon: '👨‍👩‍👧' },
-                  ].map(tag => (
-                    <button
-                      key={tag.label}
-                      type="button"
-                      onClick={() => {
-                        const separator = data.hero_prompt.trim() ? ', ' : ''
-                        update({ hero_prompt: data.hero_prompt.trim() + separator + tag.label.toLowerCase() })
-                      }}
-                      className="px-2.5 py-1 text-xs rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
-                    >
-                      {tag.icon} {tag.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Questions conditionnelles — Personnes */}
+              {data.hero_config.subject === 'personnes' && (
+                <>
+                  <HeroQuestionBlock
+                    question={HERO_Q_PEOPLE_COUNT}
+                    value={data.hero_config.people_count}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, people_count: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_PEOPLE_AGE}
+                    value={data.hero_config.people_age}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, people_age: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_PEOPLE_ORIGIN}
+                    value={data.hero_config.people_origin}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, people_origin: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_PEOPLE_ACTION}
+                    value={data.hero_config.people_action}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, people_action: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_PEOPLE_CLOTHING}
+                    value={data.hero_config.people_clothing}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, people_clothing: val } })}
+                  />
+                </>
+              )}
 
-              <p className="text-xs text-muted-foreground italic">
-                Pas d&apos;inspiration ? Pas de souci — laisse vide et l&apos;IA choisira une image selon ton ambiance visuelle.
-              </p>
+              {/* Questions conditionnelles — Commerce */}
+              {data.hero_config.subject === 'commerce' && (
+                <HeroQuestionBlock
+                  question={HERO_Q_COMMERCE_VIEW}
+                  value={data.hero_config.commerce_view}
+                  onChange={(val) => update({ hero_config: { ...data.hero_config, commerce_view: val } })}
+                />
+              )}
+
+              {/* Questions conditionnelles — Produits */}
+              {data.hero_config.subject === 'produits' && (
+                <>
+                  <HeroQuestionBlock
+                    question={HERO_Q_PRODUCT_TYPE}
+                    value={data.hero_config.product_type}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, product_type: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_PRODUCT_PRESENTATION}
+                    value={data.hero_config.product_presentation}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, product_presentation: val } })}
+                  />
+                </>
+              )}
+
+              {/* Questions conditionnelles — Paysage */}
+              {data.hero_config.subject === 'paysage' && (
+                <HeroQuestionBlock
+                  question={HERO_Q_LANDSCAPE_TYPE}
+                  value={data.hero_config.landscape_type}
+                  onChange={(val) => update({ hero_config: { ...data.hero_config, landscape_type: val } })}
+                />
+              )}
+
+              {/* Separateur — Questions universelles */}
+              {data.hero_config.subject && (
+                <>
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-card px-3 text-xs text-muted-foreground">Ambiance & style</span>
+                    </div>
+                  </div>
+
+                  <HeroQuestionBlock
+                    question={HERO_Q_AMBIANCE}
+                    value={data.hero_config.ambiance}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, ambiance: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_LUMIERE}
+                    value={data.hero_config.lumiere}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, lumiere: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_COULEURS}
+                    value={data.hero_config.couleurs}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, couleurs: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_LIEU}
+                    value={data.hero_config.lieu}
+                    onChange={(val) => update({ hero_config: { ...data.hero_config, lieu: val } })}
+                  />
+                  <HeroQuestionBlock
+                    question={HERO_Q_ELEMENTS}
+                    value={undefined}
+                    onChange={() => {}}
+                    multiValue={data.hero_config.elements || []}
+                    onMultiChange={(vals) => update({ hero_config: { ...data.hero_config, elements: vals } })}
+                  />
+                </>
+              )}
             </CardContent>
           </Card>
 

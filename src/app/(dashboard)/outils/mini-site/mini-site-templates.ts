@@ -258,3 +258,255 @@ export const DAYS_OF_WEEK = [
   'Samedi',
   'Dimanche',
 ]
+
+// --- Questionnaire image de couverture ---
+
+export interface HeroImageConfig {
+  subject: string
+  // Personnes
+  people_count?: string
+  people_age?: string
+  people_origin?: string
+  people_action?: string
+  people_clothing?: string
+  // Commerce
+  commerce_view?: string
+  // Produits
+  product_type?: string
+  product_presentation?: string
+  // Paysage
+  landscape_type?: string
+  // Universel
+  ambiance?: string
+  lumiere?: string
+  couleurs?: string
+  lieu?: string
+  elements?: string[]
+}
+
+export const HERO_IMAGE_DEFAULTS: HeroImageConfig = {
+  subject: '',
+}
+
+interface HeroOption {
+  id: string
+  label: string
+  icon: string
+}
+
+interface HeroQuestion {
+  id: string
+  title: string
+  subtitle: string
+  options: HeroOption[]
+  multiSelect?: boolean
+}
+
+// Question 1 : Sujet principal
+export const HERO_Q_SUBJECT: HeroQuestion = {
+  id: 'subject',
+  title: 'Que veux-tu montrer sur ton image ?',
+  subtitle: 'Choisis ce qui represente le mieux ton activite',
+  options: [
+    { id: 'personnes', label: 'Des personnes', icon: '👥' },
+    { id: 'commerce', label: 'Mon lieu / commerce', icon: '🏪' },
+    { id: 'produits', label: 'Mes produits / plats', icon: '🍽️' },
+    { id: 'paysage', label: 'Un paysage', icon: '🌴' },
+    { id: 'ambiance', label: 'Une ambiance / emotion', icon: '✨' },
+  ],
+}
+
+// Questions conditionnelles — Personnes
+export const HERO_Q_PEOPLE_COUNT: HeroQuestion = {
+  id: 'people_count',
+  title: 'Combien de personnes ?',
+  subtitle: '',
+  options: [
+    { id: '1', label: 'Une seule', icon: '🧑' },
+    { id: '2-3', label: '2 ou 3', icon: '👫' },
+    { id: 'groupe', label: 'Un groupe', icon: '👨‍👩‍👧‍👦' },
+  ],
+}
+
+export const HERO_Q_PEOPLE_AGE: HeroQuestion = {
+  id: 'people_age',
+  title: 'Quel age ?',
+  subtitle: '',
+  options: [
+    { id: 'enfants', label: 'Enfants', icon: '👶' },
+    { id: 'jeunes', label: 'Jeunes (18-30)', icon: '🧑' },
+    { id: 'adultes', label: 'Adultes (30-50)', icon: '🧔' },
+    { id: 'seniors', label: 'Seniors (50+)', icon: '👴' },
+    { id: 'mix', label: 'Ages melanges', icon: '👨‍👩‍👧' },
+  ],
+}
+
+export const HERO_Q_PEOPLE_ORIGIN: HeroQuestion = {
+  id: 'people_origin',
+  title: 'Quelle apparence ?',
+  subtitle: 'Pour que l\'image te ressemble',
+  options: [
+    { id: 'antillaise', label: 'Antillaise / Caribbeenne', icon: '🌺' },
+    { id: 'africaine', label: 'Africaine', icon: '🌍' },
+    { id: 'europeenne', label: 'Europeenne', icon: '🏔️' },
+    { id: 'asiatique', label: 'Asiatique', icon: '🏯' },
+    { id: 'mixte', label: 'Mixte / Diverse', icon: '🌈' },
+  ],
+}
+
+export const HERO_Q_PEOPLE_ACTION: HeroQuestion = {
+  id: 'people_action',
+  title: 'Que font-ils ?',
+  subtitle: '',
+  options: [
+    { id: 'sourient', label: 'Sourient / Posent', icon: '😊' },
+    { id: 'mangent', label: 'Mangent / Boivent', icon: '🍴' },
+    { id: 'travaillent', label: 'Travaillent', icon: '💼' },
+    { id: 'discutent', label: 'Discutent', icon: '💬' },
+    { id: 'dansent', label: 'Dansent / Font la fete', icon: '💃' },
+    { id: 'cuisinent', label: 'Cuisinent', icon: '👨‍🍳' },
+  ],
+}
+
+export const HERO_Q_PEOPLE_CLOTHING: HeroQuestion = {
+  id: 'people_clothing',
+  title: 'Comment sont-ils habilles ?',
+  subtitle: '',
+  options: [
+    { id: 'decontracte', label: 'Decontracte', icon: '👕' },
+    { id: 'elegant', label: 'Elegant / Chic', icon: '👔' },
+    { id: 'professionnel', label: 'Tenue pro / Uniforme', icon: '👨‍🍳' },
+    { id: 'traditionnel', label: 'Tenue traditionnelle', icon: '👗' },
+  ],
+}
+
+// Questions conditionnelles — Commerce
+export const HERO_Q_COMMERCE_VIEW: HeroQuestion = {
+  id: 'commerce_view',
+  title: 'Quelle vue de ton commerce ?',
+  subtitle: '',
+  options: [
+    { id: 'devanture', label: 'La devanture / facade', icon: '🏠' },
+    { id: 'interieur', label: 'L\'interieur / la salle', icon: '🛋️' },
+    { id: 'comptoir', label: 'Le comptoir / bar', icon: '🍸' },
+    { id: 'cuisine', label: 'La cuisine / atelier', icon: '🔥' },
+    { id: 'terrasse', label: 'La terrasse', icon: '☀️' },
+  ],
+}
+
+// Questions conditionnelles — Produits
+export const HERO_Q_PRODUCT_TYPE: HeroQuestion = {
+  id: 'product_type',
+  title: 'Quel type de produits ?',
+  subtitle: '',
+  options: [
+    { id: 'plats_creoles', label: 'Plats creoles', icon: '🍛' },
+    { id: 'patisseries', label: 'Patisseries / Desserts', icon: '🧁' },
+    { id: 'boissons', label: 'Boissons / Cocktails', icon: '🍹' },
+    { id: 'fruits', label: 'Fruits tropicaux', icon: '🥭' },
+    { id: 'cosmetiques', label: 'Cosmetiques / Soins', icon: '🧴' },
+    { id: 'artisanat', label: 'Artisanat / Bijoux', icon: '💍' },
+    { id: 'vetements', label: 'Vetements / Mode', icon: '👗' },
+  ],
+}
+
+export const HERO_Q_PRODUCT_PRESENTATION: HeroQuestion = {
+  id: 'product_presentation',
+  title: 'Quelle mise en scene ?',
+  subtitle: '',
+  options: [
+    { id: 'gros_plan', label: 'Gros plan (focus produit)', icon: '🔍' },
+    { id: 'table_dressee', label: 'Table dressee', icon: '🍽️' },
+    { id: 'etalage', label: 'Etalage / Vitrine', icon: '🏬' },
+    { id: 'en_preparation', label: 'En preparation', icon: '👨‍🍳' },
+    { id: 'dans_les_mains', label: 'Tenu dans les mains', icon: '🤲' },
+  ],
+}
+
+// Questions conditionnelles — Paysage
+export const HERO_Q_LANDSCAPE_TYPE: HeroQuestion = {
+  id: 'landscape_type',
+  title: 'Quel type de paysage ?',
+  subtitle: '',
+  options: [
+    { id: 'plage', label: 'Plage / Bord de mer', icon: '🏖️' },
+    { id: 'montagne', label: 'Montagne / Volcan', icon: '🏔️' },
+    { id: 'foret', label: 'Foret tropicale', icon: '🌿' },
+    { id: 'ville', label: 'Ville / Rue', icon: '🏙️' },
+    { id: 'campagne', label: 'Campagne / Champs', icon: '🌾' },
+    { id: 'port', label: 'Port / Marina', icon: '⛵' },
+  ],
+}
+
+// Questions universelles (toujours affichees)
+export const HERO_Q_AMBIANCE: HeroQuestion = {
+  id: 'ambiance',
+  title: 'Quelle ambiance ?',
+  subtitle: 'L\'emotion que ton client doit ressentir',
+  options: [
+    { id: 'chaleureuse', label: 'Chaleureuse & Familiale', icon: '🤗' },
+    { id: 'festive', label: 'Festive & Coloree', icon: '🎊' },
+    { id: 'zen', label: 'Zen & Apaisante', icon: '🧘' },
+    { id: 'luxe', label: 'Chic & Raffinee', icon: '💎' },
+    { id: 'dynamique', label: 'Dynamique & Energique', icon: '⚡' },
+    { id: 'romantique', label: 'Romantique & Douce', icon: '🌹' },
+  ],
+}
+
+export const HERO_Q_LUMIERE: HeroQuestion = {
+  id: 'lumiere',
+  title: 'Quelle lumiere ?',
+  subtitle: 'Le moment de la journee change tout',
+  options: [
+    { id: 'matin', label: 'Matin lumineux', icon: '🌅' },
+    { id: 'apres_midi', label: 'Plein soleil', icon: '☀️' },
+    { id: 'golden_hour', label: 'Coucher de soleil', icon: '🌇' },
+    { id: 'nuit', label: 'Nuit / Neons', icon: '🌙' },
+    { id: 'tamisee', label: 'Tamisee / Intime', icon: '🕯️' },
+  ],
+}
+
+export const HERO_Q_COULEURS: HeroQuestion = {
+  id: 'couleurs',
+  title: 'Quelles couleurs dominantes ?',
+  subtitle: '',
+  options: [
+    { id: 'chauds', label: 'Tons chauds (rouge, orange, jaune)', icon: '🔥' },
+    { id: 'froids', label: 'Tons froids (bleu, vert)', icon: '🧊' },
+    { id: 'vifs', label: 'Vifs & Colores', icon: '🎨' },
+    { id: 'pastels', label: 'Pastels & Doux', icon: '🌸' },
+    { id: 'naturels', label: 'Naturels (bois, terre, vert)', icon: '🌿' },
+    { id: 'sombres', label: 'Sombres & Contrastes', icon: '🖤' },
+  ],
+}
+
+export const HERO_Q_LIEU: HeroQuestion = {
+  id: 'lieu',
+  title: 'Quel decor / arriere-plan ?',
+  subtitle: '',
+  options: [
+    { id: 'interieur', label: 'Interieur', icon: '🏠' },
+    { id: 'terrasse', label: 'Terrasse', icon: '☂️' },
+    { id: 'plage', label: 'Plage', icon: '🏖️' },
+    { id: 'rue', label: 'Rue animee', icon: '🛤️' },
+    { id: 'marche', label: 'Marche', icon: '🧺' },
+    { id: 'nature', label: 'Nature / Vegetation', icon: '🌺' },
+  ],
+}
+
+export const HERO_Q_ELEMENTS: HeroQuestion = {
+  id: 'elements',
+  title: 'Des elements en plus ?',
+  subtitle: 'Tu peux en choisir plusieurs',
+  multiSelect: true,
+  options: [
+    { id: 'vegetation', label: 'Vegetation tropicale', icon: '🌴' },
+    { id: 'fleurs', label: 'Fleurs', icon: '🌺' },
+    { id: 'fruits', label: 'Fruits tropicaux', icon: '🍍' },
+    { id: 'mer', label: 'Mer / Ocean', icon: '🌊' },
+    { id: 'architecture', label: 'Architecture creole', icon: '🏡' },
+    { id: 'bougies', label: 'Bougies / Lumieres', icon: '🕯️' },
+    { id: 'musique', label: 'Instruments / Musique', icon: '🎶' },
+    { id: 'drapeaux', label: 'Couleurs locales', icon: '🏴' },
+  ],
+}
