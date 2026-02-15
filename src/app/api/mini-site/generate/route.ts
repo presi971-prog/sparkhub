@@ -200,140 +200,146 @@ ${address ? `Adresse : ${address}` : ''}`
 // On les assemble mecaniquement = pas d'interpretation, pas d'hallucination.
 // ============================================================
 
-// Mots-cles ANGLAIS pour chaque option du questionnaire
-const PROMPT_KEYWORDS: Record<string, Record<string, string>> = {
+// =====================================================
+// Mots-cles ANGLAIS — COURTS et PERCUTANTS
+// Flux donne plus de poids aux premiers tokens du prompt
+// Donc : sujet + personnes + cadrage D'ABORD, style a la fin
+// =====================================================
+
+const PK: Record<string, Record<string, string>> = {
+  // Style = suffixe technique (va A LA FIN du prompt)
   style: {
-    photo_realiste: 'professional DSLR photography, Canon EOS R5, 85mm lens, shallow depth of field, natural light, ultra-realistic',
-    photo_hyper_realiste: 'hyperrealistic photography, 8K resolution, ray tracing, photorealistic, macro detail, lifelike, extreme detail',
-    illustration: 'digital illustration, clean lines, vibrant colors, detailed artwork, professional illustration, artstation quality',
-    '3d_render': '3D render, octane render, smooth surfaces, glossy materials, volumetric lighting, CGI, unreal engine',
-    anime: 'anime art style, cel shading, vibrant anime colors, detailed anime illustration, studio quality anime',
-    aquarelle: 'watercolor painting, soft brush strokes, artistic, wet on wet technique, flowing colors, delicate washes',
-    flat_design: 'flat design, minimalist vector illustration, geometric shapes, clean lines, simple bold shapes',
-    art_conceptuel: 'concept art, surreal composition, creative, artistic, imaginative, detailed concept artwork',
+    photo_realiste: 'DSLR photography, 85mm lens, natural light, ultra-realistic',
+    photo_hyper_realiste: 'hyperrealistic 8K photography, extreme detail, ray tracing',
+    illustration: 'digital illustration, clean lines, vibrant colors, artstation',
+    '3d_render': '3D render, octane render, volumetric lighting, CGI',
+    anime: 'anime art style, cel shading, vibrant anime colors',
+    aquarelle: 'watercolor painting, soft brush strokes, flowing colors',
+    flat_design: 'flat design, minimalist vector, geometric shapes',
+    art_conceptuel: 'concept art, surreal creative composition',
   },
   framing: {
-    gros_plan: 'close-up shot, tight framing',
-    plan_moyen: 'medium shot, waist-up framing',
-    plan_large: 'wide-angle shot, panoramic view, full scene visible',
-    plongee: "bird's eye view, top-down perspective, overhead angle",
-    contre_plongee: 'low-angle shot, looking up, heroic perspective, dramatic angle',
-    face: 'front view, straight-on portrait framing, facing camera',
+    gros_plan: 'close-up shot',
+    plan_moyen: 'medium shot',
+    plan_large: 'wide-angle panoramic shot showing the full scene',
+    plongee: "bird's eye view, top-down angle",
+    contre_plongee: 'low-angle shot looking up',
+    face: 'front-facing view',
   },
   people_count: {
-    '1': 'a single person',
-    '2-3': 'two or three people together',
-    groupe: 'a group of people',
+    '1': 'exactly one person',
+    '2-3': 'exactly three people side by side',
+    groupe: 'a group of six people',
   },
   people_age: {
     enfants: 'young children',
-    jeunes: 'young adults in their twenties',
-    adultes: 'adults in their thirties to forties',
-    seniors: 'senior elderly people',
-    mix: 'people of mixed ages from young to old',
+    jeunes: 'young adults aged 20-25',
+    adultes: 'adults aged 35-45',
+    seniors: 'elderly people aged 60+',
+    mix: 'people of mixed ages',
   },
   people_origin: {
-    antillaise: 'Black Caribbean people, dark brown skin, Afro-Caribbean features',
-    africaine: 'Black African people, dark skin, African features',
-    europeenne: 'European people, light skin, Caucasian features',
-    asiatique: 'Asian people, East Asian features',
-    mixte: 'diverse mixed-ethnicity people of different origins',
+    antillaise: 'Black Caribbean, dark brown skin, Afro-Caribbean',
+    africaine: 'Black African, dark skin',
+    europeenne: 'European, light skin',
+    asiatique: 'East Asian',
+    mixte: 'diverse mixed ethnicities',
   },
   people_action: {
-    sourient: 'smiling warmly and posing for the camera, friendly expression',
-    mangent: 'eating food and drinking, enjoying a meal',
-    travaillent: 'working professionally, focused on their craft',
-    discutent: 'having a conversation, chatting happily',
-    dansent: 'dancing and celebrating, festive movement',
-    cuisinent: 'cooking in a kitchen, preparing food, chef at work',
+    sourient: 'smiling at camera',
+    mangent: 'eating and drinking',
+    travaillent: 'working professionally',
+    discutent: 'chatting together',
+    dansent: 'dancing and celebrating',
+    cuisinent: 'cooking food',
   },
   people_clothing: {
-    decontracte: 'wearing casual tropical clothing, t-shirt, relaxed style',
-    elegant: 'wearing elegant formal clothing, well-dressed, chic attire',
-    professionnel: 'wearing professional work uniform, chef coat, work apron',
-    traditionnel: 'wearing traditional Caribbean clothing, madras fabric, Creole dress',
+    decontracte: 'casual clothing',
+    elegant: 'elegant formal attire',
+    professionnel: 'professional work uniform',
+    traditionnel: 'traditional Caribbean madras clothing',
   },
   commerce_view: {
-    devanture: 'storefront exterior facade, seen from the street',
-    interieur: 'interior of the establishment, indoor ambiance, dining area',
-    comptoir: 'bar counter, front desk, service counter',
-    cuisine: 'professional kitchen, cooking workshop, behind the scenes',
-    terrasse: 'outdoor terrace, open-air seating, al fresco dining',
+    devanture: 'storefront facade from the street',
+    interieur: 'interior view of the establishment',
+    comptoir: 'bar counter area',
+    cuisine: 'professional kitchen',
+    terrasse: 'outdoor terrace seating',
   },
   product_type: {
-    plats_creoles: 'Caribbean Creole dishes, colombo, bokit, accras, court-bouillon',
-    patisseries: 'pastries and desserts, cakes, tropical pastries, sweet treats',
-    boissons: 'tropical cocktails, fresh fruit juice, ti-punch, colorful drinks',
-    fruits: 'tropical fruits, mango, pineapple, passion fruit, guava, coconut',
-    cosmetiques: 'cosmetic products, natural skincare, beauty products, bottles and jars',
-    artisanat: 'handmade crafts, artisan jewelry, handcrafted items',
-    vetements: 'fashion clothing, dresses, fabric, clothing display',
+    plats_creoles: 'Caribbean Creole dishes',
+    patisseries: 'pastries and desserts',
+    boissons: 'tropical cocktails and drinks',
+    fruits: 'tropical fruits',
+    cosmetiques: 'beauty and skincare products',
+    artisanat: 'handcrafted artisan items',
+    vetements: 'fashion clothing',
   },
   product_presentation: {
-    gros_plan: 'extreme close-up of the product, detailed texture visible, food photography macro',
-    table_dressee: 'beautifully arranged on a decorated table, styled food photography, table setting',
-    etalage: 'displayed in a shop window, market stall display, arranged showcase',
-    en_preparation: 'being prepared, in the making, work in progress, hands crafting',
-    dans_les_mains: 'held in hands, person presenting the product, human touch',
+    gros_plan: 'extreme close-up product shot',
+    table_dressee: 'arranged on a decorated table',
+    etalage: 'displayed in showcase',
+    en_preparation: 'being prepared',
+    dans_les_mains: 'held in hands',
   },
   landscape_type: {
-    plage: 'Caribbean beach, white sand, turquoise ocean, palm trees, tropical coastline',
-    montagne: 'lush green mountain, tropical volcano, La Soufriere, misty peaks',
-    foret: 'tropical rainforest, lush vegetation, waterfalls, jungle canopy',
-    ville: 'colorful Caribbean town, vibrant street, Creole architecture, Pointe-a-Pitre',
-    campagne: 'sugar cane fields, banana plantations, green countryside, rural tropics',
-    port: 'harbor marina, fishing boats, Caribbean port, waterfront docks',
+    plage: 'Caribbean beach with turquoise ocean and palm trees',
+    montagne: 'lush tropical mountain',
+    foret: 'tropical rainforest',
+    ville: 'colorful Caribbean town street',
+    campagne: 'tropical countryside',
+    port: 'harbor with boats',
   },
   ambiance: {
-    chaleureuse: 'warm welcoming cozy atmosphere, inviting feel',
-    festive: 'festive colorful joyful celebration, party vibes',
-    zen: 'peaceful zen calm serene relaxing atmosphere',
-    luxe: 'elegant luxury refined upscale premium atmosphere',
-    dynamique: 'dynamic energetic vibrant lively atmosphere',
-    romantique: 'romantic soft dreamy tender atmosphere',
-    futuriste: 'futuristic modern technological sci-fi atmosphere',
-    mysterieuse: 'mysterious dark moody dramatic atmosphere',
+    chaleureuse: 'warm welcoming atmosphere',
+    festive: 'festive joyful atmosphere',
+    zen: 'peaceful zen atmosphere',
+    luxe: 'luxury refined atmosphere',
+    dynamique: 'dynamic energetic atmosphere',
+    romantique: 'romantic soft atmosphere',
+    futuriste: 'futuristic modern atmosphere',
+    mysterieuse: 'mysterious dark atmosphere',
   },
   lumiere: {
-    matin: 'soft morning light, dawn, early sunlight, fresh daybreak',
-    apres_midi: 'bright tropical daylight, strong sunshine, midday sun',
-    golden_hour: 'golden hour sunset light, warm orange glow, magic hour',
-    nuit: 'nighttime scene, neon lights, city lights, urban night glow',
-    tamisee: 'dim candlelight, intimate warm glow, low ambient light',
-    studio: 'professional studio lighting, softbox, even illumination, clean light',
-    dramatique: 'dramatic chiaroscuro lighting, strong shadows, high contrast light',
+    matin: 'soft morning light',
+    apres_midi: 'bright daylight',
+    golden_hour: 'golden hour sunset',
+    nuit: 'night scene with neon lights',
+    tamisee: 'dim candlelight',
+    studio: 'studio lighting',
+    dramatique: 'dramatic chiaroscuro lighting',
   },
   couleurs: {
-    chauds: 'warm color palette, red, orange, amber, golden tones',
-    froids: 'cool color palette, blue, teal, cyan, icy tones',
-    vifs: 'vivid saturated bold colors, high color intensity, vibrant',
-    pastels: 'soft pastel color palette, muted gentle colors, delicate hues',
-    naturels: 'earthy natural tones, wood brown, forest green, sand beige',
-    sombres: 'dark moody palette, deep shadows, high contrast, low key',
-    neon: 'neon glowing colors, electric blue, hot pink, fluorescent purple',
-    noir_et_or: 'black and gold color scheme, luxury premium aesthetic, gilded accents',
+    chauds: 'warm red orange amber tones',
+    froids: 'cool blue teal tones',
+    vifs: 'vivid saturated bold colors',
+    pastels: 'soft pastel colors',
+    naturels: 'earthy natural tones',
+    sombres: 'dark moody high contrast',
+    neon: 'neon glowing electric colors',
+    noir_et_or: 'black and gold',
   },
   lieu: {
-    interieur: 'indoor interior setting, inside a room',
-    terrasse: 'outdoor covered terrace, open-air patio with shade',
-    plage: 'beach setting, sandy shore, ocean backdrop',
-    rue: 'lively street scene, urban sidewalk, city backdrop',
-    marche: 'colorful market stalls, open-air market, vendors',
-    nature: 'natural tropical vegetation backdrop, lush greenery, flowers',
-    abstrait: 'abstract gradient background, artistic blurred backdrop, smooth colors',
-    aucun: 'clean solid background, plain backdrop, isolated subject, white background',
+    interieur: 'indoor setting',
+    terrasse: 'outdoor terrace',
+    plage: 'beach setting',
+    rue: 'lively street',
+    marche: 'colorful market',
+    nature: 'tropical vegetation',
+    abstrait: 'abstract gradient background',
+    aucun: 'clean plain background',
   },
   elements: {
-    vegetation: 'tropical plants, palm leaves, banana leaves, lush foliage',
-    fleurs: 'tropical flowers, hibiscus, bougainvillea, frangipani blossoms',
-    fruits: 'tropical fruits scattered, pineapple, mango, coconut, exotic fruits',
-    mer: 'ocean waves, turquoise sea water, surf, Caribbean sea',
-    architecture: 'Creole architecture, colorful wooden houses, colonial balconies',
-    bougies: 'candles, fairy lights, warm bokeh lights, decorative lanterns',
-    musique: 'musical instruments, Caribbean drums, ka drum, guitar, maracas',
-    technologie: 'technology elements, screens, circuits, digital holographic effects',
-    particules: 'light particles, sparkles, lens flare, magical glowing dust',
-    fumee: 'atmospheric smoke, mist, fog, wispy haze, dreamy vapor',
+    vegetation: 'tropical palm leaves',
+    fleurs: 'tropical flowers hibiscus',
+    fruits: 'tropical fruits',
+    mer: 'turquoise ocean waves',
+    architecture: 'colorful Creole houses',
+    bougies: 'candles and fairy lights',
+    musique: 'musical instruments drums',
+    technologie: 'digital tech elements',
+    particules: 'sparkles and lens flare',
+    fumee: 'atmospheric mist',
   },
 }
 
@@ -374,119 +380,146 @@ async function translateToEnglish(text: string): Promise<string> {
   }
 }
 
-// Construire le prompt DIRECTEMENT a partir des choix utilisateur
-// Pas de Gemini qui reinterprete, pas de theme qui pollue
+// =====================================================
+// CONSTRUCTION DU PROMPT — ORDRE CRITIQUE POUR FLUX
+//
+// Flux donne le plus de poids aux PREMIERS mots.
+// Ordre : SUJET + PERSONNES + CADRAGE + DECOR + AMBIANCE + STYLE
+// Le style technique va A LA FIN comme qualificateur.
+// =====================================================
 async function buildDirectPrompt(config: Record<string, unknown>, businessType: string): Promise<string> {
   if (!config || !config.subject) return ''
 
-  const parts: string[] = []
-
-  // 1. STYLE VISUEL — premier mot-cle, le plus important
-  const style = config.style as string
-  if (style && PROMPT_KEYWORDS.style[style]) {
-    parts.push(PROMPT_KEYWORDS.style[style])
-  } else {
-    parts.push('professional DSLR photography, ultra-realistic, natural light')
-  }
-
-  // 2. SUJET — description du sujet principal
   const subject = config.subject as string
-  const subjectDescriptions: Record<string, string> = {
-    personnes: 'portrait of people',
-    commerce: `${businessType || 'local business'} establishment`,
-    produits: `${businessType || 'artisan'} products`,
-    paysage: 'landscape scenery',
-    concept: 'conceptual visual',
-    objet: 'detailed object',
-  }
-  parts.push(subjectDescriptions[subject] || 'scene')
+  const hasPeople = subject === 'personnes' || config.include_people
 
-  // 3. DESCRIPTION PRECISE (texte libre — traduit si français)
-  if (config.subject_detail && (config.subject_detail as string).trim()) {
-    const translated = await translateToEnglish((config.subject_detail as string).trim())
-    parts.push(translated)
-  }
+  // ===================== BLOC 1 : LE SUJET (debut du prompt) =====================
+  // C'est la premiere chose que Flux lit = la plus respectee
+  const opening: string[] = []
 
-  // 4. CADRAGE
-  const framing = config.framing as string
-  if (framing && PROMPT_KEYWORDS.framing[framing]) {
-    parts.push(PROMPT_KEYWORDS.framing[framing])
-  }
-
-  // 5. PERSONNES — on les decrit de facon tres explicite
-  const hasPeople = config.subject === 'personnes' || config.include_people
+  // 1a. PERSONNES — TOUT DE SUITE si demandees
   if (hasPeople) {
-    const peopleParts: string[] = []
-
     const count = config.people_count as string
-    if (count && PROMPT_KEYWORDS.people_count[count]) peopleParts.push(PROMPT_KEYWORDS.people_count[count])
-    else peopleParts.push('a person')
+    const countText = PK.people_count[count] || 'people'
 
     const age = config.people_age as string
-    if (age && PROMPT_KEYWORDS.people_age[age]) peopleParts.push(PROMPT_KEYWORDS.people_age[age])
+    const ageText = PK.people_age[age] || ''
 
     const origin = config.people_origin as string
-    if (origin && PROMPT_KEYWORDS.people_origin[origin]) {
-      peopleParts.push(PROMPT_KEYWORDS.people_origin[origin])
-    } else {
-      // Default Guadeloupe
-      peopleParts.push('Black Caribbean people, dark brown skin, Afro-Caribbean features')
-    }
+    const originText = PK.people_origin[origin] || 'Black Caribbean, dark brown skin'
 
     const action = config.people_action as string
-    if (action && PROMPT_KEYWORDS.people_action[action]) peopleParts.push(PROMPT_KEYWORDS.people_action[action])
+    const actionText = PK.people_action[action] || ''
 
     const clothing = config.people_clothing as string
-    if (clothing && PROMPT_KEYWORDS.people_clothing[clothing]) peopleParts.push(PROMPT_KEYWORDS.people_clothing[clothing])
+    const clothingText = PK.people_clothing[clothing] || ''
 
-    // IMPORTANT: on insiste pour que les gens apparaissent
-    parts.push(`featuring ${peopleParts.join(', ')}`)
+    // Phrase complete et naturelle pour les personnes
+    let peopleSentence = countText
+    if (ageText) peopleSentence += `, ${ageText}`
+    peopleSentence += `, ${originText}`
+    if (actionText) peopleSentence += `, ${actionText}`
+    if (clothingText) peopleSentence += `, ${clothingText}`
+
+    opening.push(peopleSentence)
   }
 
-  // 6. Champs conditionnels par sujet
+  // 1b. SUJET si ce n'est pas "personnes"
   if (subject === 'commerce') {
     const view = config.commerce_view as string
-    if (view && PROMPT_KEYWORDS.commerce_view[view]) parts.push(PROMPT_KEYWORDS.commerce_view[view])
-  }
-  if (subject === 'produits') {
+    opening.push(PK.commerce_view[view] || `${businessType || 'local business'}`)
+  } else if (subject === 'produits') {
     const pType = config.product_type as string
-    if (pType && PROMPT_KEYWORDS.product_type[pType]) parts.push(PROMPT_KEYWORDS.product_type[pType])
     const pPres = config.product_presentation as string
-    if (pPres && PROMPT_KEYWORDS.product_presentation[pPres]) parts.push(PROMPT_KEYWORDS.product_presentation[pPres])
-  }
-  if (subject === 'paysage') {
+    const parts = [PK.product_type[pType] || 'products']
+    if (pPres) parts.push(PK.product_presentation[pPres] || '')
+    opening.push(parts.filter(Boolean).join(', '))
+  } else if (subject === 'paysage') {
     const lType = config.landscape_type as string
-    if (lType && PROMPT_KEYWORDS.landscape_type[lType]) parts.push(PROMPT_KEYWORDS.landscape_type[lType])
+    opening.push(PK.landscape_type[lType] || 'tropical landscape')
+  } else if (subject === 'concept' || subject === 'objet') {
+    // Le texte libre sera ajoute juste apres
   }
 
-  // 7. AMBIANCE & ATMOSPHERE
-  const ambiance = config.ambiance as string
-  if (ambiance && PROMPT_KEYWORDS.ambiance[ambiance]) parts.push(PROMPT_KEYWORDS.ambiance[ambiance])
+  // 1c. DESCRIPTION PRECISE — traduite si français (juste apres le sujet)
+  if (config.subject_detail && (config.subject_detail as string).trim()) {
+    const translated = await translateToEnglish((config.subject_detail as string).trim())
+    opening.push(translated)
+  }
 
-  const lumiere = config.lumiere as string
-  if (lumiere && PROMPT_KEYWORDS.lumiere[lumiere]) parts.push(PROMPT_KEYWORDS.lumiere[lumiere])
+  // ===================== BLOC 2 : CADRAGE =====================
+  const framing = config.framing as string
+  if (framing && PK.framing[framing]) {
+    opening.push(PK.framing[framing])
+  }
 
-  const couleurs = config.couleurs as string
-  if (couleurs && PROMPT_KEYWORDS.couleurs[couleurs]) parts.push(PROMPT_KEYWORDS.couleurs[couleurs])
+  // ===================== BLOC 3 : DECOR + AMBIANCE =====================
+  const atmosphere: string[] = []
 
   const lieu = config.lieu as string
-  if (lieu && PROMPT_KEYWORDS.lieu[lieu]) parts.push(PROMPT_KEYWORDS.lieu[lieu])
+  if (lieu && PK.lieu[lieu]) atmosphere.push(PK.lieu[lieu])
 
-  // 8. ELEMENTS SUPPLEMENTAIRES
+  const ambiance = config.ambiance as string
+  if (ambiance && PK.ambiance[ambiance]) atmosphere.push(PK.ambiance[ambiance])
+
+  const lumiere = config.lumiere as string
+  if (lumiere && PK.lumiere[lumiere]) atmosphere.push(PK.lumiere[lumiere])
+
+  const couleurs = config.couleurs as string
+  if (couleurs && PK.couleurs[couleurs]) atmosphere.push(PK.couleurs[couleurs])
+
+  // Elements supplementaires (max 3 pour pas surcharger)
   if (Array.isArray(config.elements) && config.elements.length > 0) {
     const elKeywords = config.elements
-      .map((e: string) => PROMPT_KEYWORDS.elements[e])
+      .slice(0, 3)
+      .map((e: string) => PK.elements[e])
       .filter(Boolean)
-    if (elKeywords.length > 0) parts.push(elKeywords.join(', '))
+    if (elKeywords.length > 0) atmosphere.push(elKeywords.join(', '))
   }
 
-  // 9. SUFFIXE OBLIGATOIRE — interdire le texte
-  parts.push('no text, no words, no letters, no logos, no signage, no watermark')
+  // ===================== BLOC 4 : STYLE TECHNIQUE (fin du prompt) =====================
+  const style = config.style as string
+  const styleText = PK.style[style] || 'DSLR photography, natural light'
 
-  // Assembler
-  const prompt = parts.join('. ').replace(/\.\./g, '.').replace(/\. ,/g, ',')
+  // ===================== PRIORITE =====================
+  // L'utilisateur a choisi ce qui compte le plus → on le met en PREMIER
+  const priority = config.priority as string
+  let priorityPrefix = ''
 
-  console.log('[MINI-SITE] Prompt genere directement :', prompt)
+  if (priority === 'personnes' && hasPeople) {
+    // Repeter la description des personnes au tout debut
+    const count = config.people_count as string
+    const origin = config.people_origin as string
+    priorityPrefix = `IMPORTANT: must show ${PK.people_count[count] || 'people'}, ${PK.people_origin[origin] || 'Black Caribbean'}`
+  } else if (priority === 'cadrage') {
+    const f = config.framing as string
+    priorityPrefix = `IMPORTANT: ${PK.framing[f] || 'medium shot'}, this framing is essential`
+  } else if (priority === 'description' && config.subject_detail) {
+    // La description libre a deja ete traduite et est dans opening
+    priorityPrefix = 'IMPORTANT: follow the scene description exactly as written'
+  } else if (priority === 'ambiance') {
+    const amb = config.ambiance as string
+    const lum = config.lumiere as string
+    const col = config.couleurs as string
+    const parts = [PK.ambiance[amb], PK.lumiere[lum], PK.couleurs[col]].filter(Boolean)
+    if (parts.length > 0) priorityPrefix = `IMPORTANT: ${parts.join(', ')}`
+  }
+
+  // ===================== ASSEMBLAGE FINAL =====================
+  // Priorite EN PREMIER + Sujet/Personnes + Cadrage + Decor/Ambiance + Style + No text
+  const allParts = [
+    ...(priorityPrefix ? [priorityPrefix] : []),
+    ...opening,
+    ...atmosphere,
+    styleText,
+    'no text, no words, no letters, no logos, no watermark',
+  ].filter(Boolean)
+
+  const prompt = allParts.join(', ')
+
+  console.log('[MINI-SITE] Priorite choisie :', priority || 'aucune')
+  console.log('[MINI-SITE] Prompt final :', prompt)
+  console.log('[MINI-SITE] Longueur prompt :', prompt.length, 'chars')
   return prompt
 }
 

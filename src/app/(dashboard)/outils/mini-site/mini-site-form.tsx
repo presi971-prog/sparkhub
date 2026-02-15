@@ -27,6 +27,7 @@ import {
   HERO_Q_LANDSCAPE_TYPE,
   HERO_Q_AMBIANCE, HERO_Q_LUMIERE, HERO_Q_COULEURS,
   HERO_Q_LIEU, HERO_Q_ELEMENTS,
+  HERO_Q_PRIORITY,
   type HeroImageConfig,
 } from './mini-site-templates'
 
@@ -1036,6 +1037,15 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                     multiValue={data.hero_config.elements || []}
                     onMultiChange={(vals) => update({ hero_config: { ...data.hero_config, elements: vals } })}
                   />
+
+                  {/* ===== PRIORITE — derniere question avant generation ===== */}
+                  <div className="border-t pt-4 mt-4">
+                    <HeroQuestionBlock
+                      question={HERO_Q_PRIORITY}
+                      value={data.hero_config.priority}
+                      onChange={(val) => update({ hero_config: { ...data.hero_config, priority: val } })}
+                    />
+                  </div>
                 </>
               )}
             </CardContent>

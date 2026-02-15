@@ -291,6 +291,8 @@ export interface HeroImageConfig {
   couleurs?: string
   lieu?: string
   elements?: string[]
+  // 10. Priorite — ce qui compte le plus pour le pro
+  priority?: string
 }
 
 export const HERO_IMAGE_DEFAULTS: HeroImageConfig = {
@@ -565,5 +567,18 @@ export const HERO_Q_ELEMENTS: HeroQuestion = {
     { id: 'technologie', label: 'Technologie / Digital', icon: '💻', desc: 'Ecrans, circuits, hologrammes — pour les metiers du digital et de la tech' },
     { id: 'particules', label: 'Particules / Effets lumineux', icon: '✨', desc: 'Paillettes, etincelles, effets de lumiere — ajoute de la magie et du wow' },
     { id: 'fumee', label: 'Fumee / Brume', icon: '🌫️', desc: 'Brume legere, vapeur, fumee — ajoute du mystere et de la profondeur' },
+  ],
+}
+
+// ====== PRIORITE — derniere question avant la generation ======
+export const HERO_Q_PRIORITY: HeroQuestion = {
+  id: 'priority',
+  title: 'Qu\'est-ce qui compte le plus pour toi ?',
+  subtitle: 'L\'IA va mettre l\'accent sur ce que tu choisis ici. C\'est ce qui sera le mieux respecte dans l\'image finale.',
+  options: [
+    { id: 'personnes', label: 'Les personnes', icon: '👥', desc: 'Le nombre, l\'apparence et l\'action des gens dans l\'image' },
+    { id: 'cadrage', label: 'Le cadrage', icon: '📐', desc: 'L\'angle de vue et la distance (gros plan, plan large, vue du dessus...)' },
+    { id: 'description', label: 'Ma description', icon: '✍️', desc: 'Le texte que j\'ai ecrit dans "Decris precisement ce que tu veux voir"' },
+    { id: 'ambiance', label: 'L\'ambiance', icon: '🎨', desc: 'Les couleurs, la lumiere, le decor et l\'atmosphere generale' },
   ],
 }
