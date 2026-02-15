@@ -1457,14 +1457,14 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                   variant="ghost"
                   size="sm"
                   onClick={handleGenerate}
-                  disabled={isGenerating || (!isAdmin && credits < GENERATE_COST)}
+                  disabled={isGenerating || (!isEditing && !isAdmin && credits < GENERATE_COST)}
                 >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
                     <Sparkles className="h-4 w-4 mr-2" />
                   )}
-                  {isAdmin ? 'Regenerer (gratuit)' : `Regenerer (${GENERATE_COST} credit)`}
+                  {isAdmin || isEditing ? 'Regenerer (gratuit)' : `Regenerer (${GENERATE_COST} credit)`}
                 </Button>
               </div>
 
