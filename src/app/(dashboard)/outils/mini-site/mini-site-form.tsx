@@ -31,7 +31,8 @@ import {
   type HeroImageConfig,
 } from './mini-site-templates'
 
-const CREDITS_COST = 150
+const GENERATE_COST = 1
+const PUBLISH_COST = 150
 
 type Step = 'commerce' | 'offres' | 'infos' | 'galerie' | 'reseaux' | 'style' | 'agencement' | 'generer'
 
@@ -332,8 +333,8 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
       return
     }
 
-    if (!isEditing && !isAdmin && credits < CREDITS_COST) {
-      toast.error(`Credits insuffisants. ${CREDITS_COST} credits requis.`)
+    if (!isEditing && !isAdmin && credits < GENERATE_COST) {
+      toast.error(`Credits insuffisants. ${GENERATE_COST} credits requis.`)
       return
     }
 
@@ -373,8 +374,15 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
     }
   }
 
-  // --- Sauvegarde (gratuite apres generation) ---
+  // --- Sauvegarde — publication = 150 credits (premiere fois seulement) ---
   const handleSave = async (publish: boolean) => {
+    // Premiere publication : verifier credits
+    const isFirstPublish = publish && !data.published
+    if (isFirstPublish && !isAdmin && credits < PUBLISH_COST) {
+      toast.error(`Credits insuffisants. ${PUBLISH_COST} credits requis pour publier.`)
+      return
+    }
+
     setIsSaving(true)
     try {
       const res = await fetch('/api/mini-site/save', {
@@ -384,6 +392,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
           ...data,
           published: publish,
           services: data.services.filter(s => s.name.trim()),
+          first_publish: isFirstPublish,
         }),
       })
 
@@ -392,8 +401,12 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
 
       update({ slug: result.slug, published: publish })
 
+      if (isFirstPublish && result.credits_remaining !== undefined) {
+        setCredits(result.credits_remaining)
+      }
+
       if (publish) {
-        toast.success('Site publie ! Il est en ligne.')
+        toast.success(isFirstPublish ? 'Site publie ! 🎉' : 'Site mis a jour !')
       } else {
         toast.success('Brouillon sauvegarde')
       }
@@ -474,7 +487,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
             <span className="text-sm font-medium">{credits} credits</span>
           </div>
           <span className="text-xs text-muted-foreground">
-            {isAdmin ? 'Admin — gratuit' : isEditing ? 'Modifications gratuites' : `${CREDITS_COST} credits pour generer`}
+            {isAdmin ? 'Admin — gratuit' : isEditing ? 'Modifications gratuites' : `${GENERATE_COST} credit/generation — ${PUBLISH_COST} credits pour publier`}
           </span>
         </CardContent>
       </Card>
@@ -1038,6 +1051,58 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                     onMultiChange={(vals) => update({ hero_config: { ...data.hero_config, elements: vals } })}
                   />
 
+                  {/* ===== COMPTEUR DE COMPLEXITE ===== */}
+                  {(() => {
+                    const cfg = data.hero_config
+                    let count = 0
+                    if (cfg.style) count++
+                    if (cfg.subject) count++
+                    if (cfg.subject_detail?.trim()) count++
+                    if (cfg.framing) count++
+                    if (cfg.include_people || cfg.subject === 'personnes') {
+                      if (cfg.people_count) count++
+                      if (cfg.people_age) count++
+                      if (cfg.people_origin) count++
+                      if (cfg.people_action) count++
+                      if (cfg.people_clothing) count++
+                    }
+                    if (cfg.commerce_view) count++
+                    if (cfg.product_type) count++
+                    if (cfg.product_presentation) count++
+                    if (cfg.landscape_type) count++
+                    if (cfg.ambiance) count++
+                    if (cfg.lumiere) count++
+                    if (cfg.couleurs) count++
+                    if (cfg.lieu) count++
+                    if (cfg.elements?.length) count += cfg.elements.length
+
+                    const level = count <= 6 ? 'ok' : count <= 10 ? 'moyen' : 'trop'
+                    const color = level === 'ok' ? 'text-green-600 bg-green-50 border-green-200' : level === 'moyen' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200'
+
+                    return count > 0 ? (
+                      <div className={`rounded-lg border p-3 ${color}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{count} element{count > 1 ? 's' : ''} selectionne{count > 1 ? 's' : ''}</span>
+                          <span className="text-xs font-bold">
+                            {level === 'ok' ? '✓ Ideal' : level === 'moyen' ? '⚠ Beaucoup' : '⛔ Trop'}
+                          </span>
+                        </div>
+                        <p className="text-xs mt-1">
+                          {level === 'ok'
+                            ? 'Bon dosage ! L\'IA pourra bien respecter chaque element.'
+                            : level === 'moyen'
+                              ? 'Ca commence a faire beaucoup. L\'IA risque de ne pas tout respecter. Garde uniquement ce qui est essentiel.'
+                              : 'Trop d\'elements ! L\'IA ne pourra pas tout respecter. Retire les elements les moins importants pour un meilleur resultat.'}
+                        </p>
+                        {count > 6 && (
+                          <p className="text-xs mt-1 font-medium">
+                            Conseil : 4 a 6 elements = meilleur resultat. Au-dela, l&apos;IA doit faire des compromis.
+                          </p>
+                        )}
+                      </div>
+                    ) : null
+                  })()}
+
                   {/* ===== PRIORITE — derniere question avant generation ===== */}
                   <div className="border-t pt-4 mt-4">
                     <HeroQuestionBlock
@@ -1284,7 +1349,7 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                 <Button
                   size="lg"
                   onClick={handleGenerate}
-                  disabled={isGenerating || (!isEditing && !isAdmin && credits < CREDITS_COST)}
+                  disabled={isGenerating || (!isEditing && !isAdmin && credits < GENERATE_COST)}
                   className="w-full"
                 >
                   {isGenerating ? (
@@ -1295,13 +1360,13 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      {isAdmin ? 'Generer mon site (gratuit)' : `Generer mon site (${CREDITS_COST} credits)`}
+                      {isAdmin ? 'Generer mon site (gratuit)' : `Generer mon site (${GENERATE_COST} credits)`}
                     </>
                   )}
                 </Button>
-                {!isEditing && !isAdmin && credits < CREDITS_COST && (
+                {!isEditing && !isAdmin && credits < GENERATE_COST && (
                   <p className="text-xs text-red-500">
-                    Credits insuffisants. Tu as {credits} credits, il en faut {CREDITS_COST}.
+                    Credits insuffisants. Tu as {credits} credits, il en faut {GENERATE_COST}.
                   </p>
                 )}
               </CardContent>
@@ -1341,19 +1406,43 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
 
               {/* Boutons publier / brouillon / regenerer */}
               <div className="flex flex-col gap-2">
-                <Button
-                  size="lg"
-                  onClick={() => handleSave(true)}
-                  disabled={isSaving}
-                  className="w-full"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Globe className="h-4 w-4 mr-2" />
-                  )}
-                  Publier mon site
-                </Button>
+                {!data.published && (
+                  <Button
+                    size="lg"
+                    onClick={() => handleSave(true)}
+                    disabled={isSaving || (!isAdmin && credits < PUBLISH_COST)}
+                    className="w-full"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Globe className="h-4 w-4 mr-2" />
+                    )}
+                    {isAdmin ? 'Publier mon site (gratuit)' : `Publier mon site (${PUBLISH_COST} credits)`}
+                  </Button>
+                )}
+
+                {data.published && (
+                  <Button
+                    size="lg"
+                    onClick={() => handleSave(true)}
+                    disabled={isSaving}
+                    className="w-full"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Check className="h-4 w-4 mr-2" />
+                    )}
+                    Mettre a jour le site (gratuit)
+                  </Button>
+                )}
+
+                {!data.published && !isAdmin && credits < PUBLISH_COST && (
+                  <p className="text-xs text-red-500 text-center">
+                    Credits insuffisants pour publier. Tu as {credits} credits, il en faut {PUBLISH_COST}.
+                  </p>
+                )}
 
                 <Button
                   variant="outline"
@@ -1361,24 +1450,22 @@ export function MiniSiteForm({ userId, credits: initialCredits, existingSite, is
                   disabled={isSaving}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Sauvegarder en brouillon
+                  Sauvegarder en brouillon (gratuit)
                 </Button>
 
-                {isEditing && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Sparkles className="h-4 w-4 mr-2" />
-                    )}
-                    Regenerer (gratuit)
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGenerate}
+                  disabled={isGenerating || (!isAdmin && credits < GENERATE_COST)}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  {isAdmin ? 'Regenerer (gratuit)' : `Regenerer (${GENERATE_COST} credit)`}
+                </Button>
               </div>
 
               {/* Lien vers le site */}

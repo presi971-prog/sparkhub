@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
+const PUBLISH_COST = 150
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -29,14 +31,62 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // Verifier si l'utilisateur est admin
+    const { data: profile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+
     // Verifier si l'utilisateur a deja un site
     const { data: existingSite } = await adminSupabase
       .from('mini_sites')
-      .select('id, slug')
+      .select('id, slug, published')
       .eq('profile_id', user.id)
       .single()
 
     const slug = body.slug || existingSite?.slug || slugify(body.business_name || 'mon-site')
+
+    // Premiere publication = 150 credits
+    const isFirstPublish = body.first_publish && body.published && !existingSite?.published
+    let creditsRemaining: number | undefined
+
+    if (isFirstPublish && !isAdmin) {
+      const { data: creditData } = await adminSupabase
+        .from('credits')
+        .select('balance, lifetime_spent')
+        .eq('profile_id', user.id)
+        .single()
+
+      if (!creditData || creditData.balance < PUBLISH_COST) {
+        return NextResponse.json(
+          { error: `Credits insuffisants. ${PUBLISH_COST} credits requis pour publier.` },
+          { status: 402 }
+        )
+      }
+
+      // Deduire les credits
+      await adminSupabase
+        .from('credits')
+        .update({
+          balance: creditData.balance - PUBLISH_COST,
+          lifetime_spent: (creditData.lifetime_spent || 0) + PUBLISH_COST,
+        })
+        .eq('profile_id', user.id)
+
+      await adminSupabase
+        .from('credit_transactions')
+        .insert({
+          profile_id: user.id,
+          amount: -PUBLISH_COST,
+          type: 'spend',
+          description: 'Mini Site Vitrine - Publication',
+        })
+
+      creditsRemaining = creditData.balance - PUBLISH_COST
+    }
 
     const siteData = {
       profile_id: user.id,
@@ -68,7 +118,7 @@ export async function POST(req: Request) {
     }
 
     if (existingSite) {
-      // Mise a jour (gratuit)
+      // Mise a jour
       const { error } = await adminSupabase
         .from('mini_sites')
         .update(siteData)
@@ -105,6 +155,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       slug: siteData.slug,
+      credits_remaining: creditsRemaining,
     })
   } catch (error) {
     console.error('Mini-site save error:', error)

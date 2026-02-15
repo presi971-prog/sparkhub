@@ -5,7 +5,7 @@ import { SITE_THEMES } from '@/app/(dashboard)/outils/mini-site/mini-site-templa
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
-const CREDITS_COST = 150
+const GENERATE_COST = 1
 
 function slugify(text: string): string {
   return text
@@ -57,9 +57,9 @@ export async function POST(req: Request) {
         .eq('profile_id', user.id)
         .single()
 
-      if (!creditData || creditData.balance < CREDITS_COST) {
+      if (!creditData || creditData.balance < GENERATE_COST) {
         return NextResponse.json(
-          { error: `Credits insuffisants. ${CREDITS_COST} credits requis.` },
+          { error: `Credits insuffisants. ${GENERATE_COST} credits requis.` },
           { status: 402 }
         )
       }
@@ -68,8 +68,8 @@ export async function POST(req: Request) {
       await adminSupabase
         .from('credits')
         .update({
-          balance: creditData.balance - CREDITS_COST,
-          lifetime_spent: (creditData.lifetime_spent || 0) + CREDITS_COST,
+          balance: creditData.balance - GENERATE_COST,
+          lifetime_spent: (creditData.lifetime_spent || 0) + GENERATE_COST,
         })
         .eq('profile_id', user.id)
 
@@ -77,12 +77,12 @@ export async function POST(req: Request) {
         .from('credit_transactions')
         .insert({
           profile_id: user.id,
-          amount: -CREDITS_COST,
+          amount: -GENERATE_COST,
           type: 'spend',
           description: 'Mini Site Vitrine - Generation IA',
         })
 
-      creditsRemaining = creditData.balance - CREDITS_COST
+      creditsRemaining = creditData.balance - GENERATE_COST
     }
 
     // Generer le slug
