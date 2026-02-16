@@ -138,6 +138,20 @@ Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
     const data = await response.json()
     const rawJson = JSON.stringify(data).slice(0, 1000)
 
+    // Vérifier erreur KIE (retourne 200 avec erreur dans le body)
+    if (data.code && data.code !== 200) {
+      console.error('KIE API error:', data.code, data.msg)
+      await adminSupabase
+        .from('credits')
+        .update({ balance: creditData.balance })
+        .eq('profile_id', user.id)
+
+      return NextResponse.json(
+        { error: `Erreur API IA : ${data.msg || 'Accès refusé'}. Vérifie ta clé KIE.` },
+        { status: 500 }
+      )
+    }
+
     // Extraire le contenu - essayer plusieurs chemins
     let content = ''
     if (data.choices?.[0]?.message?.content) {
