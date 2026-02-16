@@ -208,8 +208,12 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
         return
       }
 
-      setGeneratedIdeas(data.ideas || [])
-      setCreditsRemaining(data.credits_remaining)
+      const ideas = data.ideas || []
+      setIdeasError(`DEBUG: ${ideas.length} idées reçues. Raw: ${JSON.stringify(ideas).slice(0, 200)}`)
+      setGeneratedIdeas(ideas)
+      if (data.credits_remaining !== undefined) {
+        setCreditsRemaining(data.credits_remaining)
+      }
     } catch (err) {
       console.error('Ideas generation error:', err)
       setIdeasError(`Erreur réseau: ${err instanceof Error ? err.message : String(err)}`)

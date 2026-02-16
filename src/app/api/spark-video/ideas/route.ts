@@ -180,8 +180,14 @@ FORMAT JSON UNIQUEMENT, sans markdown :
     }
 
     const data = await response.json()
+    console.log('Gemini raw response keys:', Object.keys(data))
+    console.log('Gemini raw content:', JSON.stringify(data).slice(0, 500))
+
     const content = data.choices?.[0]?.message?.content || ''
+    console.log('Extracted content:', content.slice(0, 300))
+
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    console.log('Clean content:', cleanContent.slice(0, 300))
 
     let ideas: string[]
     try {
@@ -192,10 +198,13 @@ FORMAT JSON UNIQUEMENT, sans markdown :
       ideas = cleanContent.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 5)
     }
 
+    console.log('Final ideas count:', ideas.length)
+
     return NextResponse.json({
       success: true,
       ideas,
       credits_remaining: creditData.balance - CREDITS_COST,
+      _debug: { contentLength: content.length, ideasCount: ideas.length, rawContent: content.slice(0, 200) },
     })
   } catch (error) {
     console.error('Spark Video ideas error:', error)
