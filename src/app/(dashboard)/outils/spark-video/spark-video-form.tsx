@@ -59,6 +59,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null)
   const [generatedIdeas, setGeneratedIdeas] = useState<string[]>([])
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false)
+  const [ideasError, setIdeasError] = useState<string | null>(null)
 
   // État pipeline
   const [step, setStep] = useState<Step>('form')
@@ -183,6 +184,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
     setIsGeneratingIdeas(true)
     setGeneratedIdeas([])
+    setIdeasError(null)
 
     try {
       const res = await fetch('/api/spark-video/ideas', {
@@ -194,15 +196,16 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       const data = await res.json()
 
       if (!res.ok) {
-        setErrorMessage(data.error || 'Erreur lors de la génération d\'idées')
+        setIdeasError(data.error || 'Erreur lors de la génération d\'idées')
         setIsGeneratingIdeas(false)
         return
       }
 
       setGeneratedIdeas(data.ideas || [])
       setCreditsRemaining(data.credits_remaining)
-    } catch {
-      setErrorMessage('Erreur réseau')
+    } catch (err) {
+      console.error('Ideas generation error:', err)
+      setIdeasError('Erreur réseau. Vérifie ta connexion.')
     } finally {
       setIsGeneratingIdeas(false)
     }
@@ -354,6 +357,13 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
                         </>
                       )}
                     </Button>
+                  )}
+
+                  {/* Erreur idées */}
+                  {ideasError && (
+                    <p className="text-sm text-destructive bg-destructive/10 rounded-lg p-2">
+                      {ideasError}
+                    </p>
                   )}
 
                   {/* Idées générées */}
