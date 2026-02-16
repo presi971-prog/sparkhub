@@ -77,71 +77,30 @@ export async function POST(req: Request) {
         description: 'Spark Vidéo - Générateur d\'idées',
       })
 
-    // 5. Gemini génère les idées
-    const systemPrompt = `Tu es un CRÉATEUR DE CONTENU VIRAL expert TikTok/Instagram Reels. Tu génères des idées de vidéos courtes qui fonctionnent.
+    // 5. Gemini génère les idées (prompt simplifié)
+    const themeDesc = THEME_DETAILS[theme]
 
-COMMENT ÇA FONCTIONNE : L'IA crée des images fixes, les anime en clips de 5 secondes, ajoute de la musique et assemble le tout. Pas de vraies vidéos filmées.
+    const systemPrompt = `Tu es un expert en creation de videos courtes virales pour TikTok et Instagram Reels.
 
-═══ FORMATS VIRAUX ÉPROUVÉS (inspire-toi de ces patterns qui font des MILLIONS de vues) ═══
+Notre systeme IA cree des images fixes, les anime en clips de 5 secondes, ajoute de la musique et assemble le tout. Ce ne sont pas de vraies videos filmees.
 
-FORMAT 1 — "LE PERSONNAGE INATTENDU"
-Un animal ou un personnage improbable qui fait une activité humaine complexe avec un sérieux absolu.
-Pourquoi ça marche : le contraste absurde + la cohérence créent l'humour. Ex : "Un chat chef étoilé qui prépare des sushis avec une précision chirurgicale", "Un golden retriever en costume qui passe un entretien d'embauche".
-Hook : la première image doit montrer le personnage EN PLEINE ACTION (pas en train de se préparer).
+Regles pour les idees :
+- Scenes visuelles claires, pas de dialogue ni de texte
+- Un sujet concret identique tout au long (meme personnage/animal/objet)
+- Progression narrative : debut, developpement, fin satisfaisante
+- Mouvements simples par scene (une action, pas de cascades)
+- Eviter : concepts abstraits, foules, mouvements rapides
 
-FORMAT 2 — "LA TRANSFORMATION SPECTACULAIRE"
-Un processus avant/après où chaque étape est visuellement satisfaisante.
-Pourquoi ça marche : le cerveau ADORE voir une transformation progressive. Ex : "Une épave de voiture qui se transforme en bolide étincelant étape par étape", "Un terrain vague qui devient un jardin paradisiaque".
-Hook : montrer le résultat FINAL en premier, puis remonter au début.
+Formats qui marchent bien :
+1. Personnage inattendu (animal qui fait une activite humaine)
+2. Transformation spectaculaire (avant/apres satisfaisant)
+3. Processus etape par etape (fabrication, construction)
+4. Quotidien filme comme un film hollywoodien
+5. Mini-documentaire nature (qualite National Geographic)
+6. Contraste visuel (deux mondes opposes)
 
-FORMAT 3 — "LE PROCESSUS SATISFAISANT"
-Une activité montrée étape par étape avec des détails hyper-visuels (textures, lumières, gestes précis).
-Pourquoi ça marche : c'est addictif, les gens regardent jusqu'au bout. Ex : "Fabrication artisanale de chocolat de A à Z", "Construction d'une cabane dans les arbres".
-Hook : la scène la plus impressionnante du processus EN GROS PLAN.
-
-FORMAT 4 — "LE QUOTIDIEN DEVENU ÉPIQUE"
-Une scène banale rendue cinématique avec un éclairage, un cadrage et une mise en scène de film hollywoodien.
-Pourquoi ça marche : le décalage crée l'émotion. Ex : "Grand-mère qui cuisine un colombo filmé comme un thriller", "Un livreur qui traverse la ville filmé comme Mission Impossible".
-Hook : le grand angle cinématique qui pose l'ambiance immédiatement.
-
-FORMAT 5 — "LE MINI-DOCUMENTAIRE NATURE"
-Des scènes de nature/animaux sauvages avec une qualité National Geographic.
-Pourquoi ça marche : beauté pure + curiosité. Ex : "La journée d'une tortue en Guadeloupe, du lever au coucher du soleil", "La transformation d'une chenille en papillon en forêt tropicale".
-Hook : le plan le plus époustouflant visuellement (macro, lumière dorée).
-
-FORMAT 6 — "LE CONTRASTE VISUEL"
-Deux mondes opposés dans la même vidéo (petit/grand, ancien/moderne, calme/chaos, pauvre/riche).
-Pourquoi ça marche : la tension visuelle maintient l'attention. Ex : "Minuscule fourmi qui construit vs bulldozer géant", "Cuisine de rue modeste vs restaurant 3 étoiles, même plat".
-Hook : les deux extrêmes côte à côte dès la première scène.
-
-═══ CONTRAINTES TECHNIQUES ═══
-
-Tes idées doivent :
-- Avoir des SCÈNES VISUELLES CLAIRES (pas de dialogue, pas de texte)
-- Un SUJET CONCRET identique tout au long (même personnage/animal/objet)
-- Une PROGRESSION narrative (début → développement → fin satisfaisante)
-- Des MOUVEMENTS SIMPLES par scène (une action, pas des cascades)
-
-Ce qui NE marche PAS avec notre système :
-- Concepts abstraits (l'amour, le temps)
-- Foules ou scènes avec beaucoup de personnages
-- Mouvements rapides, cascades, action complexe
-- Idées qui nécessitent du texte ou du dialogue
-
-═══ THÉMATIQUE DEMANDÉE ═══
-${THEME_DETAILS[theme]}
-
-═══ TA MISSION ═══
-
-Génère 5 idées de vidéo basées sur les FORMATS VIRAUX ci-dessus. Chaque idée doit :
-- Utiliser un des formats éprouvés (ou combiner 2 formats)
-- Être décrite en 2-3 phrases concrètes et visuelles
-- Avoir un HOOK clair (quelle est la première image qui arrête le scroll ?)
-- Être faisable avec notre système (images fixes → animation)
-- Donner immédiatement envie de cliquer sur "Générer"
-
-FORMAT JSON UNIQUEMENT, sans markdown :
-{"ideas":["idée 1 ici","idée 2 ici","idée 3 ici","idée 4 ici","idée 5 ici"]}`
+Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
+{"ideas":["idee 1","idee 2","idee 3","idee 4","idee 5"]}`
 
     const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
       method: 'POST',
@@ -151,22 +110,19 @@ FORMAT JSON UNIQUEMENT, sans markdown :
       },
       body: JSON.stringify({
         messages: [
-          { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
+          { role: 'system', content: systemPrompt },
           {
             role: 'user',
-            content: [{
-              type: 'text',
-              text: `Génère 5 idées de vidéo pour la thématique "${theme}". Sois CRÉATIF et PRÉCIS. Chaque idée doit donner immédiatement envie de créer la vidéo.`,
-            }],
+            content: `Thematique : ${themeDesc}\n\nGenere 5 idees de video courte pour cette thematique. Chaque idee doit etre decrite en 2-3 phrases concretes et visuelles. Reponds en JSON.`,
           },
         ],
         stream: false,
-        include_thoughts: false,
       }),
     })
 
     if (!response.ok) {
-      console.error('Gemini ideas error:', response.status)
+      const errText = await response.text()
+      console.error('Gemini ideas error:', response.status, errText)
       // Rembourser en cas d'erreur
       await adminSupabase
         .from('credits')
@@ -174,37 +130,58 @@ FORMAT JSON UNIQUEMENT, sans markdown :
         .eq('profile_id', user.id)
 
       return NextResponse.json(
-        { error: 'Erreur lors de la génération d\'idées' },
+        { error: `Erreur Gemini (${response.status})` },
         { status: 500 }
       )
     }
 
     const data = await response.json()
-    console.log('Gemini raw response keys:', Object.keys(data))
-    console.log('Gemini raw content:', JSON.stringify(data).slice(0, 500))
+    const rawJson = JSON.stringify(data).slice(0, 1000)
 
-    const content = data.choices?.[0]?.message?.content || ''
-    console.log('Extracted content:', content.slice(0, 300))
+    // Extraire le contenu - essayer plusieurs chemins
+    let content = ''
+    if (data.choices?.[0]?.message?.content) {
+      content = typeof data.choices[0].message.content === 'string'
+        ? data.choices[0].message.content
+        : JSON.stringify(data.choices[0].message.content)
+    } else if (data.content) {
+      content = typeof data.content === 'string' ? data.content : JSON.stringify(data.content)
+    } else if (data.text) {
+      content = data.text
+    } else if (data.response) {
+      content = typeof data.response === 'string' ? data.response : JSON.stringify(data.response)
+    }
 
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    console.log('Clean content:', cleanContent.slice(0, 300))
 
     let ideas: string[]
     try {
       const parsed = JSON.parse(cleanContent)
       ideas = parsed.ideas || []
     } catch {
-      // Fallback : essayer de parser ligne par ligne
       ideas = cleanContent.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 5)
     }
 
-    console.log('Final ideas count:', ideas.length)
+    // Rembourser si aucune idée générée
+    if (ideas.length === 0) {
+      await adminSupabase
+        .from('credits')
+        .update({ balance: creditData.balance })
+        .eq('profile_id', user.id)
+
+      return NextResponse.json({
+        success: false,
+        ideas: [],
+        error: 'Aucune idée générée. Réessaie.',
+        credits_remaining: creditData.balance,
+        _debug: { rawKeys: Object.keys(data), rawJson, contentLength: content.length },
+      })
+    }
 
     return NextResponse.json({
       success: true,
       ideas,
       credits_remaining: creditData.balance - CREDITS_COST,
-      _debug: { contentLength: content.length, ideasCount: ideas.length, rawContent: content.slice(0, 200) },
     })
   } catch (error) {
     console.error('Spark Video ideas error:', error)

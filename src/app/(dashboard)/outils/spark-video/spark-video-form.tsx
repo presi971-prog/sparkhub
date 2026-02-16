@@ -209,7 +209,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
       addLog(`Réponse: status ${res.status}`)
       const data = await res.json()
-      addLog(`Data: ${JSON.stringify(data).slice(0, 300)}`)
+      addLog(`Data: ${JSON.stringify(data).slice(0, 500)}`)
 
       if (!res.ok) {
         setIdeasError(`Erreur ${res.status}: ${data.error || JSON.stringify(data)}`)
