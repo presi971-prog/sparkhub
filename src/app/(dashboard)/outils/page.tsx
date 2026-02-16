@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
   Instagram, Video, Camera, ShoppingBag, UtensilsCrossed,
-  Coins, ArrowRight, Lock, Sparkles, MessageCircle, Globe
+  Coins, ArrowRight, Lock, Sparkles, MessageCircle, Globe, Palette
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -53,6 +53,18 @@ const tools = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-500/10',
     borderColor: 'border-orange-500/30',
+  },
+  {
+    id: 'logo-express',
+    name: 'Logo Express',
+    description: 'Génère un logo pro + identité visuelle complète (palette, carte de visite, bannière).',
+    icon: Palette,
+    credits: TOOLS_CONFIG.logo_express.credits,
+    href: '/outils/logo-express',
+    available: true,
+    color: 'text-fuchsia-500',
+    bgColor: 'bg-fuchsia-500/10',
+    borderColor: 'border-fuchsia-500/30',
   },
   {
     id: 'mini-site',
