@@ -180,7 +180,14 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
   // ── Générer des idées ──
   const handleGenerateIdeas = async () => {
-    if (!selectedTheme || creditsRemaining < 1) return
+    if (!selectedTheme) {
+      setIdeasError('DEBUG: Aucune thématique sélectionnée')
+      return
+    }
+    if (creditsRemaining < 1) {
+      setIdeasError(`DEBUG: Crédits insuffisants (${creditsRemaining} crédits)`)
+      return
+    }
 
     setIsGeneratingIdeas(true)
     setGeneratedIdeas([])
@@ -196,7 +203,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       const data = await res.json()
 
       if (!res.ok) {
-        setIdeasError(data.error || 'Erreur lors de la génération d\'idées')
+        setIdeasError(`Erreur ${res.status}: ${data.error || JSON.stringify(data)}`)
         setIsGeneratingIdeas(false)
         return
       }
@@ -205,7 +212,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       setCreditsRemaining(data.credits_remaining)
     } catch (err) {
       console.error('Ideas generation error:', err)
-      setIdeasError('Erreur réseau. Vérifie ta connexion.')
+      setIdeasError(`Erreur réseau: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setIsGeneratingIdeas(false)
     }
