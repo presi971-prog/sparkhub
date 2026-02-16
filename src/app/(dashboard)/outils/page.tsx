@@ -67,6 +67,19 @@ const tools = [
     borderColor: 'border-fuchsia-500/30',
   },
   {
+    id: 'spark-video',
+    name: 'Spark Vidéo',
+    description: 'Décris ton idée de vidéo, l\'IA crée tout : images, clips, musique, montage final.',
+    icon: Video,
+    credits: TOOLS_CONFIG.spark_video_flash.credits,
+    href: '/outils/spark-video',
+    available: true,
+    color: 'text-red-500',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/30',
+    isVariablePrice: true,
+  },
+  {
     id: 'mini-site',
     name: 'Mini Site Vitrine',
     description: 'Cree un vrai site web pour ton commerce. L\'IA ecrit le texte et genere l\'image.',
@@ -188,7 +201,11 @@ export default async function OutilsPage() {
                     <div className="flex items-center gap-1 mt-0.5">
                       <Coins className="h-3 w-3 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
-                        {'isFree' in tool && tool.isFree ? 'Gratuit' : `${tool.credits} crédits`}
+                        {'isFree' in tool && tool.isFree
+                          ? 'Gratuit'
+                          : 'isVariablePrice' in tool && tool.isVariablePrice
+                            ? `À partir de ${tool.credits} crédits`
+                            : `${tool.credits} crédits`}
                       </span>
                     </div>
                   </div>

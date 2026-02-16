@@ -172,6 +172,15 @@ export const TOOLS_CONFIG = {
   menu_generator: { credits: 3, name: 'Menu / Carte', category: 'business' },
   mini_site_vitrine: { credits: 150, name: 'Mini Site Vitrine', category: 'business' },
   logo_express: { credits: 5, name: 'Logo Express', category: 'business' },
+
+  // Spark Vidéo
+  spark_video_ideas:  { credits: 1,  name: 'Spark Vidéo - Idées',           category: 'video' },
+  spark_video_flash:    { credits: 25, name: 'Spark Vidéo Flash (10s)',    category: 'video' },
+  spark_video_teaser:   { credits: 30, name: 'Spark Vidéo Teaser (15s)',   category: 'video' },
+  spark_video_short:    { credits: 40, name: 'Spark Vidéo Short (25s)',    category: 'video' },
+  spark_video_standard: { credits: 55, name: 'Spark Vidéo Standard (40s)', category: 'video' },
+  spark_video_tiktok:   { credits: 65, name: 'Spark Vidéo TikTok (50s)',  category: 'video' },
+  spark_video_premium:  { credits: 80, name: 'Spark Vidéo Premium (65s)', category: 'video' },
 }
 
 // Niveaux de réputation (gamification sans crédits gratuits)
