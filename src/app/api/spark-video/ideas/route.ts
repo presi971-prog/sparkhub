@@ -110,13 +110,17 @@ Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
       },
       body: JSON.stringify({
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
           {
             role: 'user',
-            content: `Thematique : ${themeDesc}\n\nGenere 5 idees de video courte pour cette thematique. Chaque idee doit etre decrite en 2-3 phrases concretes et visuelles. Reponds en JSON.`,
+            content: [{
+              type: 'text',
+              text: `Thematique : ${themeDesc}\n\nGenere 5 idees de video courte pour cette thematique. Chaque idee doit etre decrite en 2-3 phrases concretes et visuelles. Reponds en JSON.`,
+            }],
           },
         ],
         stream: false,
+        include_thoughts: false,
       }),
     })
 
