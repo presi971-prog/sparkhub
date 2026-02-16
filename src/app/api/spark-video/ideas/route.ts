@@ -150,9 +150,10 @@ Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
         .update({ balance: creditData.balance })
         .eq('profile_id', user.id)
 
+      const isMaintenace = data.msg?.includes('maintained')
       return NextResponse.json(
-        { error: `Erreur API IA : ${data.msg || 'Accès refusé'}. Vérifie ta clé KIE.` },
-        { status: 500 }
+        { error: isMaintenace ? 'Le serveur IA est en maintenance. Réessaie dans quelques minutes.' : `Erreur API IA : ${data.msg || 'Erreur inconnue'}` },
+        { status: 503 }
       )
     }
 

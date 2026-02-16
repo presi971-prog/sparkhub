@@ -60,7 +60,6 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
   const [generatedIdeas, setGeneratedIdeas] = useState<string[]>([])
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false)
   const [ideasError, setIdeasError] = useState<string | null>(null)
-  const [debugLog, setDebugLog] = useState<string[]>([])
 
   // État pipeline
   const [step, setStep] = useState<Step>('form')
@@ -180,25 +179,12 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
   }
 
   // ── Générer des idées ──
-  const addLog = (msg: string) => setDebugLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
-
   const handleGenerateIdeas = async () => {
-    addLog('Bouton cliqué')
-    addLog(`Theme: ${selectedTheme}, Credits: ${creditsRemaining}`)
-
-    if (!selectedTheme) {
-      addLog('STOP: pas de thème')
-      return
-    }
-    if (creditsRemaining < 1) {
-      addLog('STOP: pas de crédits')
-      return
-    }
+    if (!selectedTheme || creditsRemaining < 1) return
 
     setIsGeneratingIdeas(true)
     setGeneratedIdeas([])
     setIdeasError(null)
-    addLog('Appel API en cours...')
 
     try {
       const res = await fetch('/api/spark-video/ideas', {
@@ -207,25 +193,19 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
         body: JSON.stringify({ theme: selectedTheme }),
       })
 
-      addLog(`Réponse: status ${res.status}`)
       const data = await res.json()
-      addLog(`Data: ${JSON.stringify(data).slice(0, 500)}`)
 
       if (!res.ok) {
-        setIdeasError(`Erreur ${res.status}: ${data.error || JSON.stringify(data)}`)
-        setIsGeneratingIdeas(false)
+        setIdeasError(data.error || 'Erreur lors de la génération d\'idées')
         return
       }
 
-      const ideas = data.ideas || []
-      addLog(`${ideas.length} idées reçues`)
-      setGeneratedIdeas(ideas)
+      setGeneratedIdeas(data.ideas || [])
       if (data.credits_remaining !== undefined) {
         setCreditsRemaining(data.credits_remaining)
       }
-    } catch (err) {
-      addLog(`ERREUR: ${err instanceof Error ? err.message : String(err)}`)
-      setIdeasError(`Erreur réseau: ${err instanceof Error ? err.message : String(err)}`)
+    } catch {
+      setIdeasError('Erreur réseau. Réessaie.')
     } finally {
       setIsGeneratingIdeas(false)
     }
@@ -253,16 +233,6 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
   return (
     <div className="space-y-6">
-      {/* ── DEBUG LOG (toujours visible) ── */}
-      {debugLog.length > 0 && (
-        <div className="bg-black text-green-400 text-xs font-mono p-3 rounded-lg max-h-40 overflow-y-auto">
-          <p className="text-yellow-400 font-bold mb-1">DEBUG LOG :</p>
-          {debugLog.map((log, i) => (
-            <p key={i}>{log}</p>
-          ))}
-        </div>
-      )}
-
       {/* ── Crédits ── */}
       <Card className="border-red-500/20 bg-red-500/5">
         <CardContent className="flex items-center justify-between py-3">
