@@ -112,7 +112,7 @@ Le client fournit : une description libre + des champs détaillés optionnels.
 La catégorie "${cat.label}" est une indication pour tes réglages par défaut. Les choix du client remplacent les défauts.
 
 TRADUCTION PHYSIQUE IMPORTANTE :
-Quand le client dit "antillais", "guadeloupéen", "martiniquais", "créole" ou "caribéen", traduis en anglais avec des traits physiques précis : "Black Caribbean man/woman, medium to dark brown skin tone, Afro-Caribbean facial features, natural textured hair". Pas toujours très foncé — les Antillais ont des teints variés (du brun clair au brun foncé) mais avec des traits afro-caribéens marqués (nez, lèvres, structure du visage).
+Quand le client dit "antillais", "guadeloupéen", "martiniquais", "créole" ou "caribéen", traduis en anglais avec des traits physiques PRÉCIS : "French West Indian from Guadeloupe, West African descent, dark brown to deep brown skin, broad nose, full lips, strong jawline, natural Afro-textured hair". Les teints varient (du brun moyen au brun très foncé) mais les traits sont toujours d'ascendance ouest-africaine. Ajoute dans le negative prompt : "not African American, not Hispanic, not Latino".
 
 RÉGLAGES PAR DÉFAUT (catégorie "${cat.label}") :
 - Éclairage : ${cat.lighting_hint}
