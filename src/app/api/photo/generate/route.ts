@@ -111,6 +111,9 @@ function buildSystemPrompt(
 Le client fournit : une description libre + des champs détaillés optionnels.
 La catégorie "${cat.label}" est une indication pour tes réglages par défaut. Les choix du client remplacent les défauts.
 
+TRADUCTION PHYSIQUE IMPORTANTE :
+Quand le client dit "antillais", "guadeloupéen", "martiniquais", "créole" ou "caribéen", traduis en anglais avec des traits physiques précis : "Black Caribbean man/woman, medium to dark brown skin tone, Afro-Caribbean facial features, natural textured hair". Pas toujours très foncé — les Antillais ont des teints variés (du brun clair au brun foncé) mais avec des traits afro-caribéens marqués (nez, lèvres, structure du visage).
+
 RÉGLAGES PAR DÉFAUT (catégorie "${cat.label}") :
 - Éclairage : ${cat.lighting_hint}
 - Textures : ${cat.texture_hint}
