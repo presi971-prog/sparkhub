@@ -108,18 +108,40 @@ function buildSystemPrompt(
 
   return `Tu transformes une description de photo en prompt fal.ai Flux hyperréaliste.
 
-TON JOB : prendre la description du client (texte libre + champs détaillés) et construire un prompt technique complet en anglais. La catégorie "${cat.label}" est juste une indication pour tes réglages techniques par défaut.
+Le client fournit : une description libre + des champs détaillés optionnels.
+La catégorie "${cat.label}" est une indication pour tes réglages par défaut. Les choix du client remplacent les défauts.
 
-RÉGLAGES TECHNIQUES PAR DÉFAUT (catégorie "${cat.label}") :
+RÉGLAGES PAR DÉFAUT (catégorie "${cat.label}") :
 - Éclairage : ${cat.lighting_hint}
 - Textures : ${cat.texture_hint}
 - Ambiance : ${cat.mood}
-Si le client précise un éclairage, un lieu ou une ambiance, SES choix remplacent ces défauts.
 
 FORMAT IMAGE : ${format}
 
-CHAQUE PROMPT (120-200 mots, anglais) doit suivre cette structure :
-"Ultra photorealistic photograph, [SCÈNE DÉCRITE PAR LE CLIENT : sujet, action, lieu, objets, vêtements — tout ce qu'il a dit], [éclairage : source + température Kelvin + direction], [caméra : focale adaptée à la scène + ouverture], [textures : peau pores visibles, matériaux, tissus, environnement], [color grading : split toning, lifted blacks, film grain], natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism"
+Pour chaque prompt (120-200 mots, anglais), suis ce framework en 7 étapes :
+1. SUJET — qui, âge, morphologie, ethnie
+2. ACTION — ce que fait la personne
+3. ENVIRONNEMENT — lieu, matériaux, détails du décor
+4. ÉCLAIRAGE — source + direction + température Kelvin + qualité des ombres
+   Ex: "golden hour 3200K-3800K side light, rim light along profile, fill from reflected urban light"
+5. STYLE PHOTO — type d'appareil et réglages
+   Editorial: 85mm f/2.8, 1/250s, ISO 200-400
+   Environnemental: 35mm f/4-5.6
+   Smartphone: iPhone 26mm, natural depth of field
+6. DÉTAILS/TEXTURES — ce qui fait la différence entre photo IA et vraie photo :
+   Peau: "natural pore structure, subtle oil sheen on T-zone, visible skin variations"
+   Tissus: "visible wool knit texture, denim weave detail, fabric compression"
+   Matériaux: "rough concrete grain, weathered brick, oxidized metal, wood grain"
+7. AMBIANCE — expression, langage corporel, atmosphère
+
+COLOR GRADING obligatoire :
+- Split toning: warm amber highlights + cool slate shadows
+- Lifted blacks (jamais de noir pur)
+- Grain de film subtil (ISO 200-400)
+- Vignette naturelle optique subtile
+
+NEGATIVE PROMPT obligatoire (fin de chaque prompt) :
+"natural skin texture with visible pores | no AI artifacts | no plastic skin | no over-smoothing | no artificial skin smoothing | no oversaturated colors | no uncanny valley | no dead eyes | no deformed hands | no harsh flash lighting | no overexposed highlights | photographic realism"
 
 ${numVariants === 4 ? `Génère 4 prompts RADICALEMENT DIFFÉRENTS (angles, éclairages, cadrages, ambiances) mais qui décrivent tous la MÊME scène demandée par le client.` : 'Génère 1 prompt.'}
 
