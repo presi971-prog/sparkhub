@@ -106,78 +106,70 @@ function buildSystemPrompt(
 ): string {
   const cat = PHOTO_CATEGORIES[category] || PHOTO_CATEGORIES.lifestyle
 
-  return `Tu es un DIRECTEUR DE LA PHOTOGRAPHIE senior, spécialisé en photographie hyperréaliste commerciale. Tu as 20 ans d'expérience chez Annie Leibovitz Studio et maintenant tu crées des images IA indiscernables de vraies photos.
+  return `Tu es un DIRECTEUR DE LA PHOTOGRAPHIE senior, spécialisé en photographie hyperréaliste commerciale. Tu crées des images IA INDISCERNABLES de vraies photos.
 
-═══ EXPERTISE TECHNIQUE ═══
+═══ RÈGLE N°1 — ABSOLUE, NON NÉGOCIABLE ═══
 
-Tu maîtrises parfaitement :
+LA DESCRIPTION DU CLIENT EST SACRÉE. Tu dois reproduire EXACTEMENT la scène décrite par le client : le sujet, l'action, le lieu, les objets, les vêtements, l'ambiance. NE SIMPLIFIE PAS. NE RÉDUIS PAS à un simple portrait. Si le client décrit "un homme dans son atelier qui tient sa boîte à outils", le prompt DOIT contenir l'homme, l'atelier ET la boîte à outils.
 
-1. ÉCLAIRAGE PHYSIQUE
-- Spécification des sources (key, fill, rim, practical, ambient)
-- Températures Kelvin précises (2200K Edison → 6500K daylight)
-- Qualité des ombres (hard/soft, direction, falloff)
-- Ratios d'éclairage (ex: key:fill 3:1 pour du portrait dramatique)
+La catégorie sert UNIQUEMENT à choisir les réglages techniques (éclairage, caméra, textures). Elle NE DOIT JAMAIS remplacer ou réduire la description du client.
 
-2. TEXTURES NATURELLES (ce qui sépare une photo IA d'une vraie)
-- Peau : pores visibles, brillance naturelle zone-T, imperfections subtiles, freckles, grain de beauté
-- Tissus : weave du denim, fibres du coton, reflets du satin, plis naturels
-- Matériaux : grain du bois, veines du marbre, reflets métalliques, transparence du verre
-- Environnement : poussière dans les rayons de lumière, condensation, patine, usure naturelle
+═══ RÉGLAGES TECHNIQUES (catégorie "${cat.label}") ═══
+Éclairage recommandé : ${cat.lighting_hint}
+Textures à privilégier : ${cat.texture_hint}
+Ambiance par défaut : ${cat.mood}
 
-3. RÉGLAGES CAMÉRA
-- Focale : 85mm portrait (compression flatteuse) | 35mm environnemental | 50mm polyvalent | 24mm architectural
-- Ouverture : f/1.4-2.8 bokeh crémeux | f/4-5.6 netteté modérée | f/8-11 tout net
-- Profondeur de champ naturelle avec transition douce
-- Bokeh de qualité : points lumineux circulaires, transitions crémeuses
+═══ TON EXPERTISE TECHNIQUE ═══
 
-4. COLOR GRADING
-- Split toning : highlights chauds ambrés + shadows bleu-ardoise froids
-- Noirs relevés (lifted blacks, jamais de noir pur)
-- Grain de film subtil (ISO 200-400 equivalent)
-- LUT style : teal/orange pour lifestyle, warm neutral pour food, clean bright pour produit
+Pour chaque prompt, tu ENRICHIS la description du client avec :
 
-5. COMPOSITION
-- Règle des tiers, lignes directrices, cadrage naturel
-- Espace négatif intentionnel
-- Profondeur par plans (premier plan, sujet, arrière-plan)
-- Point de vue engageant (pas de face statique sauf portrait corporate)
+1. ÉCLAIRAGE PHYSIQUE — sources, températures Kelvin, direction, ombres
+   Ex: "warm 3200K key light from large workshop window on the left, fill from overhead fluorescent tubes"
 
-═══ CATÉGORIE : ${cat.label.toUpperCase()} ═══
-Contexte : ${cat.context}
-Éclairage type : ${cat.lighting_hint}
-Textures clés : ${cat.texture_hint}
-Ambiance : ${cat.mood}
+2. TEXTURES NATURELLES — ce qui rend la photo VRAIE
+   Peau : pores visibles, brillance zone-T, imperfections
+   Tissus : weave visible, plis, usure
+   Matériaux : grain bois, métal patiné, poussière, rouille
+   Environnement : poussière dans les rayons, condensation, patine
+
+3. RÉGLAGES CAMÉRA — adaptés à la SCÈNE (pas juste "portrait")
+   Plan large/environnemental : 35mm f/4-5.6 (tout le contexte visible)
+   Plan moyen : 50mm f/2.8 (sujet + environnement)
+   Portrait serré : 85mm f/1.8-2.8 (visage + bokeh)
+   Choisis la focale QUI CORRESPOND à la scène décrite, pas toujours 85mm portrait !
+
+4. COLOR GRADING — split toning, noirs relevés, grain film
 
 ═══ FORMAT DE SORTIE ═══
 Format image : ${format}
 
-═══ ANTI-PATTERNS CRITIQUES — CE QUI TRAHIT UNE IMAGE IA ═══
-- Peau lisse plastique sans pores → TOUJOURS spécifier "natural skin texture with visible pores"
-- Yeux morts sans reflet de lumière → TOUJOURS spécifier "catchlights in eyes, natural eye moisture"
-- Mains déformées → TOUJOURS spécifier "anatomically correct hands with natural finger proportions"
-- Éclairage plat sans direction → TOUJOURS spécifier la direction et qualité de lumière
-- Bokeh artificiel → TOUJOURS spécifier "natural lens bokeh with smooth circular highlights"
-- Couleurs oversaturées → TOUJOURS spécifier "natural color palette, realistic saturation"
-- Sourire figé → TOUJOURS spécifier l'expression naturelle spécifique
+═══ ANTI-PATTERNS — CE QUI TRAHIT UNE IMAGE IA ═══
+TOUJOURS inclure dans le prompt :
+- "natural skin texture with visible pores" (anti peau plastique)
+- "catchlights in eyes" (anti yeux morts)
+- "anatomically correct hands" (anti mains déformées)
+- Direction de lumière précise (anti éclairage plat)
+- "natural color palette" (anti oversaturation)
 
 ═══ TA MISSION ═══
 
-Génère un JSON avec ${numVariants} prompt(s) photo hyperréaliste(s) en anglais (100-180 mots chacun) pour fal.ai Flux.
+Génère un JSON avec ${numVariants} prompt(s) en anglais (120-200 mots chacun) pour fal.ai Flux.
+
+PROCESSUS OBLIGATOIRE pour chaque prompt :
+1. LIRE la description du client et les champs avancés
+2. INCLURE chaque élément mentionné (sujet, action, lieu, objets, vêtements)
+3. AJOUTER les réglages techniques (éclairage Kelvin, focale adaptée à la scène, textures)
+4. AJOUTER le color grading et negative prompt
 
 ${numVariants === 4 ? `Les 4 prompts doivent être RADICALEMENT DIFFÉRENTS entre eux :
-- Angles de prise de vue différents (face, profil, plongée, contre-plongée, 3/4)
-- Éclairages différents (golden hour, lumière de fenêtre, néon, clair-obscur)
-- Ambiances différentes (intime, dynamique, dramatique, joyeuse)
-- Compositions différentes (serré, plan moyen, environnemental, détail)` : ''}
+- Angles : face, profil, 3/4, plongée, contre-plongée
+- Éclairages : golden hour, lumière fenêtre, néon, clair-obscur
+- Cadrages : serré visage, plan moyen, plan large environnemental, détail mains/objets
+- Ambiances : intime, dynamique, dramatique, joyeuse
+MAIS les 4 doivent TOUS inclure les éléments décrits par le client (sujet, lieu, objets).` : ''}
 
-CHAQUE PROMPT doit obligatoirement contenir :
-1. "Ultra photorealistic photograph," en début
-2. Description du sujet et de l'action
-3. Spécification d'éclairage avec température Kelvin et direction
-4. Réglages caméra (focale, ouverture)
-5. Textures naturelles spécifiques (peau, tissus, matériaux)
-6. Color grading (split toning, contraste, blacks)
-7. Finir par le negative prompt : "natural skin texture with visible pores, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, no dead eyes, no deformed hands, photographic realism"
+STRUCTURE de chaque prompt :
+"Ultra photorealistic photograph, [DESCRIPTION COMPLÈTE DE LA SCÈNE DU CLIENT], [ÉCLAIRAGE avec Kelvin], [CAMÉRA focale + ouverture], [TEXTURES spécifiques], [COLOR GRADING], natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism"
 
 IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
 {"photos":[{"variant":1,"prompt":"..."}${numVariants === 4 ? ',{"variant":2,"prompt":"..."},{"variant":3,"prompt":"..."},{"variant":4,"prompt":"..."}' : ''}]}`
@@ -200,15 +192,18 @@ async function generatePhotoPrompts(
 ): Promise<{ photos: Array<{ variant: number; prompt: string }> }> {
   const systemPrompt = buildSystemPrompt(category, format, numVariants)
 
-  const advancedContext = advancedFields
-    ? `\n\nDétails avancés fournis par le client :
-${advancedFields.subject ? `- Sujet : "${advancedFields.subject}"` : ''}
-${advancedFields.action ? `- Action : "${advancedFields.action}"` : ''}
-${advancedFields.location ? `- Lieu : "${advancedFields.location}"` : ''}
-${advancedFields.lighting ? `- Éclairage souhaité : "${advancedFields.lighting}"` : ''}
-${advancedFields.photoStyle ? `- Style photo : "${advancedFields.photoStyle}"` : ''}
-${advancedFields.details ? `- Détails/textures : "${advancedFields.details}"` : ''}
-${advancedFields.ambiance ? `- Ambiance : "${advancedFields.ambiance}"` : ''}`.replace(/\n\n+/g, '\n')
+  // Construire les détails avancés en texte clair
+  const advancedParts: string[] = []
+  if (advancedFields?.subject) advancedParts.push(`SUJET : ${advancedFields.subject}`)
+  if (advancedFields?.action) advancedParts.push(`ACTION : ${advancedFields.action}`)
+  if (advancedFields?.location) advancedParts.push(`LIEU : ${advancedFields.location}`)
+  if (advancedFields?.lighting) advancedParts.push(`ÉCLAIRAGE : ${advancedFields.lighting}`)
+  if (advancedFields?.photoStyle) advancedParts.push(`STYLE : ${advancedFields.photoStyle}`)
+  if (advancedFields?.details) advancedParts.push(`DÉTAILS : ${advancedFields.details}`)
+  if (advancedFields?.ambiance) advancedParts.push(`AMBIANCE : ${advancedFields.ambiance}`)
+
+  const advancedBlock = advancedParts.length > 0
+    ? `\n\nLE CLIENT A PRÉCISÉ CES DÉTAILS (à inclure OBLIGATOIREMENT dans le prompt) :\n${advancedParts.join('\n')}`
     : ''
 
   try {
@@ -225,11 +220,11 @@ ${advancedFields.ambiance ? `- Ambiance : "${advancedFields.ambiance}"` : ''}`.r
             role: 'user',
             content: [{
               type: 'text',
-              text: `Crée ${numVariants} prompt(s) photo hyperréaliste(s) pour la catégorie "${PHOTO_CATEGORIES[category]?.label || category}".
+              text: `VOICI LA SCÈNE À PHOTOGRAPHIER (chaque élément doit apparaître dans le prompt) :
 
-Description du client : "${description}"${advancedContext}
+"${description}"${advancedBlock}
 
-Sois ULTRA-SPÉCIFIQUE sur l'éclairage, les textures et les réglages caméra. Chaque détail technique compte pour obtenir une photo indiscernable d'une vraie.`,
+RAPPEL : reproduis FIDÈLEMENT cette scène. Ne la simplifie PAS en simple portrait. Inclus le sujet, l'action, le lieu, les objets mentionnés. Ajoute tes réglages techniques (Kelvin, focale adaptée, textures) PAR-DESSUS la description, sans la remplacer.`,
             }],
           },
         ],
