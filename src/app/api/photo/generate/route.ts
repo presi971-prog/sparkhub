@@ -106,72 +106,24 @@ function buildSystemPrompt(
 ): string {
   const cat = PHOTO_CATEGORIES[category] || PHOTO_CATEGORIES.lifestyle
 
-  return `Tu es un DIRECTEUR DE LA PHOTOGRAPHIE senior, spécialisé en photographie hyperréaliste commerciale. Tu crées des images IA INDISCERNABLES de vraies photos.
+  return `Tu transformes une description de photo en prompt fal.ai Flux hyperréaliste.
 
-═══ RÈGLE N°1 — ABSOLUE, NON NÉGOCIABLE ═══
+TON JOB : prendre la description du client (texte libre + champs détaillés) et construire un prompt technique complet en anglais. La catégorie "${cat.label}" est juste une indication pour tes réglages techniques par défaut.
 
-LA DESCRIPTION DU CLIENT EST SACRÉE. Tu dois reproduire EXACTEMENT la scène décrite par le client : le sujet, l'action, le lieu, les objets, les vêtements, l'ambiance. NE SIMPLIFIE PAS. NE RÉDUIS PAS à un simple portrait. Si le client décrit "un homme dans son atelier qui tient sa boîte à outils", le prompt DOIT contenir l'homme, l'atelier ET la boîte à outils.
+RÉGLAGES TECHNIQUES PAR DÉFAUT (catégorie "${cat.label}") :
+- Éclairage : ${cat.lighting_hint}
+- Textures : ${cat.texture_hint}
+- Ambiance : ${cat.mood}
+Si le client précise un éclairage, un lieu ou une ambiance, SES choix remplacent ces défauts.
 
-La catégorie sert UNIQUEMENT à choisir les réglages techniques (éclairage, caméra, textures). Elle NE DOIT JAMAIS remplacer ou réduire la description du client.
+FORMAT IMAGE : ${format}
 
-═══ RÉGLAGES TECHNIQUES (catégorie "${cat.label}") ═══
-Éclairage recommandé : ${cat.lighting_hint}
-Textures à privilégier : ${cat.texture_hint}
-Ambiance par défaut : ${cat.mood}
+CHAQUE PROMPT (120-200 mots, anglais) doit suivre cette structure :
+"Ultra photorealistic photograph, [SCÈNE DÉCRITE PAR LE CLIENT : sujet, action, lieu, objets, vêtements — tout ce qu'il a dit], [éclairage : source + température Kelvin + direction], [caméra : focale adaptée à la scène + ouverture], [textures : peau pores visibles, matériaux, tissus, environnement], [color grading : split toning, lifted blacks, film grain], natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism"
 
-═══ TON EXPERTISE TECHNIQUE ═══
+${numVariants === 4 ? `Génère 4 prompts RADICALEMENT DIFFÉRENTS (angles, éclairages, cadrages, ambiances) mais qui décrivent tous la MÊME scène demandée par le client.` : 'Génère 1 prompt.'}
 
-Pour chaque prompt, tu ENRICHIS la description du client avec :
-
-1. ÉCLAIRAGE PHYSIQUE — sources, températures Kelvin, direction, ombres
-   Ex: "warm 3200K key light from large workshop window on the left, fill from overhead fluorescent tubes"
-
-2. TEXTURES NATURELLES — ce qui rend la photo VRAIE
-   Peau : pores visibles, brillance zone-T, imperfections
-   Tissus : weave visible, plis, usure
-   Matériaux : grain bois, métal patiné, poussière, rouille
-   Environnement : poussière dans les rayons, condensation, patine
-
-3. RÉGLAGES CAMÉRA — adaptés à la SCÈNE (pas juste "portrait")
-   Plan large/environnemental : 35mm f/4-5.6 (tout le contexte visible)
-   Plan moyen : 50mm f/2.8 (sujet + environnement)
-   Portrait serré : 85mm f/1.8-2.8 (visage + bokeh)
-   Choisis la focale QUI CORRESPOND à la scène décrite, pas toujours 85mm portrait !
-
-4. COLOR GRADING — split toning, noirs relevés, grain film
-
-═══ FORMAT DE SORTIE ═══
-Format image : ${format}
-
-═══ ANTI-PATTERNS — CE QUI TRAHIT UNE IMAGE IA ═══
-TOUJOURS inclure dans le prompt :
-- "natural skin texture with visible pores" (anti peau plastique)
-- "catchlights in eyes" (anti yeux morts)
-- "anatomically correct hands" (anti mains déformées)
-- Direction de lumière précise (anti éclairage plat)
-- "natural color palette" (anti oversaturation)
-
-═══ TA MISSION ═══
-
-Génère un JSON avec ${numVariants} prompt(s) en anglais (120-200 mots chacun) pour fal.ai Flux.
-
-PROCESSUS OBLIGATOIRE pour chaque prompt :
-1. LIRE la description du client et les champs avancés
-2. INCLURE chaque élément mentionné (sujet, action, lieu, objets, vêtements)
-3. AJOUTER les réglages techniques (éclairage Kelvin, focale adaptée à la scène, textures)
-4. AJOUTER le color grading et negative prompt
-
-${numVariants === 4 ? `Les 4 prompts doivent être RADICALEMENT DIFFÉRENTS entre eux :
-- Angles : face, profil, 3/4, plongée, contre-plongée
-- Éclairages : golden hour, lumière fenêtre, néon, clair-obscur
-- Cadrages : serré visage, plan moyen, plan large environnemental, détail mains/objets
-- Ambiances : intime, dynamique, dramatique, joyeuse
-MAIS les 4 doivent TOUS inclure les éléments décrits par le client (sujet, lieu, objets).` : ''}
-
-STRUCTURE de chaque prompt :
-"Ultra photorealistic photograph, [DESCRIPTION COMPLÈTE DE LA SCÈNE DU CLIENT], [ÉCLAIRAGE avec Kelvin], [CAMÉRA focale + ouverture], [TEXTURES spécifiques], [COLOR GRADING], natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism"
-
-IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
+Réponds UNIQUEMENT en JSON, sans markdown :
 {"photos":[{"variant":1,"prompt":"..."}${numVariants === 4 ? ',{"variant":2,"prompt":"..."},{"variant":3,"prompt":"..."},{"variant":4,"prompt":"..."}' : ''}]}`
 }
 
@@ -192,19 +144,16 @@ async function generatePhotoPrompts(
 ): Promise<{ photos: Array<{ variant: number; prompt: string }> }> {
   const systemPrompt = buildSystemPrompt(category, format, numVariants)
 
-  // Construire les détails avancés en texte clair
-  const advancedParts: string[] = []
-  if (advancedFields?.subject) advancedParts.push(`SUJET : ${advancedFields.subject}`)
-  if (advancedFields?.action) advancedParts.push(`ACTION : ${advancedFields.action}`)
-  if (advancedFields?.location) advancedParts.push(`LIEU : ${advancedFields.location}`)
-  if (advancedFields?.lighting) advancedParts.push(`ÉCLAIRAGE : ${advancedFields.lighting}`)
-  if (advancedFields?.photoStyle) advancedParts.push(`STYLE : ${advancedFields.photoStyle}`)
-  if (advancedFields?.details) advancedParts.push(`DÉTAILS : ${advancedFields.details}`)
-  if (advancedFields?.ambiance) advancedParts.push(`AMBIANCE : ${advancedFields.ambiance}`)
-
-  const advancedBlock = advancedParts.length > 0
-    ? `\n\nLE CLIENT A PRÉCISÉ CES DÉTAILS (à inclure OBLIGATOIREMENT dans le prompt) :\n${advancedParts.join('\n')}`
-    : ''
+  // Assembler la description complète : texte libre + champs avancés
+  const parts: string[] = [description]
+  if (advancedFields?.subject) parts.push(`Sujet : ${advancedFields.subject}`)
+  if (advancedFields?.action) parts.push(`Action : ${advancedFields.action}`)
+  if (advancedFields?.location) parts.push(`Lieu : ${advancedFields.location}`)
+  if (advancedFields?.lighting) parts.push(`Éclairage : ${advancedFields.lighting}`)
+  if (advancedFields?.photoStyle) parts.push(`Style : ${advancedFields.photoStyle}`)
+  if (advancedFields?.details) parts.push(`Détails : ${advancedFields.details}`)
+  if (advancedFields?.ambiance) parts.push(`Ambiance : ${advancedFields.ambiance}`)
+  const fullDescription = parts.join('\n')
 
   try {
     const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
@@ -220,11 +169,7 @@ async function generatePhotoPrompts(
             role: 'user',
             content: [{
               type: 'text',
-              text: `VOICI LA SCÈNE À PHOTOGRAPHIER (chaque élément doit apparaître dans le prompt) :
-
-"${description}"${advancedBlock}
-
-RAPPEL : reproduis FIDÈLEMENT cette scène. Ne la simplifie PAS en simple portrait. Inclus le sujet, l'action, le lieu, les objets mentionnés. Ajoute tes réglages techniques (Kelvin, focale adaptée, textures) PAR-DESSUS la description, sans la remplacer.`,
+              text: fullDescription,
             }],
           },
         ],
@@ -245,9 +190,9 @@ RAPPEL : reproduis FIDÈLEMENT cette scène. Ne la simplifie PAS en simple portr
   } catch (error) {
     console.error('Gemini photo error:', error)
 
-    // Fallback : prompt artisanal basé sur la catégorie
+    // Fallback : prompt direct avec la description du client + réglages techniques de la catégorie
     const cat = PHOTO_CATEGORIES[category] || PHOTO_CATEGORIES.lifestyle
-    const basePrompt = `Ultra photorealistic photograph, ${description}, ${cat.context}, ${cat.lighting_hint}, shot on 85mm lens at f/2.8, shallow depth of field with creamy bokeh, ${cat.texture_hint}, ${cat.mood} atmosphere, warm highlights with cool teal shadows split toning, lifted blacks, subtle film grain, natural skin texture with visible pores, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, no dead eyes, no deformed hands, photographic realism`
+    const basePrompt = `Ultra photorealistic photograph, ${fullDescription}, ${cat.lighting_hint}, shot on 50mm lens at f/4, shallow depth of field, ${cat.texture_hint}, ${cat.mood} atmosphere, natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, warm highlights with cool teal shadows, lifted blacks, subtle film grain, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism`
 
     const photos = Array.from({ length: numVariants }, (_, i) => ({
       variant: i + 1,
