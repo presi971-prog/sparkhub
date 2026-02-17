@@ -152,6 +152,45 @@ Réponds UNIQUEMENT en JSON, sans markdown :
 {"photos":[{"variant":1,"prompt":"..."}${numVariants === 4 ? ',{"variant":2,"prompt":"..."},{"variant":3,"prompt":"..."},{"variant":4,"prompt":"..."}' : ''}]}`
 }
 
+// ═══════════════════════════════════════════════════════════════
+// POST-TRAITEMENT : injection forcée des traits physiques
+// Gemini est pas fiable, donc le code garantit le résultat
+// ═══════════════════════════════════════════════════════════════
+
+const ETHNICITY_KEYWORDS: Record<string, { detect: RegExp; inject: string; negative: string }> = {
+  antillais: {
+    detect: /antillais|antillaise|guadeloup|martiniq|créole|caribéen|caribéenne|west indian/i,
+    inject: 'French West Indian from Guadeloupe, West African descent, dark brown to deep brown skin tone, broad nose, full lips, strong jawline, natural Afro-textured hair',
+    negative: 'not African American, not Hispanic, not Latino, not Caucasian, not Asian',
+  },
+}
+
+function enforcePhysicalTraits(prompt: string, userDescription: string): string {
+  for (const entry of Object.values(ETHNICITY_KEYWORDS)) {
+    if (entry.detect.test(userDescription)) {
+      // Vérifier si les traits sont déjà dans le prompt
+      if (/West African descent|French West Indian/i.test(prompt)) {
+        // Déjà présent, juste ajouter le negative si absent
+        if (!prompt.includes('not African American')) {
+          prompt = prompt.replace(/photographic realism"?$/, `${entry.negative}, photographic realism`)
+        }
+        return prompt
+      }
+      // Injecter après "Ultra photorealistic photograph,"
+      prompt = prompt.replace(
+        /^(Ultra photorealistic photograph,?\s*)/i,
+        `$1${entry.inject}, `
+      )
+      // Ajouter le negative prompt
+      if (!prompt.includes('not African American')) {
+        prompt = prompt.replace(/photographic realism"?$/, `${entry.negative}, photographic realism`)
+      }
+      return prompt
+    }
+  }
+  return prompt
+}
+
 async function generatePhotoPrompts(
   category: string,
   description: string,
@@ -211,13 +250,24 @@ async function generatePhotoPrompts(
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content || ''
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    return JSON.parse(cleanContent)
+    const result = JSON.parse(cleanContent) as { photos: Array<{ variant: number; prompt: string }> }
+
+    // POST-TRAITEMENT : forcer les traits physiques dans chaque prompt
+    result.photos = result.photos.map(photo => ({
+      ...photo,
+      prompt: enforcePhysicalTraits(photo.prompt, fullDescription),
+    }))
+
+    return result
   } catch (error) {
     console.error('Gemini photo error:', error)
 
     // Fallback : prompt direct avec la description du client + réglages techniques de la catégorie
     const cat = PHOTO_CATEGORIES[category] || PHOTO_CATEGORIES.lifestyle
-    const basePrompt = `Ultra photorealistic photograph, ${fullDescription}, ${cat.lighting_hint}, shot on 50mm lens at f/4, shallow depth of field, ${cat.texture_hint}, ${cat.mood} atmosphere, natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, warm highlights with cool teal shadows, lifted blacks, subtle film grain, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism`
+    let basePrompt = `Ultra photorealistic photograph, ${fullDescription}, ${cat.lighting_hint}, shot on 50mm lens at f/4, shallow depth of field, ${cat.texture_hint}, ${cat.mood} atmosphere, natural skin texture with visible pores, catchlights in eyes, anatomically correct hands, warm highlights with cool teal shadows, lifted blacks, subtle film grain, no AI artifacts, no plastic skin, no over-smoothing, no oversaturated colors, no uncanny valley, photographic realism`
+
+    // Forcer les traits physiques aussi dans le fallback
+    basePrompt = enforcePhysicalTraits(basePrompt, fullDescription)
 
     const photos = Array.from({ length: numVariants }, (_, i) => ({
       variant: i + 1,
