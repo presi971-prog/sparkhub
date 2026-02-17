@@ -263,22 +263,20 @@ export default async function RessourcesPage() {
               </div>
               <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <ResourceCard
-                  title="Photo Standard"
-                  description="Générez des visuels de qualité pour vos publications."
-                  details="Idéal pour les posts réseaux sociaux."
-                  credits={TOOLS_CONFIG.photo_standard.credits}
-                  actionLabel={user ? "Bientôt disponible" : "S'inscrire pour accéder"}
-                  href={user ? undefined : "/inscription/livreur"}
-                  disabled={!!user}
+                  title="Studio Photo Standard"
+                  description="Photos hyperréalistes indiscernables de vraies photos."
+                  details="1 photo ou 4 variantes. Idéal pour les réseaux sociaux."
+                  credits={TOOLS_CONFIG.photo_standard_1.credits}
+                  actionLabel={user ? "Utiliser" : "S'inscrire pour accéder"}
+                  href={user ? "/outils/photo-pub-pro" : "/inscription/livreur"}
                 />
                 <ResourceCard
-                  title="Photo Pro 4K"
-                  description="Images haute définition pour vos supports professionnels."
-                  details="Qualité impression et affichage grand format."
-                  credits={TOOLS_CONFIG.photo_pro_4k.credits}
-                  actionLabel={user ? "Bientôt disponible" : "S'inscrire pour accéder"}
-                  href={user ? undefined : "/inscription/livreur"}
-                  disabled={!!user}
+                  title="Studio Photo 4K Pro"
+                  description="Photos ultra détaillées en haute définition."
+                  details="Qualité pro pour impression et affichage grand format."
+                  credits={TOOLS_CONFIG.photo_4k_1.credits}
+                  actionLabel={user ? "Utiliser" : "S'inscrire pour accéder"}
+                  href={user ? "/outils/photo-pub-pro" : "/inscription/livreur"}
                 />
               </div>
             </div>

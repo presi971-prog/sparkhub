@@ -156,9 +156,11 @@ export const TOOLS_CONFIG = {
   post_ia: { credits: 2, name: 'Post IA', category: 'texte' },
   legende: { credits: 2, name: 'Légende/Bio', category: 'texte' },
 
-  // Photos
-  photo_standard: { credits: 3, name: 'Photo Standard', category: 'photo' },
-  photo_pro_4k: { credits: 10, name: 'Photo Pro 4K', category: 'photo' },
+  // Photos — SparkHub Studio Photo
+  photo_standard_1: { credits: 3, name: 'Studio Photo Standard (1 photo)', category: 'photo' },
+  photo_standard_4: { credits: 8, name: 'Studio Photo Standard (4 photos)', category: 'photo' },
+  photo_4k_1: { credits: 10, name: 'Studio Photo 4K Pro (1 photo)', category: 'photo' },
+  photo_4k_4: { credits: 30, name: 'Studio Photo 4K Pro (4 photos)', category: 'photo' },
 
   // Vidéos
   video_kling_5s: { credits: 5, name: 'Vidéo Kling 5s', category: 'video' },
