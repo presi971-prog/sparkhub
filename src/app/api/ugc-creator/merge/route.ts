@@ -86,8 +86,9 @@ export async function POST(req: Request) {
     ])
 
     return NextResponse.json({ merged_url: publicUrl })
-  } catch (error) {
-    console.error('Merge error:', error)
-    return NextResponse.json({ error: 'Erreur fusion vidéo' }, { status: 500 })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error('Merge error:', msg)
+    return NextResponse.json({ error: `Merge failed: ${msg}` }, { status: 500 })
   }
 }
