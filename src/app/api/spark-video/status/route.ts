@@ -220,8 +220,8 @@ async function orchestrate(
     // Soumettre les vidéos à fal.ai (durée adaptée au tier)
     const videoJobs = await submitVideoJobs(successfulImages, videoPrompts, clipDuration)
 
-    // Lancer la musique en parallèle (avec arc narratif)
-    const musicJob = await submitMusicJob(job.idea, job.music_mood, job.duration_seconds, job.scenes_count, job.ambiance)
+    // Sélectionner un morceau de musique depuis la bibliothèque (instantané)
+    const musicJob = selectMusicTrack(job.music_mood, job.ambiance)
 
     // Mettre à jour le job
     await adminSupabase
@@ -575,122 +575,53 @@ async function submitVideoJobs(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Soumission de la musique à fal.ai (ace-step)
+// Sélection de musique depuis la bibliothèque (Supabase Storage)
 // ═══════════════════════════════════════════════════════════════
 
-async function submitMusicJob(
-  idea: string,
+const MUSIC_STORAGE_BASE = 'https://wytvwfgamfaoqmvoqzps.supabase.co/storage/v1/object/public/music'
+
+// 3 morceaux par ambiance, tous royalty-free (Mixkit License)
+const MUSIC_LIBRARY: Record<string, string[]> = {
+  joyeux:     ['joyeux/track1.mp3', 'joyeux/track2.mp3', 'joyeux/track3.mp3'],
+  calme:      ['calme/track1.mp3', 'calme/track2.mp3', 'calme/track3.mp3'],
+  epique:     ['epique/track1.mp3', 'epique/track2.mp3', 'epique/track3.mp3'],
+  tropical:   ['tropical/track1.mp3', 'tropical/track2.mp3', 'tropical/track3.mp3'],
+  mysterieux: ['mysterieux/track1.mp3', 'mysterieux/track2.mp3', 'mysterieux/track3.mp3'],
+  electro:    ['electro/track1.mp3', 'electro/track2.mp3', 'electro/track3.mp3'],
+}
+
+// Mapping ambiance vidéo → mood musical par défaut
+const AMBIANCE_TO_MOOD: Record<string, string> = {
+  cinematique: 'epique',
+  drole: 'joyeux',
+  inspirant: 'epique',
+  dramatique: 'epique',
+  tropical: 'tropical',
+  mysterieux: 'mysterieux',
+  energique: 'electro',
+}
+
+function selectMusicTrack(
   musicMood: string | null,
-  durationSec: number,
-  scenesCount: number,
   ambiance: string | null,
-): Promise<MusicJob> {
-  // Générer le prompt musique via Gemini — avec arc narratif
-  let musicPrompt: string
-  try {
-    const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${KIE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: [{
-              type: 'text',
-              text: `Generate a music description for AI music generation (max 350 characters). The music must be INSTRUMENTAL (no lyrics), cinematic, and follow a NARRATIVE ARC matching the video structure.
-
-NARRATIVE ARC for ${durationSec} seconds, ${scenesCount} scenes:
-- INTRO (0 to ~${Math.round(durationSec * 0.15)}s): Gentle entry, intriguing opening — matches the video HOOK
-- BUILD (~${Math.round(durationSec * 0.15)}s to ~${Math.round(durationSec * 0.70)}s): Progressive intensification, growing energy — matches the RISE
-- CLIMAX (~${Math.round(durationSec * 0.70)}s to ~${Math.round(durationSec * 0.85)}s): Maximum energy, peak intensity — matches the CLIMAX
-- OUTRO (last ~${Math.round(durationSec * 0.15)}s): Graceful resolution, satisfying ending — matches the RESOLUTION
-
-Include specific instruments, tempo changes, and energy levels. The music must EVOLVE, not loop.`,
-            }],
-          },
-          {
-            role: 'user',
-            content: [{
-              type: 'text',
-              text: `Video idea: "${idea}". Music mood: ${musicMood || 'choose the best fit'}. Ambiance: ${ambiance || 'cinematic'}. Duration: ${durationSec} seconds. Write ONE music description with narrative arc, under 350 characters.`,
-            }],
-          },
-        ],
-        stream: false,
-        include_thoughts: false,
-      }),
-    })
-
-    if (!response.ok) throw new Error(`Gemini music: ${response.status}`)
-    const data = await response.json()
-    musicPrompt = data.choices?.[0]?.message?.content?.trim() || ''
-    // Nettoyer les guillemets éventuels
-    musicPrompt = musicPrompt.replace(/^["']|["']$/g, '')
-  } catch {
-    // Fallback avec arc narratif intégré
-    const moodMap: Record<string, string> = {
-      joyeux: 'Gentle ukulele intro building to cheerful full band with percussion and claps, peak energy chorus, then warm fadeout with soft strumming',
-      calme: 'Soft piano opening, gradually adding strings and gentle pads, emotional crescendo, resolving to peaceful single piano notes',
-      epique: 'Mysterious strings intro, building orchestral layers with brass and timpani, explosive heroic climax, triumphant resolution with full orchestra',
-      tropical: 'Soft steel drums intro, adding marimba and Caribbean rhythm, energetic peak with full percussion, gentle ocean-breeze fadeout',
-      mysterieux: 'Ethereal ambient pads opening, building dark tension with bass pulses, intense climax with distorted synths, dissolving into peaceful silence',
-      electro: 'Minimal synth intro, progressive beat building with layers, explosive drop with full bass, smooth cool-down with ambient textures',
-    }
-    musicPrompt = moodMap[musicMood || ''] || 'Gentle instrumental intro building to energetic middle section with mixed instruments, powerful climax, warm satisfying fadeout'
+): MusicJob {
+  // Déterminer le mood : priorité au choix utilisateur, sinon déduire de l'ambiance
+  let mood = musicMood || ''
+  if (!MUSIC_LIBRARY[mood]) {
+    mood = (ambiance && AMBIANCE_TO_MOOD[ambiance]) || 'joyeux'
   }
 
-  // Soumettre à fal.ai ace-step
-  try {
-    const submitResponse = await fetch('https://queue.fal.run/fal-ai/ace-step/prompt-to-audio', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${FAL_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: musicPrompt,
-        instrumental: true,
-        duration: durationSec + 5, // Un peu plus long pour le montage
-        number_of_steps: 27,
-        scheduler: 'euler',
-        guidance_type: 'apg',
-        granularity_scale: 10,
-        guidance_interval: 0.5,
-        guidance_interval_decay: 0,
-        guidance_scale: 15,
-        minimum_guidance_scale: 3,
-        tag_guidance_scale: 5,
-        lyric_guidance_scale: 1.5,
-      }),
-    })
+  const tracks = MUSIC_LIBRARY[mood] || MUSIC_LIBRARY.joyeux
+  const randomTrack = tracks[Math.floor(Math.random() * tracks.length)]
+  const audioUrl = `${MUSIC_STORAGE_BASE}/${randomTrack}`
 
-    if (!submitResponse.ok) {
-      const errText = await submitResponse.text()
-      throw new Error(`fal.ai ace-step: ${errText}`)
-    }
-
-    const submitData = await submitResponse.json()
-    return {
-      prompt: musicPrompt,
-      status_url: submitData.status_url || null,
-      response_url: submitData.response_url || null,
-      audio_url: null,
-      status: 'pending',
-      error: null,
-    }
-  } catch (error) {
-    console.error('Music submission error:', error)
-    return {
-      prompt: musicPrompt,
-      status_url: null,
-      response_url: null,
-      audio_url: null,
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Erreur soumission musique',
-    }
+  return {
+    prompt: `Library: ${mood}/${randomTrack}`,
+    status_url: null,
+    response_url: null,
+    audio_url: audioUrl,
+    status: 'completed',
+    error: null,
   }
 }
 
