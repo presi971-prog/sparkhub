@@ -83,7 +83,7 @@ Reponds UNIQUEMENT au format JSON suivant, sans markdown, sans backticks :
       const userPrompt = `Voici les plats qui ont besoin d'une description :\n${JSON.stringify(itemsForAI, null, 2)}`
 
       try {
-        const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
+        const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${KIE_API_KEY}`,

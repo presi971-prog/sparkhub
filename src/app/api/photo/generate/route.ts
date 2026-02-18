@@ -220,7 +220,7 @@ async function generatePhotoPrompts(
   const fullDescription = parts.join('\n')
 
   try {
-    const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
+    const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KIE_API_KEY}`,

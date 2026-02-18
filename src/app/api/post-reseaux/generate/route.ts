@@ -187,7 +187,7 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
     : `Analyse cette photo et exécute tes 2 missions. Projette le sujet dans l'univers décrit ci-dessus. Sois AUDACIEUX et CINÉMATOGRAPHIQUE.`
 
   try {
-    const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
+    const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KIE_API_KEY}`,
