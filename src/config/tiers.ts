@@ -170,6 +170,9 @@ export const TOOLS_CONFIG = {
   video_sora_pro_5s: { credits: 80, name: 'Vidéo Sora Pro 5s', category: 'video' },
   video_veo3_audio_5s: { credits: 100, name: 'Vidéo Veo 3 + Audio 5s', category: 'video' },
 
+  // UGC Creator (Veo 3.1 via n8n)
+  video_ugc: { credits: 60, name: 'UGC Creator (Veo 3.1)', category: 'video' },
+
   // Business
   menu_generator: { credits: 3, name: 'Menu / Carte', category: 'business' },
   mini_site_vitrine: { credits: 150, name: 'Mini Site Vitrine', category: 'business' },

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
   Instagram, Video, Camera, ShoppingBag, UtensilsCrossed,
-  Coins, ArrowRight, Lock, Sparkles, MessageCircle, Globe, Palette
+  Coins, ArrowRight, Lock, Sparkles, MessageCircle, Globe, Palette, Film
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -78,6 +78,18 @@ const tools = [
     bgColor: 'bg-red-500/10',
     borderColor: 'border-red-500/30',
     isVariablePrice: true,
+  },
+  {
+    id: 'ugc-creator',
+    name: 'UGC Creator',
+    description: 'Génère une vidéo pub UGC à partir de ta photo produit ou mascotte. IA Veo 3.1.',
+    icon: Film,
+    credits: TOOLS_CONFIG.video_ugc.credits,
+    href: '/outils/ugc-creator',
+    available: true,
+    color: 'text-emerald-500',
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/30',
   },
   {
     id: 'mini-site',
