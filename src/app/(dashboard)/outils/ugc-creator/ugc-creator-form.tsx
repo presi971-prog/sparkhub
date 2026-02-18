@@ -77,12 +77,21 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
     ? `https://wytvwfgamfaoqmvoqzps.supabase.co/storage/v1/object/public/ugc-videos/ugc-voice/${jobId}.mp3`
     : null
 
-  // Sync vidéo + audio voiceover
-  const handleVideoPlay = () => audioRef.current?.play()
-  const handleVideoPause = () => audioRef.current?.pause()
-  const handleVideoSeeked = () => {
-    if (audioRef.current && videoRef.current) {
-      audioRef.current.currentTime = videoRef.current.currentTime
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const togglePlay = async () => {
+    if (!videoRef.current) return
+    if (isPlaying) {
+      videoRef.current.pause()
+      audioRef.current?.pause()
+      setIsPlaying(false)
+    } else {
+      await videoRef.current.play()
+      if (audioRef.current) {
+        audioRef.current.currentTime = videoRef.current.currentTime
+        await audioRef.current.play()
+      }
+      setIsPlaying(true)
     }
   }
 
@@ -215,6 +224,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
     setAction('')
     setAmbiance('')
     setMessage('')
+    setIsPlaying(false)
     removeImage()
   }
 
@@ -585,18 +595,31 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
               <h3 className="text-lg font-semibold">Vidéo prête !</h3>
             </div>
 
-            <div className="rounded-lg overflow-hidden bg-black">
+            <div
+              className="relative rounded-lg overflow-hidden bg-black cursor-pointer group"
+              onClick={togglePlay}
+            >
               <video
                 ref={videoRef}
                 src={videoUrl}
-                controls
-                autoPlay
                 playsInline
-                onPlay={handleVideoPlay}
-                onPause={handleVideoPause}
-                onSeeked={handleVideoSeeked}
+                onEnded={() => setIsPlaying(false)}
                 className="w-full max-h-[500px]"
               />
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity">
+                  <div className="rounded-full bg-white/90 p-4 shadow-lg">
+                    <Play className="h-8 w-8 text-black fill-black" />
+                  </div>
+                </div>
+              )}
+              {isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+                  <div className="rounded-full bg-white/80 p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <StopCircle className="h-6 w-6 text-black" />
+                  </div>
+                </div>
+              )}
               {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
             </div>
 
