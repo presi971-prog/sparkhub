@@ -128,11 +128,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Erreur création job' }, { status: 500 })
     }
 
-    // 9. Appeler webhook n8n
-    // N.B. : ne pas utiliser NEXT_PUBLIC_APP_URL (baked at build, valeur incorrecte)
+    // 9. Appeler webhook n8n (fire-and-forget pour ne pas bloquer la réponse)
+    // Le callback n8n gère le résultat (succès ou erreur + remboursement)
     const callbackUrl = 'https://sparkhub.digital-code-growth.com/api/ugc-creator/callback'
 
-    const webhookRes = await fetch(N8N_UGC_WEBHOOK_URL, {
+    fetch(N8N_UGC_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -146,28 +146,11 @@ export async function POST(req: Request) {
         callback_url: callbackUrl,
         callback_token: callbackToken,
       }),
+    }).catch((err) => {
+      console.error('n8n webhook fire-and-forget error:', err)
     })
 
-    if (!webhookRes.ok) {
-      console.error('n8n webhook error:', webhookRes.status, await webhookRes.text().catch(() => ''))
-      // Marquer en erreur et rembourser
-      await adminSupabase.from('ugc_video_jobs')
-        .update({ status: 'error', error: 'Erreur connexion n8n' })
-        .eq('id', job.id)
-      await adminSupabase.from('credits').update({
-        balance: creditData.balance,
-        lifetime_spent: creditData.lifetime_spent || 0,
-      }).eq('profile_id', user.id)
-      await adminSupabase.from('credit_transactions').insert({
-        profile_id: user.id,
-        amount: CREDITS_COST,
-        type: 'refund',
-        description: 'UGC Creator - Remboursement (erreur n8n)',
-      })
-      return NextResponse.json({ error: 'Erreur lancement génération' }, { status: 500 })
-    }
-
-    // 10. Succès
+    // 10. Succès — répondre immédiatement, n8n traite en arrière-plan
     return NextResponse.json({
       success: true,
       jobId: job.id,
