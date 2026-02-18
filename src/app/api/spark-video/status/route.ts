@@ -639,11 +639,12 @@ async function submitMontageJob(
     .filter(v => v.status === 'completed' && v.video_url)
     .sort((a, b) => a.index - b.index)
 
-  // Track vidéo : tous les clips dans l'ordre avec durée dynamique
+  // Track vidéo : tous les clips dans l'ordre avec durée dynamique (en millisecondes)
+  const clipDurationMs = clipDuration * 1000
   const videoKeyframes = successfulVideos.map((v, i) => ({
     url: v.video_url!,
-    timestamp: i * clipDuration,
-    duration: clipDuration,
+    timestamp: i * clipDurationMs,
+    duration: clipDurationMs,
   }))
 
   const tracks: Array<{ id: string; type: string; keyframes: Array<{ url: string; timestamp: number; duration: number }> }> = [
@@ -654,16 +655,16 @@ async function submitMontageJob(
     },
   ]
 
-  // Track audio si la musique a réussi
+  // Track audio si la musique a réussi (durée en millisecondes, tronquée à la durée vidéo)
   if (musicJob && musicJob.status === 'completed' && musicJob.audio_url) {
-    const totalVideoDuration = successfulVideos.length * clipDuration
+    const totalVideoDurationMs = successfulVideos.length * clipDurationMs
     tracks.push({
       id: '2',
       type: 'audio',
       keyframes: [{
         url: musicJob.audio_url,
         timestamp: 0,
-        duration: totalVideoDuration,
+        duration: totalVideoDurationMs,
       }],
     })
   }
