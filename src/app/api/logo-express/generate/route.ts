@@ -270,7 +270,7 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
 {"logos":[{"approach":"symbolique","prompt":"..."},{"approach":"typographique","prompt":"..."},{"approach":"combine","prompt":"..."},{"approach":"creatif","prompt":"..."}],"palette":["#hex1","#hex2","#hex3","#hex4","#hex5"],"fonts":["Font1","Font2","Font3"]}`
 
   try {
-    const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
+    const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KIE_API_KEY}`,

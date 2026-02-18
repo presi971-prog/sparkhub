@@ -102,7 +102,7 @@ Formats qui marchent bien :
 Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
 {"ideas":["idee 1","idee 2","idee 3","idee 4","idee 5"]}`
 
-    const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
+    const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KIE_API_KEY}`,

@@ -169,7 +169,7 @@ ${slogan ? `Slogan : ${slogan}` : ''}
 ${servicesText ? `Services/Produits : ${servicesText}` : ''}
 ${address ? `Adresse : ${address}` : ''}`
 
-  const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
+  const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${KIE_API_KEY}`,
@@ -353,7 +353,7 @@ async function translateToEnglish(text: string): Promise<string> {
   if (!isLikelyFrench) return text
 
   try {
-    const response = await fetch('https://api.kie.ai/gemini-2.5-flash/v1/chat/completions', {
+    const response = await fetch('https://api.kie.ai/gemini-3/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KIE_API_KEY}`,
