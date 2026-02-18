@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Coins, Loader2, CheckCircle2, Circle, Download, RotateCcw,
-  Clock, Play, AlertTriangle, Upload, ImageIcon, X, Info, StopCircle,
+  Clock, Play, AlertTriangle, Upload, ImageIcon, X, Info, StopCircle, Trash2,
 } from 'lucide-react'
 import {
   UGC_TYPES, UGC_CREDITS, PIPELINE_STEPS_UGC,
@@ -233,6 +233,29 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
       setStep('error')
     } finally {
       setIsCancelling(false)
+    }
+  }
+
+  // ── Supprimer un job ──
+  const [deletingJobId, setDeletingJobId] = useState<string | null>(null)
+  const [jobs, setJobs] = useState<PreviousJob[]>(previousJobs)
+
+  const handleDelete = async (jobId: string) => {
+    if (deletingJobId) return
+    setDeletingJobId(jobId)
+    try {
+      const res = await fetch('/api/ugc-creator/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      })
+      if (res.ok) {
+        setJobs((prev) => prev.filter((j) => j.id !== jobId))
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+    } finally {
+      setDeletingJobId(null)
     }
   }
 
@@ -575,14 +598,14 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
       )}
 
       {/* ── MES VIDÉOS ── */}
-      {previousJobs.length > 0 && step === 'form' && (
+      {jobs.length > 0 && step === 'form' && (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Clock className="h-5 w-5" />
             Mes vidéos UGC
           </h3>
           <div className="space-y-2">
-            {previousJobs.map((job) => (
+            {jobs.map((job) => (
               <Card key={job.id} className="overflow-hidden">
                 <CardContent className="py-3">
                   <div className="flex items-center justify-between">
@@ -633,6 +656,21 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </Button>
                       ) : null}
+                      {(job.status === 'completed' || job.status === 'error') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(job.id)}
+                          disabled={deletingJobId === job.id}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          {deletingJobId === job.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
