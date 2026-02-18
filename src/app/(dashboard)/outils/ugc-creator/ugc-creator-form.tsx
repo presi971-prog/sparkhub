@@ -262,24 +262,26 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
 
       {/* ── ÉTAPE 1 : FORMULAIRE ── */}
       {step === 'form' && (
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Type */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-sm font-medium">Type de sujet</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {UGC_TYPES.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setType(t.id)}
-                  className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-all ${
+                  className={`flex items-center gap-2 rounded-lg border-2 p-2.5 text-left transition-all ${
                     type === t.id
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <span className="text-xl">{t.emoji}</span>
-                  <span className="font-medium text-sm">{t.label}</span>
-                  <span className="text-xs text-muted-foreground">{t.description}</span>
+                  <span className="text-lg">{t.emoji}</span>
+                  <div>
+                    <span className="font-medium text-sm">{t.label}</span>
+                    <p className="text-xs text-muted-foreground leading-tight">{t.description}</p>
+                  </div>
                 </button>
               ))}
             </div>
@@ -294,85 +296,82 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
             )}
           </div>
 
-          {/* Qui — grille 2 colonnes */}
-          <div className="space-y-2">
+          {/* Qui — grille 3 colonnes compacte */}
+          <div className="space-y-1.5">
             <label className="text-sm font-medium">Qui apparaît dans la vidéo ?</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               {UGC_PERSONAS.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setQui(p.value)}
-                  className={`flex items-center gap-2 rounded-xl border-2 p-3 text-left transition-all ${
+                  className={`flex flex-col items-center gap-0.5 rounded-lg border-2 py-2 px-1 text-center transition-all ${
                     qui === p.value
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-border hover:border-primary/30'
                   }`}
                 >
                   <span className="text-lg">{p.emoji}</span>
-                  <span className="font-medium text-sm">{p.label}</span>
+                  <span className="font-medium text-xs">{p.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Lieu — grille 2 colonnes */}
-          <div className="space-y-2">
+          {/* Lieu — grille 3 colonnes compacte */}
+          <div className="space-y-1.5">
             <label className="text-sm font-medium">Où se passe la scène ?</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               {UGC_LIEUX.map((l) => (
                 <button
                   key={l.id}
                   type="button"
                   onClick={() => setLieu(l.value)}
-                  className={`flex items-center gap-2 rounded-xl border-2 p-3 text-left transition-all ${
+                  className={`flex flex-col items-center gap-0.5 rounded-lg border-2 py-2 px-1 text-center transition-all ${
                     lieu === l.value
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-border hover:border-primary/30'
                   }`}
                 >
                   <span className="text-lg">{l.emoji}</span>
-                  <span className="font-medium text-sm">{l.label}</span>
+                  <span className="font-medium text-xs">{l.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Action — grille 1 colonne */}
-          <div className="space-y-2">
+          {/* Action — grille 1 colonne compacte */}
+          <div className="space-y-1.5">
             <label className="text-sm font-medium">Que fait la personne ?</label>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-1.5">
               {UGC_ACTIONS.map((a) => (
                 <button
                   key={a.id}
                   type="button"
                   onClick={() => setAction(a.value)}
-                  className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                  className={`flex items-center gap-2.5 rounded-lg border-2 py-2 px-3 text-left transition-all ${
                     action === a.value
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <span className="text-lg">{a.emoji}</span>
-                  <div>
-                    <span className="font-medium text-sm">{a.label}</span>
-                    <p className="text-xs text-muted-foreground">{a.value}</p>
-                  </div>
+                  <span className="text-base">{a.emoji}</span>
+                  <span className="font-medium text-sm">{a.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Ambiance — chips horizontales */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-sm font-medium">Ambiance / Ton</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {UGC_AMBIANCES.map((am) => (
                 <button
                   key={am.id}
                   type="button"
                   onClick={() => setAmbiance(am.value)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+                  className={`inline-flex items-center rounded-full border-2 px-3 py-1.5 text-sm font-medium transition-all ${
                     ambiance === am.value
                       ? 'border-primary bg-primary/10 text-primary shadow-sm'
                       : 'border-border hover:border-primary/30'
