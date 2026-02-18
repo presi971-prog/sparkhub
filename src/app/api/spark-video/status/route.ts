@@ -345,7 +345,8 @@ async function orchestrate(
 
       if (falStatus.status === 'COMPLETED' && mj.response_url) {
         const result = await getFalResult(mj.response_url)
-        const videoUrl = (result?.video as { url: string })?.url
+        const videoUrl = (result?.video_url as string)
+          || (result?.video as { url: string })?.url
           || (result?.output_url as string)
 
         if (videoUrl) {
