@@ -3,12 +3,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 export const VIDEO_TIERS = {
-  flash:    { name: 'Flash',    scenes: 2,  durationSec: 10, credits: 25, estMinutes: 5,  emoji: '⚡' },
-  teaser:   { name: 'Teaser',   scenes: 3,  durationSec: 15, credits: 30, estMinutes: 6,  emoji: '🎬' },
-  short:    { name: 'Short',    scenes: 5,  durationSec: 25, credits: 40, estMinutes: 8,  emoji: '📱' },
-  standard: { name: 'Standard', scenes: 8,  durationSec: 40, credits: 55, estMinutes: 12, emoji: '🎥' },
-  tiktok:   { name: 'TikTok',   scenes: 10, durationSec: 50, credits: 65, estMinutes: 15, emoji: '📲' },
-  premium:  { name: 'Premium',  scenes: 13, durationSec: 65, credits: 80, estMinutes: 20, emoji: '🏆' },
+  flash:    { name: 'Flash',    scenes: 2,  clipDuration: 5,  durationSec: 10, credits: 25, estMinutes: 5,  emoji: '⚡' },
+  teaser:   { name: 'Teaser',   scenes: 3,  clipDuration: 5,  durationSec: 15, credits: 30, estMinutes: 6,  emoji: '🎬' },
+  short:    { name: 'Short',    scenes: 5,  clipDuration: 5,  durationSec: 25, credits: 40, estMinutes: 8,  emoji: '📱' },
+  standard: { name: 'Standard', scenes: 5,  clipDuration: 10, durationSec: 50, credits: 55, estMinutes: 12, emoji: '🎥' },
+  tiktok:   { name: 'TikTok',   scenes: 6,  clipDuration: 10, durationSec: 60, credits: 65, estMinutes: 15, emoji: '📲' },
+  premium:  { name: 'Premium',  scenes: 8,  clipDuration: 10, durationSec: 80, credits: 80, estMinutes: 20, emoji: '🏆' },
 } as const
 
 export type VideoTierId = keyof typeof VIDEO_TIERS

@@ -54,7 +54,8 @@ interface SparkVideoJob {
   scenes_count: number
   duration_seconds: number
   credits_used: number
-  scenes: Array<{ index: number; prompt: string }> | null
+  subject_anchor: string | null
+  scenes: Array<{ index: number; prompt: string; arc_role?: string }> | null
   image_jobs: ImageJob[] | null
   video_prompts: Array<{ index: number; prompt: string }> | null
   video_jobs: VideoJob[] | null
@@ -62,6 +63,11 @@ interface SparkVideoJob {
   montage_job: MontageJob | null
   final_video_url: string | null
   error: string | null
+}
+
+// Durée de clip par tier (5s pour les courts, 10s pour les longs)
+const TIER_CLIP_DURATION: Record<string, number> = {
+  flash: 5, teaser: 5, short: 5, standard: 10, tiktok: 10, premium: 10,
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -200,19 +206,22 @@ async function orchestrate(
   // ── VIDEO_PROMPTS ──
   if (job.status === 'video_prompts' && job.image_jobs) {
     const successfulImages = job.image_jobs.filter(j => j.status === 'completed' && j.image_url)
+    const clipDuration = TIER_CLIP_DURATION[job.tier] || 5
 
-    // Générer les prompts vidéo via Gemini
+    // Générer les prompts vidéo via Gemini (avec contexte narratif)
     const videoPrompts = await generateVideoPrompts(
       successfulImages,
+      job.scenes || [],
       job.idea,
       job.ambiance,
+      clipDuration,
     )
 
-    // Soumettre les vidéos à fal.ai
-    const videoJobs = await submitVideoJobs(successfulImages, videoPrompts)
+    // Soumettre les vidéos à fal.ai (durée adaptée au tier)
+    const videoJobs = await submitVideoJobs(successfulImages, videoPrompts, clipDuration)
 
-    // Lancer la musique en parallèle
-    const musicJob = await submitMusicJob(job.idea, job.music_mood, job.duration_seconds)
+    // Lancer la musique en parallèle (avec arc narratif)
+    const musicJob = await submitMusicJob(job.idea, job.music_mood, job.duration_seconds, job.scenes_count, job.ambiance)
 
     // Mettre à jour le job
     await adminSupabase
@@ -293,7 +302,8 @@ async function orchestrate(
     if (videosPending === 0 && musicDone) {
       if (videosCompleted >= 2) {
         // Passer au montage
-        const montageJob = await submitMontageJob(videoJobs, musicJob, job.duration_seconds)
+        const clipDur = TIER_CLIP_DURATION[job.tier] || 5
+        const montageJob = await submitMontageJob(videoJobs, musicJob, job.duration_seconds, clipDur)
 
         await adminSupabase
           .from('spark_video_jobs')
@@ -409,28 +419,50 @@ async function orchestrate(
 
 async function generateVideoPrompts(
   images: ImageJob[],
+  originalScenes: Array<{ index: number; prompt: string; arc_role?: string }>,
   idea: string,
   ambiance: string | null,
+  clipDuration: number,
 ): Promise<Array<{ index: number; prompt: string }>> {
-  const systemPrompt = `Tu es un expert en animation vidéo. Pour chaque scène, tu crées un prompt de mouvement court (SOUS 300 caractères) décrivant ce qui se passe pendant 5 secondes.
+  // Construire le contexte des scènes pour Gemini
+  const scenesContext = images.map((img, i) => {
+    const scene = originalScenes.find(s => s.index === img.index) || originalScenes[i]
+    const role = scene?.arc_role || 'rise'
+    return `Scène ${img.index} [${role.toUpperCase()}] : "${scene?.prompt?.substring(0, 200) || 'scene visuelle'}"`
+  }).join('\n')
 
-RÈGLES :
-- UNE seule action par scène (pas de séquence complexe)
-- Troisième personne, pas de termes de caméra
-- Décris le MOUVEMENT : ce qui bouge, comment, dans quelle direction
-- Style réaliste, pas cartoon
-- Prompts en ANGLAIS
-- Ambiance : ${ambiance || 'adaptée à l\'idée'}
+  const systemPrompt = `Tu es un expert en ANIMATION VIDÉO cinématique. Pour chaque scène, tu crées un prompt de mouvement SPÉCIFIQUE et CAPTIVANT décrivant ce qui se passe pendant ${clipDuration} secondes.
 
 IDÉE DE LA VIDÉO : "${idea}"
+AMBIANCE : ${ambiance || 'adaptée à l\'idée'}
+DURÉE PAR CLIP : ${clipDuration} secondes
+
+═══ MOUVEMENTS SELON LE RÔLE NARRATIF ═══
+
+HOOK : Mouvement SURPRENANT et CAPTIVANT. L'action démarre fort : révélation soudaine, geste spectaculaire, mouvement qui capte immédiatement l'attention. Énergie maximale dès la première seconde.
+
+RISE : Mouvement PROGRESSIF et INTENSIFIANT. L'action monte en puissance : gestes de plus en plus assurés, environnement qui s'anime, détails qui se révèlent. Rythme qui accélère.
+
+CLIMAX : Mouvement le plus DYNAMIQUE et IMPRESSIONNANT. L'apogée de l'action : geste le plus puissant, moment le plus intense, mouvement le plus spectaculaire de toute la vidéo.
+
+RESOLUTION : Mouvement APAISANT et SATISFAISANT. L'action se conclut en beauté : ralentissement gracieux, sourire qui s'élargit, lumière dorée qui baigne la scène. Sentiment de plénitude.
+
+═══ RÈGLES ═══
+
+- UNE seule action fluide par scène
+- Décris le MOUVEMENT CONCRET : ce qui bouge, comment, dans quelle direction
+- Inclus des détails sensoriels en mouvement (fumée qui s'élève, lumière qui change, tissu qui ondule)
+- SOUS 300 caractères par prompt
+- Prompts en ANGLAIS
+- Pas de termes de caméra ("camera pans", "zoom in", "close-up")
 
 FORMAT JSON UNIQUEMENT :
 {"prompts":[{"index":0,"prompt":"..."},{"index":1,"prompt":"..."}]}`
 
-  const userContent = images.map((img, i) => ({
+  const userContent = [{
     type: 'text' as const,
-    text: `Scène ${img.index} (image générée) : crée le prompt de mouvement pour cette scène.`,
-  }))
+    text: `Voici les scènes avec leur rôle narratif :\n\n${scenesContext}\n\nCrée un prompt de mouvement SPÉCIFIQUE pour chaque scène selon son rôle narratif.`,
+  }]
 
   try {
     const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
@@ -462,11 +494,21 @@ FORMAT JSON UNIQUEMENT :
     }))
   } catch (error) {
     console.error('Gemini video prompts error:', error)
-    // Fallback : prompts génériques basés sur les scènes originales
-    return images.map((img) => ({
-      index: img.index,
-      prompt: 'Gentle natural movement in the scene, subtle environmental motion, soft ambient changes over 5 seconds.',
-    }))
+    // Fallback amélioré selon le rôle narratif (plus de "Gentle natural movement")
+    return images.map((img, i) => {
+      const scene = originalScenes.find(s => s.index === img.index) || originalScenes[i]
+      const role = scene?.arc_role || 'rise'
+      const fallbacks: Record<string, string> = {
+        hook: `Dynamic revealing movement, subject comes into sharp focus with a striking gesture, environmental elements react with energy, dramatic light shift over ${clipDuration} seconds.`,
+        rise: `Progressive confident action, building intensity with purposeful movement, surrounding details animate with growing momentum over ${clipDuration} seconds.`,
+        climax: `Peak action moment, the most powerful and impressive movement, maximum energy and visual impact, elements converging in spectacular fashion over ${clipDuration} seconds.`,
+        resolution: `Slow satisfying movement, warm golden light gradually intensifying, gentle settling motion, peaceful and fulfilling atmosphere over ${clipDuration} seconds.`,
+      }
+      return {
+        index: img.index,
+        prompt: fallbacks[role] || fallbacks.rise,
+      }
+    })
   }
 }
 
@@ -477,6 +519,7 @@ FORMAT JSON UNIQUEMENT :
 async function submitVideoJobs(
   images: ImageJob[],
   videoPrompts: Array<{ index: number; prompt: string }>,
+  clipDuration: number,
 ): Promise<VideoJob[]> {
   const results = await Promise.allSettled(
     images.map(async (img, i) => {
@@ -493,10 +536,10 @@ async function submitVideoJobs(
           body: JSON.stringify({
             prompt,
             image_url: img.image_url,
-            duration: '5',
+            duration: String(clipDuration),
             aspect_ratio: '9:16',
-            negative_prompt: 'bad quality, blurry, distorted',
-            cfg_scale: 0.5,
+            negative_prompt: 'bad quality, blurry, distorted, morphing face, extra limbs, deformed hands, jittery movement, sudden jumps, flickering',
+            cfg_scale: 0.7,
           }),
         }
       )
@@ -539,8 +582,10 @@ async function submitMusicJob(
   idea: string,
   musicMood: string | null,
   durationSec: number,
+  scenesCount: number,
+  ambiance: string | null,
 ): Promise<MusicJob> {
-  // Générer le prompt musique via Gemini
+  // Générer le prompt musique via Gemini — avec arc narratif
   let musicPrompt: string
   try {
     const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
@@ -555,14 +600,22 @@ async function submitMusicJob(
             role: 'system',
             content: [{
               type: 'text',
-              text: `Generate a concise music description for AI music generation. Maximum 250 characters. The music must be instrumental (no lyrics), pleasant, not repetitive. Include specific instruments and mood.`,
+              text: `Generate a music description for AI music generation (max 350 characters). The music must be INSTRUMENTAL (no lyrics), cinematic, and follow a NARRATIVE ARC matching the video structure.
+
+NARRATIVE ARC for ${durationSec} seconds, ${scenesCount} scenes:
+- INTRO (0 to ~${Math.round(durationSec * 0.15)}s): Gentle entry, intriguing opening — matches the video HOOK
+- BUILD (~${Math.round(durationSec * 0.15)}s to ~${Math.round(durationSec * 0.70)}s): Progressive intensification, growing energy — matches the RISE
+- CLIMAX (~${Math.round(durationSec * 0.70)}s to ~${Math.round(durationSec * 0.85)}s): Maximum energy, peak intensity — matches the CLIMAX
+- OUTRO (last ~${Math.round(durationSec * 0.15)}s): Graceful resolution, satisfying ending — matches the RESOLUTION
+
+Include specific instruments, tempo changes, and energy levels. The music must EVOLVE, not loop.`,
             }],
           },
           {
             role: 'user',
             content: [{
               type: 'text',
-              text: `Video idea: "${idea}". Music mood: ${musicMood || 'choose the best fit'}. Duration: ${durationSec} seconds. Write ONE music description in English, under 250 characters.`,
+              text: `Video idea: "${idea}". Music mood: ${musicMood || 'choose the best fit'}. Ambiance: ${ambiance || 'cinematic'}. Duration: ${durationSec} seconds. Write ONE music description with narrative arc, under 350 characters.`,
             }],
           },
         ],
@@ -577,16 +630,16 @@ async function submitMusicJob(
     // Nettoyer les guillemets éventuels
     musicPrompt = musicPrompt.replace(/^["']|["']$/g, '')
   } catch {
-    // Fallback
+    // Fallback avec arc narratif intégré
     const moodMap: Record<string, string> = {
-      joyeux: 'Upbeat cheerful ukulele and light percussion, sunny Caribbean feel',
-      calme: 'Soft piano and gentle strings, peaceful ambient atmosphere',
-      epique: 'Orchestral crescendo with brass and timpani, heroic cinematic feel',
-      tropical: 'Steel drums and marimba, warm Caribbean rhythm, ocean breeze',
-      mysterieux: 'Dark ambient synth pads, subtle bass pulses, ethereal atmosphere',
-      electro: 'Modern electronic beat, punchy bass, energetic synth arpeggios',
+      joyeux: 'Gentle ukulele intro building to cheerful full band with percussion and claps, peak energy chorus, then warm fadeout with soft strumming',
+      calme: 'Soft piano opening, gradually adding strings and gentle pads, emotional crescendo, resolving to peaceful single piano notes',
+      epique: 'Mysterious strings intro, building orchestral layers with brass and timpani, explosive heroic climax, triumphant resolution with full orchestra',
+      tropical: 'Soft steel drums intro, adding marimba and Caribbean rhythm, energetic peak with full percussion, gentle ocean-breeze fadeout',
+      mysterieux: 'Ethereal ambient pads opening, building dark tension with bass pulses, intense climax with distorted synths, dissolving into peaceful silence',
+      electro: 'Minimal synth intro, progressive beat building with layers, explosive drop with full bass, smooth cool-down with ambient textures',
     }
-    musicPrompt = moodMap[musicMood || ''] || 'Upbeat instrumental background music, pleasant and engaging, mixed instruments'
+    musicPrompt = moodMap[musicMood || ''] || 'Gentle instrumental intro building to energetic middle section with mixed instruments, powerful climax, warm satisfying fadeout'
   }
 
   // Soumettre à fal.ai ace-step
@@ -649,16 +702,17 @@ async function submitMontageJob(
   videoJobs: VideoJob[],
   musicJob: MusicJob | null,
   durationSec: number,
+  clipDuration: number,
 ): Promise<MontageJob> {
   const successfulVideos = videoJobs
     .filter(v => v.status === 'completed' && v.video_url)
     .sort((a, b) => a.index - b.index)
 
-  // Track vidéo : tous les clips dans l'ordre
+  // Track vidéo : tous les clips dans l'ordre avec durée dynamique
   const videoKeyframes = successfulVideos.map((v, i) => ({
     url: v.video_url!,
-    timestamp: i * 5,
-    duration: 5,
+    timestamp: i * clipDuration,
+    duration: clipDuration,
   }))
 
   const tracks: Array<{ id: string; type: string; keyframes: Array<{ url: string; timestamp: number; duration: number }> }> = [
@@ -671,7 +725,7 @@ async function submitMontageJob(
 
   // Track audio si la musique a réussi
   if (musicJob && musicJob.status === 'completed' && musicJob.audio_url) {
-    const totalVideoDuration = successfulVideos.length * 5
+    const totalVideoDuration = successfulVideos.length * clipDuration
     tracks.push({
       id: '2',
       type: 'audio',

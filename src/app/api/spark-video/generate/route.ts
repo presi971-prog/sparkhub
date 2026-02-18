@@ -6,13 +6,13 @@ const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
 
 // Tiers de durée (dupliqué ici pour l'API — pas d'import client)
-const TIERS: Record<string, { scenes: number; durationSec: number; credits: number }> = {
-  flash:    { scenes: 2,  durationSec: 10, credits: 25 },
-  teaser:   { scenes: 3,  durationSec: 15, credits: 30 },
-  short:    { scenes: 5,  durationSec: 25, credits: 40 },
-  standard: { scenes: 8,  durationSec: 40, credits: 55 },
-  tiktok:   { scenes: 10, durationSec: 50, credits: 65 },
-  premium:  { scenes: 13, durationSec: 65, credits: 80 },
+const TIERS: Record<string, { scenes: number; clipDuration: number; durationSec: number; credits: number }> = {
+  flash:    { scenes: 2,  clipDuration: 5,  durationSec: 10, credits: 25 },
+  teaser:   { scenes: 3,  clipDuration: 5,  durationSec: 15, credits: 30 },
+  short:    { scenes: 5,  clipDuration: 5,  durationSec: 25, credits: 40 },
+  standard: { scenes: 5,  clipDuration: 10, durationSec: 50, credits: 55 },
+  tiktok:   { scenes: 6,  clipDuration: 10, durationSec: 60, credits: 65 },
+  premium:  { scenes: 8,  clipDuration: 10, durationSec: 80, credits: 80 },
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -37,52 +37,72 @@ async function generateScenes(
   idea: string,
   scenesCount: number,
   ambiance: string | null,
-): Promise<Array<{ index: number; prompt: string }>> {
+): Promise<{ subjectAnchor: string; scenes: Array<{ index: number; prompt: string; arc_role: string }> }> {
 
   const ambianceDirective = ambiance && AMBIANCE_DIRECTIVES[ambiance]
     ? `\n\nAMBIANCE OBLIGATOIRE :\n${AMBIANCE_DIRECTIVES[ambiance]}`
     : '\nChoisis l\'ambiance la plus adaptée à l\'idée. Sois CRÉATIF.'
 
-  const systemPrompt = `Tu es un SCÉNARISTE IA expert en vidéos courtes virales (TikTok, Instagram Reels). Tu décomposes n'importe quelle idée en scènes visuelles cinématiques.
+  // Arc narratif adapté au nombre de scènes
+  let arcInstruction: string
+  if (scenesCount <= 2) {
+    arcInstruction = `- Scène 1 (arc_role: "hook") : image qui ARRÊTE le scroll, situation surprenante ou spectaculaire
+- Scène 2 (arc_role: "resolution") : conclusion satisfaisante`
+  } else if (scenesCount <= 4) {
+    arcInstruction = `- Scène 1 (arc_role: "hook") : image qui ARRÊTE le scroll, situation surprenante
+- Scènes intermédiaires (arc_role: "rise") : montée en puissance, détails impressionnants
+- Dernière scène (arc_role: "resolution") : conclusion satisfaisante`
+  } else {
+    arcInstruction = `- Scène 1 (arc_role: "hook") : image qui ARRÊTE le scroll, situation surprenante/spectaculaire
+- Scènes 2 à ${scenesCount - 2} (arc_role: "rise") : montée en puissance, détails impressionnants
+- Avant-dernière scène (arc_role: "climax") : moment fort, apogée de l'action
+- Dernière scène (arc_role: "resolution") : conclusion satisfaisante, émotion positive`
+  }
 
-TON TRAVAIL : transformer l'idée de l'utilisateur en ${scenesCount} scènes qui racontent une HISTOIRE VISUELLE cohérente et captivante.
+  const systemPrompt = `Tu es un SCÉNARISTE IA expert en vidéos courtes virales (TikTok, Instagram Reels). Tu crées des scènes visuellement COHÉRENTES avec un arc narratif captivant.
 ${ambianceDirective}
+
+═══ ÉTAPE 1 : SUBJECT ANCHOR ═══
+
+AVANT de générer les scènes, crée un "subject_anchor" : une description visuelle ULTRA-DÉTAILLÉE du sujet principal (80-120 mots en anglais).
+
+Cette description DOIT inclure :
+- Apparence physique précise (âge, corpulence, couleur de peau, coiffure, traits du visage)
+- Vêtements exacts (couleurs, matières, accessoires)
+- Expressions faciales caractéristiques
+- Tout détail distinctif (tatouages, bijoux, cicatrices)
+
+Si le sujet n'est pas une personne (objet, animal, lieu), décris-le avec le même niveau de détail visuel.
+
+CRUCIAL : Cette description sera COPIÉE VERBATIM au début de CHAQUE prompt de scène pour garantir la cohérence visuelle.
+
+═══ ÉTAPE 2 : ${scenesCount} SCÈNES AVEC ARC NARRATIF ═══
+
+${arcInstruction}
 
 ═══ RÈGLES ABSOLUES ═══
 
 1. Génère EXACTEMENT ${scenesCount} scènes
-2. Chaque scène = UN seul moment figé, UNE action précise
-3. Chaque prompt en ANGLAIS (pour le moteur d'image fal.ai)
-4. Chaque prompt SOUS 500 caractères
-5. Format portrait 9:16 (vertical, comme un téléphone)
+2. Chaque prompt COMMENCE par le subject_anchor VERBATIM puis ajoute la scène spécifique
+3. Chaque prompt en ANGLAIS (pour fal.ai flux-pro)
+4. Chaque prompt SOUS 900 caractères (subject_anchor inclus)
+5. Format portrait 9:16 (vertical)
 6. Style PHOTO-RÉALISTE (pas cartoon, pas illustration)
 7. Pas de texte dans l'image, pas de sous-titres
 8. Pas de termes de caméra ("camera pans", "zoom in")
-
-═══ STRUCTURE NARRATIVE ═══
-
-- SCÈNE 1 : HOOK — l'image la plus SURPRENANTE, DRÔLE ou SPECTACULAIRE. C'est elle qui arrête le scroll. Elle doit donner envie de voir la suite.
-- SCÈNES 2 à ${scenesCount - 1} : DÉVELOPPEMENT — chaque scène est l'étape SUIVANTE de l'action. Progression logique, pas de répétition.
-- SCÈNE ${scenesCount} : CONCLUSION — le moment final satisfaisant, drôle ou émouvant.
+9. Chaque scène = UN seul moment figé, UNE action précise
 
 ═══ QUALITÉ DES PROMPTS ═══
 
-Chaque prompt DOIT inclure :
-- Le SUJET principal (qui/quoi) — décrit de manière identique à chaque scène pour la cohérence
-- L'ACTION précise (que se passe-t-il dans cette scène)
-- L'ENVIRONNEMENT (où, quelle lumière, quels détails de texture)
-- Les DÉTAILS SENSORIELS (poussière, vapeur, reflets, gouttes d'eau, textures)
-
-Exemple de BON prompt :
-"A fluffy white cat wearing a tiny chef hat carefully slicing potatoes on a wooden cutting board in a sun-drenched rustic kitchen, flour dust floating in golden light beams, herbs scattered on the marble counter, warm amber tones, photorealistic, portrait 9:16"
-
-Exemple de MAUVAIS prompt :
-"A cat cooking in a kitchen" (trop vague, aucun détail)
+Après le subject_anchor, chaque prompt ajoute :
+- L'ACTION précise de cette scène
+- L'ENVIRONNEMENT spécifique (peut changer entre scènes)
+- Les DÉTAILS SENSORIELS (vapeur, reflets, poussière, lumière, textures)
 
 ═══ FORMAT DE RÉPONSE ═══
 
-UNIQUEMENT du JSON, sans markdown, sans backticks, sans texte avant ou après :
-{"scenes":[{"index":0,"prompt":"..."},{"index":1,"prompt":"..."}]}`
+UNIQUEMENT du JSON, sans markdown, sans backticks :
+{"subject_anchor":"A tall muscular Black man in his 30s with short fade haircut, deep brown eyes, warm confident smile, wearing a bright red chef apron over white t-shirt, flour-dusted strong hands with silver watch on left wrist, small scar above right eyebrow, broad shoulders, clean-shaven face with defined jawline...","scenes":[{"index":0,"prompt":"[subject_anchor copié ici] standing in a sun-drenched rustic kitchen...","arc_role":"hook"},{"index":1,"prompt":"[subject_anchor copié ici] intensely focused, kneading dough...","arc_role":"rise"}]}`
 
   const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
     method: 'POST',
@@ -97,7 +117,7 @@ UNIQUEMENT du JSON, sans markdown, sans backticks, sans texte avant ou après :
           role: 'user',
           content: [{
             type: 'text',
-            text: `IDÉE DE VIDÉO : "${idea}"\n\nDécompose cette idée en ${scenesCount} scènes visuelles. Sois PRÉCIS, CRÉATIF et SPÉCIFIQUE. Chaque scène doit être unique et faire avancer l'histoire.`,
+            text: `IDÉE DE VIDÉO : "${idea}"\n\nGénère d'abord le subject_anchor (80-120 mots), puis ${scenesCount} scènes avec arc narratif. Chaque prompt COMMENCE par le subject_anchor VERBATIM.`,
           }],
         },
       ],
@@ -121,10 +141,17 @@ UNIQUEMENT du JSON, sans markdown, sans backticks, sans texte avant ou après :
     throw new Error('Gemini n\'a pas retourné de scènes valides')
   }
 
-  return parsed.scenes.map((s: { index?: number; prompt: string }, i: number) => ({
-    index: s.index ?? i,
-    prompt: s.prompt,
-  }))
+  const subjectAnchor = parsed.subject_anchor || ''
+  const totalScenes = parsed.scenes.length
+
+  return {
+    subjectAnchor,
+    scenes: parsed.scenes.map((s: { index?: number; prompt: string; arc_role?: string }, i: number) => ({
+      index: s.index ?? i,
+      prompt: s.prompt,
+      arc_role: s.arc_role || (i === 0 ? 'hook' : i >= totalScenes - 1 ? 'resolution' : i >= totalScenes - 2 ? 'climax' : 'rise'),
+    })),
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -258,10 +285,13 @@ export async function POST(req: Request) {
         description: `Spark Vidéo ${tierConfig.scenes} scènes (${tier})`,
       })
 
-    // 6. Gemini génère les scènes
-    let scenes: Array<{ index: number; prompt: string }>
+    // 6. Gemini génère les scènes (avec Subject Anchor + Arc Narratif)
+    let scenes: Array<{ index: number; prompt: string; arc_role: string }>
+    let subjectAnchor: string = ''
     try {
-      scenes = await generateScenes(idea, tierConfig.scenes, ambiance || null)
+      const result = await generateScenes(idea, tierConfig.scenes, ambiance || null)
+      scenes = result.scenes
+      subjectAnchor = result.subjectAnchor
     } catch (error) {
       // Rembourser si Gemini échoue
       await adminSupabase
@@ -319,23 +349,39 @@ export async function POST(req: Request) {
     }
 
     // 8. Insérer le job dans Supabase
-    const { data: job, error: insertError } = await adminSupabase
+    // Insert du job (subject_anchor ajouté séparément pour compatibilité migration)
+    const insertPayload: Record<string, unknown> = {
+      user_id: user.id,
+      status: 'images',
+      idea,
+      ambiance: ambiance || null,
+      music_mood: musicMood || null,
+      tier,
+      scenes_count: tierConfig.scenes,
+      duration_seconds: tierConfig.durationSec,
+      credits_used: creditsCost,
+      scenes,
+      image_jobs: imageJobs,
+    }
+
+    // Tenter d'inclure subject_anchor (la colonne peut ne pas encore exister)
+    let { data: job, error: insertError } = await adminSupabase
       .from('spark_video_jobs')
-      .insert({
-        user_id: user.id,
-        status: 'images',
-        idea,
-        ambiance: ambiance || null,
-        music_mood: musicMood || null,
-        tier,
-        scenes_count: tierConfig.scenes,
-        duration_seconds: tierConfig.durationSec,
-        credits_used: creditsCost,
-        scenes,
-        image_jobs: imageJobs,
-      })
+      .insert({ ...insertPayload, subject_anchor: subjectAnchor || null })
       .select('id')
       .single()
+
+    // Si l'erreur est "column does not exist", réessayer sans subject_anchor
+    if (insertError?.code === '42703') {
+      console.warn('subject_anchor column not found, inserting without it')
+      const retry = await adminSupabase
+        .from('spark_video_jobs')
+        .insert(insertPayload)
+        .select('id')
+        .single()
+      job = retry.data
+      insertError = retry.error
+    }
 
     if (insertError || !job) {
       console.error('Supabase insert error:', insertError)
