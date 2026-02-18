@@ -106,7 +106,7 @@ async function orchestrate(
   error?: string
 }> {
   const stepWeights: Record<string, number> = {
-    scenes: 5, images: 20, video_prompts: 5, videos: 40, music: 10, montage: 20,
+    scenes: 5, images: 20, video_prompts: 5, videos: 40, music: 5, montage: 15, merge_audio: 10,
   }
   const stepLabels: Record<string, string> = {
     scenes: 'Écriture du scénario',
@@ -115,6 +115,7 @@ async function orchestrate(
     videos: 'Génération des clips',
     music: 'Composition musicale',
     montage: 'Montage final',
+    merge_audio: 'Ajout de la musique',
   }
 
   // Calcul de la progression globale
@@ -303,7 +304,7 @@ async function orchestrate(
       if (videosCompleted >= 2) {
         // Passer au montage
         const clipDur = TIER_CLIP_DURATION[job.tier] || 5
-        const montageJob = await submitMontageJob(videoJobs, musicJob, job.duration_seconds, clipDur)
+        const montageJob = await submitMontageJob(videoJobs, job.duration_seconds, clipDur)
 
         await adminSupabase
           .from('spark_video_jobs')
@@ -360,6 +361,28 @@ async function orchestrate(
           || (result?.output_url as string)
 
         if (videoUrl) {
+          // Si on a de la musique, lancer la fusion audio
+          const musicJob = job.music_job
+          if (musicJob && musicJob.status === 'completed' && musicJob.audio_url) {
+            const mergeJob = await submitAudioMergeJob(videoUrl, musicJob.audio_url)
+            await adminSupabase
+              .from('spark_video_jobs')
+              .update({
+                status: 'merge_audio',
+                montage_job: { ...mj, status: 'completed', video_url: videoUrl },
+                // Stocker le merge job dans music_job (on réutilise le champ)
+                music_job: { ...musicJob, merge_status_url: mergeJob.status_url, merge_response_url: mergeJob.response_url, merge_status: 'pending' },
+              })
+              .eq('id', job.id)
+
+            return {
+              status: 'merge_audio',
+              currentStep: { name: stepLabels.merge_audio, completed: 0, total: 1 },
+              overallProgress: getProgress('merge_audio', 0),
+            }
+          }
+
+          // Pas de musique → terminé directement
           await adminSupabase
             .from('spark_video_jobs')
             .update({
@@ -391,6 +414,76 @@ async function orchestrate(
       status: 'montage',
       currentStep: { name: stepLabels.montage, completed: 0, total: 1 },
       overallProgress: getProgress('montage', 0.5),
+    }
+  }
+
+  // ── MERGE_AUDIO ──
+  if (job.status === 'merge_audio' && job.music_job) {
+    const mj = job.music_job as any
+    const statusUrl = mj.merge_status_url
+    const responseUrl = mj.merge_response_url
+
+    if (mj.merge_status === 'pending' && statusUrl) {
+      const falStatus = await checkFalStatus(statusUrl)
+
+      if (falStatus.status === 'COMPLETED' && responseUrl) {
+        const result = await getFalResult(responseUrl)
+        const videoUrl = (result?.video_url as string)
+          || (result?.video as { url: string })?.url
+          || (result?.output_url as string)
+
+        if (videoUrl) {
+          await adminSupabase
+            .from('spark_video_jobs')
+            .update({
+              status: 'completed',
+              music_job: { ...mj, merge_status: 'completed' },
+              final_video_url: videoUrl,
+            })
+            .eq('id', job.id)
+
+          return {
+            status: 'completed',
+            currentStep: { name: 'Terminé', completed: 1, total: 1 },
+            overallProgress: 100,
+            finalVideoUrl: videoUrl,
+          }
+        }
+      } else if (falStatus.status === 'FAILED') {
+        // Si la fusion audio échoue, utiliser la vidéo sans musique
+        const silentVideoUrl = job.montage_job?.video_url
+        if (silentVideoUrl) {
+          await adminSupabase
+            .from('spark_video_jobs')
+            .update({
+              status: 'completed',
+              music_job: { ...mj, merge_status: 'error' },
+              final_video_url: silentVideoUrl,
+            })
+            .eq('id', job.id)
+
+          return {
+            status: 'completed',
+            currentStep: { name: 'Terminé', completed: 1, total: 1 },
+            overallProgress: 100,
+            finalVideoUrl: silentVideoUrl,
+          }
+        }
+
+        await handleError(job, adminSupabase, 'La fusion audio a échoué')
+        return {
+          status: 'error',
+          currentStep: { name: stepLabels.merge_audio, completed: 0, total: 1 },
+          overallProgress: 0,
+          error: 'La fusion audio a échoué. Crédits remboursés.',
+        }
+      }
+    }
+
+    return {
+      status: 'merge_audio',
+      currentStep: { name: stepLabels.merge_audio, completed: 0, total: 1 },
+      overallProgress: getProgress('merge_audio', 0.5),
     }
   }
 
@@ -631,7 +724,6 @@ function selectMusicTrack(
 
 async function submitMontageJob(
   videoJobs: VideoJob[],
-  musicJob: MusicJob | null,
   durationSec: number,
   clipDuration: number,
 ): Promise<MontageJob> {
@@ -639,7 +731,7 @@ async function submitMontageJob(
     .filter(v => v.status === 'completed' && v.video_url)
     .sort((a, b) => a.index - b.index)
 
-  // Track vidéo : tous les clips dans l'ordre avec durée dynamique (en millisecondes)
+  // Track vidéo UNIQUEMENT (audio ajouté en étape séparée via merge-audio-video)
   const clipDurationMs = clipDuration * 1000
   const videoKeyframes = successfulVideos.map((v, i) => ({
     url: v.video_url!,
@@ -647,27 +739,13 @@ async function submitMontageJob(
     duration: clipDurationMs,
   }))
 
-  const tracks: Array<{ id: string; type: string; keyframes: Array<{ url: string; timestamp: number; duration: number }> }> = [
+  const tracks = [
     {
       id: '1',
       type: 'video',
       keyframes: videoKeyframes,
     },
   ]
-
-  // Track audio si la musique a réussi (durée en millisecondes, tronquée à la durée vidéo)
-  if (musicJob && musicJob.status === 'completed' && musicJob.audio_url) {
-    const totalVideoDurationMs = successfulVideos.length * clipDurationMs
-    tracks.push({
-      id: '2',
-      type: 'audio',
-      keyframes: [{
-        url: musicJob.audio_url,
-        timestamp: 0,
-        duration: totalVideoDurationMs,
-      }],
-    })
-  }
 
   try {
     const submitResponse = await fetch('https://queue.fal.run/fal-ai/ffmpeg-api/compose', {
@@ -693,6 +771,50 @@ async function submitMontageJob(
     }
   } catch (error) {
     console.error('Montage submission error:', error)
+    return {
+      status_url: null,
+      response_url: null,
+      video_url: null,
+      status: 'error',
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Fusion audio + vidéo (merge-audio-video — la sortie s'arrête à la durée vidéo)
+// ═══════════════════════════════════════════════════════════════
+
+async function submitAudioMergeJob(
+  videoUrl: string,
+  audioUrl: string,
+): Promise<MontageJob> {
+  try {
+    const submitResponse = await fetch('https://queue.fal.run/fal-ai/ffmpeg-api/merge-audio-video', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        audio_url: audioUrl,
+      }),
+    })
+
+    if (!submitResponse.ok) {
+      const errText = await submitResponse.text()
+      throw new Error(`fal.ai merge-audio-video (${submitResponse.status}): ${errText}`)
+    }
+
+    const submitData = await submitResponse.json()
+    return {
+      status_url: submitData.status_url || null,
+      response_url: submitData.response_url || null,
+      video_url: null,
+      status: 'pending',
+    }
+  } catch (error) {
+    console.error('Audio merge submission error:', error)
     return {
       status_url: null,
       response_url: null,
