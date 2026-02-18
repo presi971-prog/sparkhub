@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Coins, Loader2, CheckCircle2, Circle, Download, RotateCcw,
-  Clock, Play, AlertTriangle, Upload, ImageIcon, X, Info,
+  Clock, Play, AlertTriangle, Upload, ImageIcon, X, Info, StopCircle,
 } from 'lucide-react'
 import { UGC_TYPES, UGC_CREDITS, UGC_PLACEHOLDERS, PIPELINE_STEPS_UGC } from './ugc-constants'
 import type { UgcType } from './ugc-constants'
@@ -59,6 +59,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [creditsRemaining, setCreditsRemaining] = useState(credits)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   // Refs pour le polling
   const pollCountRef = useRef(0)
@@ -193,6 +194,43 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
     setAction('')
     setAmbiance('')
     removeImage()
+  }
+
+  // ── Annuler la génération ──
+  const handleCancel = async () => {
+    if (!jobId || isCancelling) return
+
+    setIsCancelling(true)
+    try {
+      // Stopper le polling immédiatement
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current)
+        pollTimeoutRef.current = null
+      }
+
+      const res = await fetch('/api/ugc-creator/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setCreditsRemaining((prev) => prev + (data.credits_refunded || 0))
+        setErrorMessage('Génération annulée. Tes crédits ont été remboursés.')
+        setStep('error')
+      } else {
+        setErrorMessage(data.error || 'Erreur lors de l\'annulation')
+        setStep('error')
+      }
+    } catch (error) {
+      console.error('Cancel error:', error)
+      setErrorMessage('Erreur réseau lors de l\'annulation')
+      setStep('error')
+    } finally {
+      setIsCancelling(false)
+    }
   }
 
   const canSubmit =
@@ -419,6 +457,25 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
             <p className="text-center text-xs text-muted-foreground">
               Tu peux fermer cette page, la vidéo sera dans &quot;Mes vidéos&quot; une fois prête.
             </p>
+
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Annulation...
+                </>
+              ) : (
+                <>
+                  <StopCircle className="h-4 w-4 mr-2" />
+                  Annuler la génération
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
       )}
