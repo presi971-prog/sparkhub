@@ -129,7 +129,8 @@ export async function POST(req: Request) {
     }
 
     // 9. Appeler webhook n8n
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://sparkhub.digital-code-growth.com'}/api/ugc-creator/callback`
+    // N.B. : ne pas utiliser NEXT_PUBLIC_APP_URL (baked at build, valeur incorrecte)
+    const callbackUrl = 'https://sparkhub.digital-code-growth.com/api/ugc-creator/callback'
 
     const webhookRes = await fetch(N8N_UGC_WEBHOOK_URL, {
       method: 'POST',
