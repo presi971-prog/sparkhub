@@ -7,8 +7,11 @@ import {
   Coins, Loader2, CheckCircle2, Circle, Download, RotateCcw,
   Clock, Play, AlertTriangle, Upload, ImageIcon, X, Info, StopCircle,
 } from 'lucide-react'
-import { UGC_TYPES, UGC_CREDITS, UGC_PLACEHOLDERS, PIPELINE_STEPS_UGC } from './ugc-constants'
-import type { UgcType } from './ugc-constants'
+import {
+  UGC_TYPES, UGC_CREDITS, PIPELINE_STEPS_UGC,
+  UGC_PERSONAS, UGC_LIEUX, UGC_ACTIONS, UGC_AMBIANCES,
+} from './ugc-constants'
+import type { UgcType, UgcPreset } from './ugc-constants'
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -142,7 +145,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
 
   // ── Soumission ──
   const handleSubmit = async () => {
-    if (!qui.trim() || !lieu.trim() || !action.trim() || !ambiance.trim() || !imageFile) return
+    if (!qui || !lieu || !action || !ambiance || !imageFile) return
     if (creditsRemaining < UGC_CREDITS) return
 
     setIsSubmitting(true)
@@ -151,10 +154,10 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
     try {
       const formData = new FormData()
       formData.append('type', type)
-      formData.append('qui', qui.trim())
-      formData.append('lieu', lieu.trim())
-      formData.append('action', action.trim())
-      formData.append('ambiance', ambiance.trim())
+      formData.append('qui', qui)
+      formData.append('lieu', lieu)
+      formData.append('action', action)
+      formData.append('ambiance', ambiance)
       formData.append('image', imageFile)
 
       const res = await fetch('/api/ugc-creator/generate', {
@@ -234,7 +237,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
   }
 
   const canSubmit =
-    qui.trim() && lieu.trim() && action.trim() && ambiance.trim() &&
+    qui && lieu && action && ambiance &&
     imageFile && creditsRemaining >= UGC_CREDITS && !isSubmitting
 
   // ═══════════════════════════════════════════════════════════════
@@ -291,56 +294,94 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
             )}
           </div>
 
-          {/* Qui */}
+          {/* Qui — grille 2 colonnes */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="qui">Qui apparaît dans la vidéo ?</label>
-            <textarea
-              id="qui"
-              value={qui}
-              onChange={(e) => setQui(e.target.value)}
-              placeholder={UGC_PLACEHOLDERS.qui}
-              rows={2}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            />
+            <label className="text-sm font-medium">Qui apparaît dans la vidéo ?</label>
+            <div className="grid grid-cols-2 gap-2">
+              {UGC_PERSONAS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setQui(p.value)}
+                  className={`flex items-center gap-2 rounded-xl border-2 p-3 text-left transition-all ${
+                    qui === p.value
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-lg">{p.emoji}</span>
+                  <span className="font-medium text-sm">{p.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Lieu */}
+          {/* Lieu — grille 2 colonnes */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="lieu">Où se passe la scène ?</label>
-            <textarea
-              id="lieu"
-              value={lieu}
-              onChange={(e) => setLieu(e.target.value)}
-              placeholder={UGC_PLACEHOLDERS.lieu}
-              rows={2}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            />
+            <label className="text-sm font-medium">Où se passe la scène ?</label>
+            <div className="grid grid-cols-2 gap-2">
+              {UGC_LIEUX.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => setLieu(l.value)}
+                  className={`flex items-center gap-2 rounded-xl border-2 p-3 text-left transition-all ${
+                    lieu === l.value
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-lg">{l.emoji}</span>
+                  <span className="font-medium text-sm">{l.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Action */}
+          {/* Action — grille 1 colonne */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="action">Que fait la personne ?</label>
-            <textarea
-              id="action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              placeholder={UGC_PLACEHOLDERS.action}
-              rows={2}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            />
+            <label className="text-sm font-medium">Que fait la personne ?</label>
+            <div className="grid grid-cols-1 gap-2">
+              {UGC_ACTIONS.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setAction(a.value)}
+                  className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                    action === a.value
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-lg">{a.emoji}</span>
+                  <div>
+                    <span className="font-medium text-sm">{a.label}</span>
+                    <p className="text-xs text-muted-foreground">{a.value}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Ambiance */}
+          {/* Ambiance — chips horizontales */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="ambiance">Ambiance / Ton</label>
-            <textarea
-              id="ambiance"
-              value={ambiance}
-              onChange={(e) => setAmbiance(e.target.value)}
-              placeholder={UGC_PLACEHOLDERS.ambiance}
-              rows={1}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            />
+            <label className="text-sm font-medium">Ambiance / Ton</label>
+            <div className="flex flex-wrap gap-2">
+              {UGC_AMBIANCES.map((am) => (
+                <button
+                  key={am.id}
+                  type="button"
+                  onClick={() => setAmbiance(am.value)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+                    ambiance === am.value
+                      ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  {am.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Image upload */}
