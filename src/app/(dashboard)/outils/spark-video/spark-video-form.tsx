@@ -3,9 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Coins, Loader2, CheckCircle2, Circle, Download, RotateCcw, Clock, Play, AlertTriangle, Sparkles, Lightbulb } from 'lucide-react'
-import { VIDEO_TIERS, AMBIANCES, MUSIC_MOODS, PIPELINE_STEPS, IDEA_THEMES } from './video-constants'
-import type { VideoTierId } from './video-constants'
+import { Coins, Loader2, CheckCircle2, Circle, Download, RotateCcw, Clock, Play, AlertTriangle, Sparkles, Lightbulb, Search, Briefcase, Palette } from 'lucide-react'
+import {
+  VIDEO_TIERS, AMBIANCES, MUSIC_MOODS, PIPELINE_STEPS,
+  BUSINESS_TYPES, BUSINESS_THEMES, GENERAL_THEMES, IDEA_LEVELS,
+} from './video-constants'
+import type { VideoTierId, IdeaLevelId, IdeaResult } from './video-constants'
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -39,6 +42,7 @@ interface ProgressData {
 }
 
 type Step = 'form' | 'generating' | 'completed' | 'error'
+type IdeaCategory = 'business' | 'general'
 
 const POLL_INTERVAL = 5000
 const MAX_POLLS = 300
@@ -56,10 +60,17 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
   // État générateur d'idées
   const [showIdeasPanel, setShowIdeasPanel] = useState(false)
+  const [ideaCategory, setIdeaCategory] = useState<IdeaCategory>('business')
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null)
-  const [generatedIdeas, setGeneratedIdeas] = useState<string[]>([])
+  const [selectedLevel, setSelectedLevel] = useState<IdeaLevelId>('basique')
+  const [businessType, setBusinessType] = useState<string | null>(null)
+  const [businessSpecialty, setBusinessSpecialty] = useState('')
+  const [generatedIdeas, setGeneratedIdeas] = useState<IdeaResult[]>([])
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false)
   const [ideasError, setIdeasError] = useState<string | null>(null)
+  const [availableEngines, setAvailableEngines] = useState<Record<string, boolean>>({
+    basique: true, tendances: true, viral: true, expert: true,
+  })
 
   // État pipeline
   const [step, setStep] = useState<Step>('form')
@@ -73,6 +84,44 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
   // Refs pour le polling
   const pollCountRef = useRef(0)
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Charger la spécialité et le type de commerce depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('spark-video-business')
+    if (saved) {
+      try {
+        const { type, specialty } = JSON.parse(saved)
+        if (type) setBusinessType(type)
+        if (specialty) setBusinessSpecialty(specialty)
+      } catch { /* ignore */ }
+    }
+  }, [])
+
+  // Sauvegarder dans localStorage quand ça change
+  useEffect(() => {
+    if (businessType || businessSpecialty) {
+      localStorage.setItem('spark-video-business', JSON.stringify({
+        type: businessType,
+        specialty: businessSpecialty,
+      }))
+    }
+  }, [businessType, businessSpecialty])
+
+  // Charger les moteurs disponibles
+  useEffect(() => {
+    fetch('/api/spark-video/ideas')
+      .then(res => res.json())
+      .then(data => {
+        if (data.engines) setAvailableEngines(data.engines)
+      })
+      .catch(() => { /* ignore */ })
+  }, [])
+
+  // Reset le thème quand on change de catégorie
+  useEffect(() => {
+    setSelectedTheme(null)
+    setGeneratedIdeas([])
+  }, [ideaCategory])
 
   // Vérifier si un job est en cours au chargement
   useEffect(() => {
@@ -117,7 +166,6 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       pollTimeoutRef.current = setTimeout(() => pollStatus(id), POLL_INTERVAL)
     } catch (error) {
       console.error('Poll error:', error)
-      // Réessayer après un délai plus long
       pollCountRef.current += 1
       pollTimeoutRef.current = setTimeout(() => pollStatus(id), POLL_INTERVAL * 2)
     }
@@ -137,7 +185,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
     }
   }, [step, jobId, pollStatus])
 
-  // ── Soumission ──
+  // ── Soumission vidéo ──
   const handleSubmit = async () => {
     if (!idea.trim()) return
 
@@ -180,7 +228,10 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
   // ── Générer des idées ──
   const handleGenerateIdeas = async () => {
-    if (!selectedTheme || creditsRemaining < 1) return
+    if (!selectedTheme) return
+
+    const levelConfig = IDEA_LEVELS.find(l => l.id === selectedLevel)
+    if (!levelConfig || creditsRemaining < levelConfig.credits) return
 
     setIsGeneratingIdeas(true)
     setGeneratedIdeas([])
@@ -190,7 +241,13 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       const res = await fetch('/api/spark-video/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: selectedTheme }),
+        body: JSON.stringify({
+          category: ideaCategory,
+          theme: selectedTheme,
+          level: selectedLevel,
+          businessType: ideaCategory === 'business' ? businessType : null,
+          businessSpecialty: ideaCategory === 'business' ? businessSpecialty : null,
+        }),
       })
 
       const data = await res.json()
@@ -226,6 +283,8 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
 
   const tierConfig = VIDEO_TIERS[selectedTier]
   const canAfford = creditsRemaining >= tierConfig.credits
+  const currentLevelConfig = IDEA_LEVELS.find(l => l.id === selectedLevel)
+  const currentThemes = ideaCategory === 'business' ? BUSINESS_THEMES : GENERAL_THEMES
 
   // ═══════════════════════════════════════════════════════════════
   // RENDU
@@ -300,7 +359,9 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
       {/* ── FORMULAIRE ── */}
       {step === 'form' && (
         <div className="space-y-6">
-          {/* ── Générateur d'idées ── */}
+          {/* ══════════════════════════════════════════════════════ */}
+          {/* ── INSPIRE-MOI (refonte) ── */}
+          {/* ══════════════════════════════════════════════════════ */}
           <Card className="border-amber-500/20 bg-amber-500/5">
             <CardContent className="py-3 space-y-3">
               <button
@@ -310,76 +371,200 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
               >
                 <Lightbulb className="h-4 w-4 text-amber-500" />
                 <span className="text-sm font-medium">Inspire-moi</span>
-                <span className="text-xs text-muted-foreground">(1 crédit)</span>
+                <span className="text-xs text-muted-foreground">
+                  ({currentLevelConfig?.credits || 1} crédit{(currentLevelConfig?.credits || 1) > 1 ? 's' : ''})
+                </span>
               </button>
 
               {showIdeasPanel && (
-                <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Choisis une thématique, l&apos;IA te propose 5 idées de vidéo
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {IDEA_THEMES.map(theme => (
-                      <button
-                        key={theme.id}
-                        type="button"
-                        onClick={() => setSelectedTheme(
-                          selectedTheme === theme.id ? null : theme.id
-                        )}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-all ${
-                          selectedTheme === theme.id
-                            ? 'border-amber-500 bg-amber-500/10 text-amber-600'
-                            : 'border-border hover:border-amber-500/30'
-                        }`}
-                      >
-                        {theme.emoji} {theme.label}
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  {/* 1. Onglets Business / Général */}
+                  <div className="flex gap-1 p-1 bg-muted/50 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setIdeaCategory('business')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                        ideaCategory === 'business'
+                          ? 'bg-background shadow-sm text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Briefcase className="h-3.5 w-3.5" />
+                      Business
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIdeaCategory('general')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                        ideaCategory === 'general'
+                          ? 'bg-background shadow-sm text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Palette className="h-3.5 w-3.5" />
+                      Général
+                    </button>
                   </div>
 
+                  {/* 2. Si Business : type de commerce + spécialité */}
+                  {ideaCategory === 'business' && (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">Ton commerce</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {BUSINESS_TYPES.map(bt => (
+                            <button
+                              key={bt.id}
+                              type="button"
+                              onClick={() => setBusinessType(businessType === bt.id ? null : bt.id)}
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium border transition-all ${
+                                businessType === bt.id
+                                  ? 'border-amber-500 bg-amber-500/10 text-amber-600'
+                                  : 'border-border hover:border-amber-500/30'
+                              }`}
+                            >
+                              {bt.emoji} {bt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Ta spécialité (ex: Bokit créole, Tresses africaines...)"
+                        value={businessSpecialty}
+                        onChange={(e) => setBusinessSpecialty(e.target.value)}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        maxLength={100}
+                      />
+                    </div>
+                  )}
+
+                  {/* 3. Thèmes */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Thématique</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {currentThemes.map(theme => (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          onClick={() => setSelectedTheme(
+                            selectedTheme === theme.id ? null : theme.id
+                          )}
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium border transition-all ${
+                            selectedTheme === theme.id
+                              ? 'border-amber-500 bg-amber-500/10 text-amber-600'
+                              : 'border-border hover:border-amber-500/30'
+                          }`}
+                        >
+                          {theme.emoji} {theme.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Niveaux de qualité */}
+                  {selectedTheme && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Qualité de recherche</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {IDEA_LEVELS.map(level => {
+                          const available = availableEngines[level.id] !== false
+                          const affordable = creditsRemaining >= level.credits
+                          const selected = selectedLevel === level.id
+                          const disabled = !available || !affordable
+                          return (
+                            <button
+                              key={level.id}
+                              type="button"
+                              onClick={() => !disabled && setSelectedLevel(level.id as IdeaLevelId)}
+                              disabled={disabled}
+                              className={`rounded-lg border p-2 text-left transition-all ${
+                                selected
+                                  ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/20'
+                                  : disabled
+                                    ? 'border-border opacity-40 cursor-not-allowed'
+                                    : 'border-border hover:border-amber-500/30'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">{level.emoji}</span>
+                                <span className="text-xs font-medium">{level.label}</span>
+                                <span className="text-xs text-muted-foreground ml-auto">{level.credits} cr</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{level.description}</p>
+                              {!available && (
+                                <p className="text-xs text-destructive mt-0.5">Non configuré</p>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. Bouton Générer */}
                   {selectedTheme && (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleGenerateIdeas}
-                      disabled={isGeneratingIdeas || creditsRemaining < 1}
+                      disabled={isGeneratingIdeas || !currentLevelConfig || creditsRemaining < currentLevelConfig.credits}
                       className="w-full"
                     >
                       {isGeneratingIdeas ? (
                         <>
                           <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                          Génération en cours...
+                          {selectedLevel !== 'basique' ? 'Recherche + génération...' : 'Génération en cours...'}
                         </>
                       ) : (
                         <>
-                          <Sparkles className="h-3 w-3 mr-2" />
-                          Générer 5 idées (1 crédit)
+                          {selectedLevel !== 'basique' ? (
+                            <Search className="h-3 w-3 mr-2" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 mr-2" />
+                          )}
+                          Générer 5 idées ({currentLevelConfig?.credits || 1} crédit{(currentLevelConfig?.credits || 1) > 1 ? 's' : ''})
                         </>
                       )}
                     </Button>
                   )}
 
-                  {/* Erreur idées */}
+                  {/* Erreur */}
                   {ideasError && (
                     <p className="text-sm text-destructive bg-destructive/10 rounded-lg p-2">
                       {ideasError}
                     </p>
                   )}
 
-                  {/* Idées générées */}
+                  {/* 6. Idées générées (format enrichi) */}
                   {generatedIdeas.length > 0 && (
                     <div className="space-y-2">
-                      {generatedIdeas.map((ideaText, i) => (
+                      {generatedIdeas.map((ideaItem, i) => (
                         <button
                           key={i}
                           type="button"
                           onClick={() => {
-                            setIdea(ideaText)
+                            setIdea(ideaItem.description || ideaItem.title)
                             setShowIdeasPanel(false)
                           }}
-                          className="w-full text-left rounded-lg border border-border p-2.5 text-sm hover:border-amber-500/30 hover:bg-amber-500/5 transition-all"
+                          className="w-full text-left rounded-lg border border-border p-3 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all"
                         >
-                          {ideaText}
+                          <p className="text-sm font-medium">{ideaItem.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{ideaItem.description}</p>
+                          {(ideaItem.style || ideaItem.hook) && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {ideaItem.style && (
+                                <span className="inline-flex items-center rounded-full bg-purple-500/10 px-2 py-0.5 text-xs text-purple-600 border border-purple-500/20">
+                                  {ideaItem.style}
+                                </span>
+                              )}
+                              {ideaItem.hook && (
+                                <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-600 border border-blue-500/20">
+                                  Hook : {ideaItem.hook}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -397,7 +582,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
             <textarea
               id="idea"
               className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Ex : Un chat blanc qui cuisine des frites sur une plage tropicale, une promo pour mon salon de coiffure, un tutoriel drôle de mécanique auto..."
+              placeholder="Ex : Un chef qui prépare un bokit morue en ASMR, une promo pour mon salon de coiffure, un tutoriel avant/après pour mon garage..."
               maxLength={500}
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
@@ -554,12 +739,10 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
               let className = 'text-muted-foreground'
 
               if (stepIndex < currentIndex || currentStatus === 'completed') {
-                // Étape terminée
                 icon = <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
                 statusText = 'fait !'
                 className = 'text-foreground'
               } else if (stepIndex === currentIndex && currentStatus !== 'completed') {
-                // Étape en cours
                 icon = <Loader2 className="h-5 w-5 text-red-500 animate-spin shrink-0" />
                 if (progress?.currentStep) {
                   const { completed, total } = progress.currentStep
@@ -569,7 +752,6 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
                 }
                 className = 'text-foreground font-medium'
               } else {
-                // Étape en attente
                 icon = <Circle className="h-5 w-5 text-muted-foreground/30 shrink-0" />
                 className = 'text-muted-foreground/50'
               }

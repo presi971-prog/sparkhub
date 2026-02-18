@@ -48,8 +48,47 @@ export const PIPELINE_STEPS = [
 
 export type PipelineStepId = (typeof PIPELINE_STEPS)[number]['id']
 
-// Thématiques pour le générateur d'idées (1 crédit)
-export const IDEA_THEMES = [
+// ═══════════════════════════════════════════════════════════════
+// INSPIRE-MOI — Types de commerce
+// ═══════════════════════════════════════════════════════════════
+
+export const BUSINESS_TYPES = [
+  { id: 'restaurant',  label: 'Restaurant / Traiteur / Food truck', emoji: '🍽️' },
+  { id: 'coiffure',    label: 'Salon de coiffure / Barbier',        emoji: '💇' },
+  { id: 'beaute',      label: 'Institut beauté / Esthétique',       emoji: '💅' },
+  { id: 'garage',      label: 'Garage / Mécanique auto',            emoji: '🔧' },
+  { id: 'boutique',    label: 'Boutique / Vêtements',               emoji: '👗' },
+  { id: 'artisan',     label: 'Artisan / BTP',                      emoji: '🏗️' },
+  { id: 'service',     label: 'Service à domicile',                 emoji: '🏠' },
+  { id: 'autre',       label: 'Autre',                              emoji: '🏢' },
+] as const
+
+export type BusinessTypeId = (typeof BUSINESS_TYPES)[number]['id']
+
+// ═══════════════════════════════════════════════════════════════
+// INSPIRE-MOI — Thèmes Business (orientés promotion/contenu pro)
+// ═══════════════════════════════════════════════════════════════
+
+export const BUSINESS_THEMES = [
+  { id: 'promo_offre',   label: 'Promo / Offre spéciale',       emoji: '🏷️' },
+  { id: 'avant_apres',   label: 'Avant / Après',                emoji: '🔄' },
+  { id: 'produit_star',  label: 'Mon produit star',             emoji: '⭐' },
+  { id: 'visite',        label: 'Visite de mon commerce',       emoji: '🚪' },
+  { id: 'equipe',        label: 'Mon équipe',                   emoji: '👥' },
+  { id: 'coulisses',     label: 'Coulisses / Fabrication',      emoji: '🎬' },
+  { id: 'tuto_conseil',  label: 'Tuto / Conseil pro',           emoji: '🎓' },
+  { id: 'evenement',     label: 'Événement / Ouverture',        emoji: '🎉' },
+  { id: 'temoignage',    label: 'Témoignage client',            emoji: '💬' },
+  { id: 'saisonnier',    label: 'Saisonnier (Noël, Carnaval…)', emoji: '🎄' },
+] as const
+
+export type BusinessThemeId = (typeof BUSINESS_THEMES)[number]['id']
+
+// ═══════════════════════════════════════════════════════════════
+// INSPIRE-MOI — Thèmes Général (contenu fun/viral)
+// ═══════════════════════════════════════════════════════════════
+
+export const GENERAL_THEMES = [
   { id: 'promo_commerce', label: 'Promo commerce',   emoji: '🏪' },
   { id: 'drole_animaux',  label: 'Animaux drôles',   emoji: '🐱' },
   { id: 'storytelling',   label: 'Mini-histoire',     emoji: '📖' },
@@ -59,3 +98,32 @@ export const IDEA_THEMES = [
   { id: 'tendance',       label: 'Tendance TikTok',   emoji: '🔥' },
   { id: 'libre',          label: 'Surprise',          emoji: '🎲' },
 ] as const
+
+export type GeneralThemeId = (typeof GENERAL_THEMES)[number]['id']
+
+// Rétrocompatibilité
+export const IDEA_THEMES = GENERAL_THEMES
+
+// ═══════════════════════════════════════════════════════════════
+// INSPIRE-MOI — Niveaux de qualité
+// ═══════════════════════════════════════════════════════════════
+
+export const IDEA_LEVELS = [
+  { id: 'basique',   label: 'Basique',   credits: 1, engine: null,         description: 'Idées IA',              emoji: '💡' },
+  { id: 'tendances', label: 'Tendances', credits: 2, engine: 'tavily',     description: 'Recherche web',          emoji: '📈' },
+  { id: 'viral',     label: 'Viral',     credits: 3, engine: 'serper',     description: 'Google + YouTube',       emoji: '🔥' },
+  { id: 'expert',    label: 'Expert',    credits: 5, engine: 'perplexity', description: 'Analyse IA approfondie', emoji: '🧠' },
+] as const
+
+export type IdeaLevelId = (typeof IDEA_LEVELS)[number]['id']
+
+// ═══════════════════════════════════════════════════════════════
+// INSPIRE-MOI — Type de résultat enrichi
+// ═══════════════════════════════════════════════════════════════
+
+export interface IdeaResult {
+  title: string
+  description: string
+  style: string
+  hook: string
+}
