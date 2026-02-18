@@ -51,6 +51,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
   const [lieu, setLieu] = useState('')
   const [action, setAction] = useState('')
   const [ambiance, setAmbiance] = useState('')
+  const [message, setMessage] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
@@ -145,7 +146,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
 
   // ── Soumission ──
   const handleSubmit = async () => {
-    if (!qui || !lieu || !action || !ambiance || !imageFile) return
+    if (!qui || !lieu || !action || !ambiance || !message || !imageFile) return
     if (creditsRemaining < UGC_CREDITS) return
 
     setIsSubmitting(true)
@@ -158,6 +159,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
       formData.append('lieu', lieu)
       formData.append('action', action)
       formData.append('ambiance', ambiance)
+      formData.append('message', message)
       formData.append('image', imageFile)
 
       const res = await fetch('/api/ugc-creator/generate', {
@@ -196,6 +198,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
     setLieu('')
     setAction('')
     setAmbiance('')
+    setMessage('')
     removeImage()
   }
 
@@ -260,7 +263,7 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
   }
 
   const canSubmit =
-    qui && lieu && action && ambiance &&
+    qui && lieu && action && ambiance && message &&
     imageFile && creditsRemaining >= UGC_CREDITS && !isSubmitting
 
   // ═══════════════════════════════════════════════════════════════
@@ -404,6 +407,20 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Message / Description produit */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Décris ton produit et ce que le personnage doit dire</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ex : C'est une application de livraison qui s'appelle Cobeone. Le personnage doit expliquer qu'il peut se faire livrer ses courses en 30 minutes depuis son canapé."
+              rows={3}
+              maxLength={500}
+              className="w-full rounded-lg border-2 border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none resize-none"
+            />
+            <p className="text-xs text-muted-foreground text-right">{message.length}/500</p>
           </div>
 
           {/* Image upload */}

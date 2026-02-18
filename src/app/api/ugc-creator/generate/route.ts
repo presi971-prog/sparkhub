@@ -23,9 +23,10 @@ export async function POST(req: Request) {
     const lieu = formData.get('lieu') as string
     const action = formData.get('action') as string
     const ambiance = formData.get('ambiance') as string
+    const message = formData.get('message') as string
     const file = formData.get('image') as File
 
-    if (!type || !qui || !lieu || !action || !ambiance || !file) {
+    if (!type || !qui || !lieu || !action || !ambiance || !message || !file) {
       return NextResponse.json({ error: 'Tous les champs sont requis' }, { status: 400 })
     }
 
@@ -143,6 +144,7 @@ export async function POST(req: Request) {
         lieu,
         action,
         ambiance,
+        message,
         callback_url: callbackUrl,
         callback_token: callbackToken,
       }),
