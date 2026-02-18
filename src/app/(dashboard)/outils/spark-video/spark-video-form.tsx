@@ -372,7 +372,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
                 <Lightbulb className="h-4 w-4 text-amber-500" />
                 <span className="text-sm font-medium">Inspire-moi</span>
                 <span className="text-xs text-muted-foreground">
-                  ({currentLevelConfig?.credits || 1} crédit{(currentLevelConfig?.credits || 1) > 1 ? 's' : ''})
+                  ({currentLevelConfig?.credits ? `${currentLevelConfig.credits} crédit${currentLevelConfig.credits > 1 ? 's' : ''}` : 'Gratuit'})
                 </span>
               </button>
 
@@ -489,7 +489,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
                               <div className="flex items-center gap-1.5">
                                 <span className="text-sm">{level.emoji}</span>
                                 <span className="text-xs font-medium">{level.label}</span>
-                                <span className="text-xs text-muted-foreground ml-auto">{level.credits} cr</span>
+                                <span className="text-xs text-muted-foreground ml-auto">{level.credits > 0 ? `${level.credits} cr` : 'Gratuit'}</span>
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5">{level.description}</p>
                               {!available && (
@@ -523,7 +523,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
                           ) : (
                             <Sparkles className="h-3 w-3 mr-2" />
                           )}
-                          Générer 5 idées ({currentLevelConfig?.credits || 1} crédit{(currentLevelConfig?.credits || 1) > 1 ? 's' : ''})
+                          Générer 5 idées {currentLevelConfig?.credits ? `(${currentLevelConfig.credits} crédit${currentLevelConfig.credits > 1 ? 's' : ''})` : '(Gratuit)'}
                         </>
                       )}
                     </Button>

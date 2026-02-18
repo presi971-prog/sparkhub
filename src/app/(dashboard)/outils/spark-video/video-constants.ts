@@ -109,7 +109,7 @@ export const IDEA_THEMES = GENERAL_THEMES
 // ═══════════════════════════════════════════════════════════════
 
 export const IDEA_LEVELS = [
-  { id: 'basique',   label: 'Basique',   credits: 1, engine: null,         description: 'Idées IA',              emoji: '💡' },
+  { id: 'basique',   label: 'Basique',   credits: 0, engine: null,         description: 'Idées IA',              emoji: '💡' },
   { id: 'tendances', label: 'Tendances', credits: 2, engine: 'tavily',     description: 'Recherche web',          emoji: '📈' },
   { id: 'viral',     label: 'Viral',     credits: 3, engine: 'serper',     description: 'Google + YouTube',       emoji: '🔥' },
   { id: 'expert',    label: 'Expert',    credits: 5, engine: 'perplexity', description: 'Analyse IA approfondie', emoji: '🧠' },

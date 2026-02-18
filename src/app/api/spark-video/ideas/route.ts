@@ -12,7 +12,7 @@ const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || ''
 // ═══════════════════════════════════════════════════════════════
 
 const LEVEL_CREDITS: Record<string, number> = {
-  basique: 1,
+  basique: 0,
   tendances: 2,
   viral: 3,
   expert: 5,
@@ -279,7 +279,7 @@ export async function POST(req: Request) {
     }
 
     const creditsCost = LEVEL_CREDITS[level]
-    if (!creditsCost) {
+    if (creditsCost === undefined) {
       return NextResponse.json({ error: 'Niveau invalide' }, { status: 400 })
     }
 
@@ -316,30 +316,36 @@ export async function POST(req: Request) {
       .eq('profile_id', user.id)
       .single()
 
-    if (!creditData || creditData.balance < creditsCost) {
+    if (!creditData) {
+      return NextResponse.json({ error: 'Profil crédits introuvable.' }, { status: 402 })
+    }
+
+    if (creditsCost > 0 && creditData.balance < creditsCost) {
       return NextResponse.json(
         { error: `${creditsCost} crédit${creditsCost > 1 ? 's' : ''} requis.` },
         { status: 402 }
       )
     }
 
-    // 4. Déduire les crédits
-    await adminSupabase
-      .from('credits')
-      .update({
-        balance: creditData.balance - creditsCost,
-        lifetime_spent: (creditData.lifetime_spent || 0) + creditsCost,
-      })
-      .eq('profile_id', user.id)
+    // 4. Déduire les crédits (sauf si gratuit)
+    if (creditsCost > 0) {
+      await adminSupabase
+        .from('credits')
+        .update({
+          balance: creditData.balance - creditsCost,
+          lifetime_spent: (creditData.lifetime_spent || 0) + creditsCost,
+        })
+        .eq('profile_id', user.id)
 
-    await adminSupabase
-      .from('credit_transactions')
-      .insert({
-        profile_id: user.id,
-        amount: -creditsCost,
-        type: 'spend',
-        description: `Spark Vidéo - Inspire-moi (${level})`,
-      })
+      await adminSupabase
+        .from('credit_transactions')
+        .insert({
+          profile_id: user.id,
+          amount: -creditsCost,
+          type: 'spend',
+          description: `Spark Vidéo - Inspire-moi (${level})`,
+        })
+    }
 
     // 5. Recherche web (si niveau > basique)
     let searchContext = ''
@@ -423,7 +429,7 @@ UNIQUEMENT du JSON valide, sans markdown, sans backticks :
     if (!response.ok) {
       const errText = await response.text()
       console.error('Gemini ideas error:', response.status, errText)
-      await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
+      if (creditsCost > 0) await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
       return NextResponse.json(
         { error: `Erreur Gemini (${response.status})` },
         { status: 500 }
@@ -435,7 +441,7 @@ UNIQUEMENT du JSON valide, sans markdown, sans backticks :
     // Vérifier erreur KIE
     if (data.code && data.code !== 200) {
       console.error('KIE API error:', data.code, data.msg)
-      await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
+      if (creditsCost > 0) await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
       const isMaintenance = data.msg?.includes('maintained')
       return NextResponse.json(
         { error: isMaintenance ? 'Le serveur IA est en maintenance. Réessaie dans quelques minutes.' : `Erreur API IA : ${data.msg || 'Erreur inconnue'}` },
@@ -483,7 +489,7 @@ UNIQUEMENT du JSON valide, sans markdown, sans backticks :
 
     // Rembourser si aucune idée
     if (ideas.length === 0) {
-      await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
+      if (creditsCost > 0) await refundCredits(adminSupabase, user.id, creditData.balance, creditData.lifetime_spent)
       return NextResponse.json({
         success: false,
         ideas: [],
