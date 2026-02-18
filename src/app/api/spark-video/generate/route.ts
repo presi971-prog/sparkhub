@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
+const SERPER_API_KEY = process.env.SERPER_API_KEY || ''
 
 // Tiers de durée (dupliqué ici pour l'API — pas d'import client)
 const TIERS: Record<string, { scenes: number; clipDuration: number; durationSec: number; credits: number }> = {
@@ -27,6 +28,47 @@ const AMBIANCE_DIRECTIVES: Record<string, string> = {
   tropical: 'Caribbean paradise colors. Turquoise water, palm trees, hibiscus flowers, sunset oranges. Warm, vivid, sun-drenched. The beauty of the Antilles — authentic, not cliché.',
   mysterieux: 'Ethereal and enigmatic. Fog, mist, moonlight, bioluminescence. Cool blue-purple tones. Soft focus, dreamlike quality. Think Arrival or Blade Runner 2049.',
   energique: 'Dynamic and explosive. Speed lines, bright neons, action shots. Particles, sparks, motion blur. High saturation, punchy contrast. Think music video energy.',
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Recherche d'image de référence via Serper (Google Images)
+// ═══════════════════════════════════════════════════════════════
+
+async function searchReferenceImage(idea: string): Promise<string | null> {
+  if (!SERPER_API_KEY) return null
+
+  try {
+    const response = await fetch('https://google.serper.dev/images', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': SERPER_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        q: idea,
+        num: 5,
+      }),
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    const images = data.images as Array<{ imageUrl: string; imageWidth?: number; imageHeight?: number }> | undefined
+
+    if (!images || images.length === 0) return null
+
+    // Prendre la première image avec une taille raisonnable (pas de thumbnails)
+    const goodImage = images.find(img =>
+      img.imageUrl &&
+      !img.imageUrl.includes('thumbnail') &&
+      (img.imageWidth || 0) >= 300
+    ) || images[0]
+
+    return goodImage?.imageUrl || null
+  } catch (error) {
+    console.error('Serper image search error:', error)
+    return null
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -111,13 +153,14 @@ ${arcInstruction}
 
 1. Génère EXACTEMENT ${scenesCount} scènes
 2. Chaque prompt COMMENCE par le subject_anchor VERBATIM puis ajoute la scène spécifique
-3. Chaque prompt en ANGLAIS (pour fal.ai flux-pro)
+3. Chaque prompt en ANGLAIS (pour fal.ai)
 4. Chaque prompt SOUS 900 caractères (subject_anchor inclus)
 5. Format portrait 9:16 (vertical)
 6. Style PHOTO-RÉALISTE (pas cartoon, pas illustration)
 7. Pas de texte dans l'image, pas de sous-titres
 8. Pas de termes de caméra ("camera pans", "zoom in")
 9. Chaque scène = UN seul moment figé, UNE action précise
+10. IMPORTANT : Une image de RÉFÉRENCE RÉELLE sera utilisée. Les prompts doivent décrire comment TRANSFORMER la scène (nouvel angle, nouvel environnement, nouvelle action) en GARDANT le sujet principal fidèle à la référence. Commence chaque prompt par "Keep the main subject exactly as shown." puis décris la nouvelle scène.
 
 ═══ QUALITÉ DES PROMPTS ═══
 
@@ -191,6 +234,7 @@ UNIQUEMENT du JSON, sans markdown, sans backticks :
 
 async function submitImageJobs(
   scenes: Array<{ index: number; prompt: string }>,
+  referenceImageUrl: string | null,
 ): Promise<Array<{
   index: number
   status_url: string | null
@@ -199,19 +243,39 @@ async function submitImageJobs(
   status: string
   error: string | null
 }>> {
+  const useKontext = !!referenceImageUrl
+
   const results = await Promise.allSettled(
     scenes.map(async (scene) => {
-      const submitResponse = await fetch('https://queue.fal.run/fal-ai/flux-pro', {
+      let endpoint: string
+      let body: Record<string, unknown>
+
+      if (useKontext) {
+        // FLUX Kontext : image de référence + prompt d'édition
+        endpoint = 'https://queue.fal.run/fal-ai/flux-pro/kontext'
+        body = {
+          image_url: referenceImageUrl,
+          prompt: scene.prompt,
+          aspect_ratio: '9:16',
+          num_images: 1,
+        }
+      } else {
+        // FLUX Pro classique (fallback sans référence)
+        endpoint = 'https://queue.fal.run/fal-ai/flux-pro'
+        body = {
+          prompt: scene.prompt,
+          image_size: 'portrait_16_9',
+          num_images: 1,
+        }
+      }
+
+      const submitResponse = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Key ${FAL_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: scene.prompt,
-          image_size: 'portrait_16_9',
-          num_images: 1,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!submitResponse.ok) {
@@ -316,13 +380,21 @@ export async function POST(req: Request) {
         description: `Spark Vidéo ${tierConfig.scenes} scènes (${tier})`,
       })
 
-    // 6. Gemini génère les scènes (avec Subject Anchor + Arc Narratif)
+    // 6. Recherche d'image de référence + Gemini génère les scènes (en parallèle)
     let scenes: Array<{ index: number; prompt: string; arc_role: string }>
     let subjectAnchor: string = ''
+    let referenceImageUrl: string | null = null
     try {
-      const result = await generateScenes(idea, tierConfig.scenes, ambiance || null, details || null)
-      scenes = result.scenes
-      subjectAnchor = result.subjectAnchor
+      const [scenesResult, refImage] = await Promise.all([
+        generateScenes(idea, tierConfig.scenes, ambiance || null, details || null),
+        searchReferenceImage(idea),
+      ])
+      scenes = scenesResult.scenes
+      subjectAnchor = scenesResult.subjectAnchor
+      referenceImageUrl = refImage
+      if (referenceImageUrl) {
+        console.log('Reference image found:', referenceImageUrl)
+      }
     } catch (error) {
       // Rembourser si Gemini échoue
       await adminSupabase
@@ -350,7 +422,7 @@ export async function POST(req: Request) {
     }
 
     // 7. Soumettre les images en parallèle
-    const imageJobs = await submitImageJobs(scenes)
+    const imageJobs = await submitImageJobs(scenes, referenceImageUrl)
 
     // Vérifier qu'au moins 2 images ont été soumises
     const submittedCount = imageJobs.filter(j => j.status === 'pending').length
