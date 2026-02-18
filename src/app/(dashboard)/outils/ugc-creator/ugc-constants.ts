@@ -27,21 +27,21 @@ export interface UgcPreset {
 }
 
 export const UGC_PERSONAS: UgcPreset[] = [
-  { id: 'jeune-femme', emoji: '👩', label: 'Jeune femme', value: "Une jeune femme d'environ 25 ans" },
-  { id: 'jeune-homme', emoji: '👨', label: 'Jeune homme', value: "Un jeune homme d'environ 25 ans" },
-  { id: 'femme', emoji: '👩‍💼', label: 'Femme', value: "Une femme d'environ 35 ans" },
-  { id: 'homme', emoji: '👨‍💼', label: 'Homme', value: "Un homme d'environ 35 ans" },
-  { id: 'femme-mature', emoji: '👵', label: 'Femme mature', value: "Une femme d'environ 50 ans" },
-  { id: 'homme-mature', emoji: '👴', label: 'Homme mature', value: "Un homme d'environ 50 ans" },
+  { id: 'jeune-femme', emoji: '👩🏾', label: 'Jeune femme', value: "Une jeune femme antillaise d'environ 25 ans, peau noire, cheveux noirs texturés ou coiffés" },
+  { id: 'jeune-homme', emoji: '👨🏾', label: 'Jeune homme', value: "Un jeune homme antillais d'environ 25 ans, peau noire, cheveux courts noirs" },
+  { id: 'femme', emoji: '👩🏾‍💼', label: 'Femme', value: "Une femme antillaise d'environ 35 ans, peau noire ou métisse, cheveux noirs" },
+  { id: 'homme', emoji: '👨🏾‍💼', label: 'Homme', value: "Un homme antillais d'environ 35 ans, peau noire ou métisse, cheveux courts noirs" },
+  { id: 'femme-mature', emoji: '👵🏾', label: 'Femme mature', value: "Une femme antillaise d'environ 50 ans, peau noire, cheveux grisonnants" },
+  { id: 'homme-mature', emoji: '👴🏾', label: 'Homme mature', value: "Un homme antillais d'environ 50 ans, peau noire, cheveux grisonnants" },
 ]
 
 export const UGC_LIEUX: UgcPreset[] = [
-  { id: 'salon', emoji: '🛋️', label: 'Salon', value: 'Dans un salon confortable et lumineux' },
-  { id: 'cuisine', emoji: '🍳', label: 'Cuisine', value: 'Dans une cuisine moderne' },
-  { id: 'terrasse', emoji: '☀️', label: 'Terrasse', value: 'En terrasse ensoleillée' },
-  { id: 'bureau', emoji: '💼', label: 'Bureau', value: 'Dans un bureau ou espace de travail' },
-  { id: 'voiture', emoji: '🚗', label: 'Voiture', value: 'Assis dans une voiture' },
-  { id: 'exterieur', emoji: '🌴', label: 'Extérieur', value: 'En extérieur, dans la rue' },
+  { id: 'plage', emoji: '🏖️', label: 'Plage', value: 'Sur une plage tropicale de sable blanc avec eau turquoise, style Caraïbes/Guadeloupe' },
+  { id: 'salon', emoji: '🛋️', label: 'Salon', value: 'Dans un salon lumineux de maison antillaise' },
+  { id: 'cuisine', emoji: '🍳', label: 'Cuisine', value: 'Dans une cuisine colorée de maison antillaise' },
+  { id: 'terrasse', emoji: '☀️', label: 'Terrasse', value: 'En terrasse tropicale ensoleillée avec végétation luxuriante' },
+  { id: 'marche', emoji: '🛒', label: 'Marché', value: 'Sur un marché local coloré aux Antilles avec fruits tropicaux' },
+  { id: 'rue', emoji: '🌴', label: 'Rue / Extérieur', value: 'En extérieur dans une rue colorée des Antilles avec palmiers' },
 ]
 
 export const UGC_ACTIONS: UgcPreset[] = [
