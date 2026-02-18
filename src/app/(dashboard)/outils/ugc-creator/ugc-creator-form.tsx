@@ -69,6 +69,22 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
   const pollCountRef = useRef(0)
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  // Audio voiceover URL (dérivée du job_id)
+  const audioUrl = jobId
+    ? `https://wytvwfgamfaoqmvoqzps.supabase.co/storage/v1/object/public/ugc-videos/ugc-voice/${jobId}.mp3`
+    : null
+
+  // Sync vidéo + audio voiceover
+  const handleVideoPlay = () => audioRef.current?.play()
+  const handleVideoPause = () => audioRef.current?.pause()
+  const handleVideoSeeked = () => {
+    if (audioRef.current && videoRef.current) {
+      audioRef.current.currentTime = videoRef.current.currentTime
+    }
+  }
 
   // ── Image upload ──
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -571,12 +587,17 @@ export function UgcCreatorForm({ userId, credits, previousJobs }: UgcCreatorForm
 
             <div className="rounded-lg overflow-hidden bg-black">
               <video
+                ref={videoRef}
                 src={videoUrl}
                 controls
                 autoPlay
                 playsInline
+                onPlay={handleVideoPlay}
+                onPause={handleVideoPause}
+                onSeeked={handleVideoSeeked}
                 className="w-full max-h-[500px]"
               />
+              {audioUrl && <audio ref={audioRef} src={audioUrl} preload="auto" />}
             </div>
 
             <div className="flex gap-3">
