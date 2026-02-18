@@ -37,11 +37,23 @@ async function generateScenes(
   idea: string,
   scenesCount: number,
   ambiance: string | null,
+  details: string | null,
 ): Promise<{ subjectAnchor: string; scenes: Array<{ index: number; prompt: string; arc_role: string }> }> {
 
   const ambianceDirective = ambiance && AMBIANCE_DIRECTIVES[ambiance]
     ? `\n\nAMBIANCE OBLIGATOIRE :\n${AMBIANCE_DIRECTIVES[ambiance]}`
     : '\nChoisis l\'ambiance la plus adaptée à l\'idée. Sois CRÉATIF.'
+
+  // Précisions utilisateur — injectées comme instruction PRIORITAIRE
+  const detailsDirective = details
+    ? `\n\n⚠️⚠️⚠️ PRÉCISIONS OBLIGATOIRES DU CLIENT ⚠️⚠️⚠️
+Les instructions suivantes sont des FAITS RÉELS fournis par le client. Tu DOIS les respecter À LA LETTRE dans chaque scène. NE PAS inventer, modifier ou ignorer ces détails. Si le client dit "pas d'avocat", il NE DOIT PAS y avoir d'avocat. Si le client décrit son commerce, utilise EXACTEMENT cette description.
+
+PRÉCISIONS DU CLIENT :
+${details}
+
+Ces précisions ont PRIORITÉ ABSOLUE sur ta créativité. Ne génère RIEN qui contredise ces instructions.`
+    : ''
 
   // Arc narratif adapté au nombre de scènes
   let arcInstruction: string
@@ -60,7 +72,22 @@ async function generateScenes(
   }
 
   const systemPrompt = `Tu es un SCÉNARISTE IA expert en vidéos courtes virales (TikTok, Instagram Reels). Tu crées des scènes visuellement COHÉRENTES avec un arc narratif captivant.
-${ambianceDirective}
+
+═══ CONTEXTE GÉOGRAPHIQUE ═══
+
+Cette plateforme est utilisée par des commerçants et entrepreneurs en GUADELOUPE (Antilles françaises, Caraïbes).
+Quand l'idée mentionne de la nourriture locale, respecte les recettes et plats AUTHENTIQUES :
+- BOKIT : sandwich FRIT (pain frit croustillant), garni de poulet, morue (bacalhau), lambi, langouste, crevettes, ou thon, avec salade, tomate, sauce chien ou piment. JAMAIS d'avocat, de fromage fondu ou d'ingrédients mexicains/américains.
+- ACCRAS : beignets de morue frits, dorés et croustillants
+- COLOMBO : curry antillais (poulet, cabri, porc) avec riz, pois d'Angole, giraumon
+- BOUDINS CRÉOLES : boudins noirs épicés, pimentés
+- AGOULOU : sandwich dans un pain rond, garni de poulet, porc ou morue
+- Les food trucks en Guadeloupe sont souvent colorés, en plein air, avec des clients debout ou sur des tabourets
+- L'environnement est TROPICAL : végétation luxuriante, soleil intense, couleurs vives, plages, marchés en plein air
+- Les personnes sont majoritairement d'origine afro-caribéenne
+
+Si l'idée ne concerne PAS la nourriture ou la Guadeloupe spécifiquement, ignore ce contexte et sois créatif librement.
+${ambianceDirective}${detailsDirective}
 
 ═══ ÉTAPE 1 : SUBJECT ANCHOR ═══
 
@@ -104,6 +131,10 @@ Après le subject_anchor, chaque prompt ajoute :
 UNIQUEMENT du JSON, sans markdown, sans backticks :
 {"subject_anchor":"A tall muscular Black man in his 30s with short fade haircut, deep brown eyes, warm confident smile, wearing a bright red chef apron over white t-shirt, flour-dusted strong hands with silver watch on left wrist, small scar above right eyebrow, broad shoulders, clean-shaven face with defined jawline...","scenes":[{"index":0,"prompt":"[subject_anchor copié ici] standing in a sun-drenched rustic kitchen...","arc_role":"hook"},{"index":1,"prompt":"[subject_anchor copié ici] intensely focused, kneading dough...","arc_role":"rise"}]}`
 
+  const userMessage = details
+    ? `IDÉE DE VIDÉO : "${idea}"\n\nRAPPEL CRITIQUE — PRÉCISIONS DU CLIENT À RESPECTER IMPÉRATIVEMENT :\n${details}\n\nGénère d'abord le subject_anchor (80-120 mots), puis ${scenesCount} scènes avec arc narratif. Chaque prompt COMMENCE par le subject_anchor VERBATIM. RESPECTE les précisions du client dans CHAQUE scène.`
+    : `IDÉE DE VIDÉO : "${idea}"\n\nGénère d'abord le subject_anchor (80-120 mots), puis ${scenesCount} scènes avec arc narratif. Chaque prompt COMMENCE par le subject_anchor VERBATIM.`
+
   const response = await fetch('https://api.kie.ai/gemini-3-pro/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -117,7 +148,7 @@ UNIQUEMENT du JSON, sans markdown, sans backticks :
           role: 'user',
           content: [{
             type: 'text',
-            text: `IDÉE DE VIDÉO : "${idea}"\n\nGénère d'abord le subject_anchor (80-120 mots), puis ${scenesCount} scènes avec arc narratif. Chaque prompt COMMENCE par le subject_anchor VERBATIM.`,
+            text: userMessage,
           }],
         },
       ],
@@ -228,7 +259,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Validation
-    const { idea, tier, ambiance, musicMood } = await req.json()
+    const { idea, details, tier, ambiance, musicMood } = await req.json()
 
     if (!idea || !tier) {
       return NextResponse.json(
@@ -289,7 +320,7 @@ export async function POST(req: Request) {
     let scenes: Array<{ index: number; prompt: string; arc_role: string }>
     let subjectAnchor: string = ''
     try {
-      const result = await generateScenes(idea, tierConfig.scenes, ambiance || null)
+      const result = await generateScenes(idea, tierConfig.scenes, ambiance || null, details || null)
       scenes = result.scenes
       subjectAnchor = result.subjectAnchor
     } catch (error) {

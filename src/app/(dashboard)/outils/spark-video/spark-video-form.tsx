@@ -54,6 +54,7 @@ const MAX_POLLS = 300
 export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoFormProps) {
   // État formulaire
   const [idea, setIdea] = useState('')
+  const [details, setDetails] = useState('')
   const [selectedTier, setSelectedTier] = useState<VideoTierId>('short')
   const [selectedAmbiance, setSelectedAmbiance] = useState<string | null>(null)
   const [selectedMusicMood, setSelectedMusicMood] = useState<string | null>(null)
@@ -201,6 +202,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idea: idea.trim(),
+          details: details.trim() || null,
           tier: selectedTier,
           ambiance: selectedAmbiance,
           musicMood: selectedMusicMood,
@@ -276,6 +278,7 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
     setFinalVideoUrl(null)
     setErrorMessage(null)
     setIdea('')
+    setDetails('')
     setSelectedAmbiance(null)
     setSelectedMusicMood(null)
     pollCountRef.current = 0
@@ -589,6 +592,24 @@ export function SparkVideoForm({ userId, credits, previousJobs }: SparkVideoForm
             />
             <p className="text-xs text-muted-foreground text-right">
               {idea.length}/500
+            </p>
+          </div>
+
+          {/* Textarea — Précisions */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="details">
+              Précisions importantes <span className="text-muted-foreground font-normal">(optionnel)</span>
+            </label>
+            <textarea
+              id="details"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              placeholder="Décris ce que l'IA doit absolument respecter : ingrédients exacts, couleurs, tenue, décor, style du commerce... Ex : Le bokit est garni de morue et sauce chien, pas d'avocat. Mon food truck est bleu et jaune."
+              maxLength={500}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {details.length}/500
             </p>
           </div>
 
