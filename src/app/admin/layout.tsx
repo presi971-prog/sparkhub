@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, FileText, Users, Settings, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, Settings, ArrowLeft, Radar } from 'lucide-react'
 
 export default async function AdminLayout({
   children,
@@ -33,6 +33,7 @@ export default async function AdminLayout({
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Ressources', href: '/admin/ressources', icon: FileText },
     { name: 'Utilisateurs', href: '/admin/utilisateurs', icon: Users },
+    { name: 'Veille RS', href: '/admin/veille', icon: Radar },
     { name: 'Paramètres', href: '/admin/parametres', icon: Settings },
   ]
 
