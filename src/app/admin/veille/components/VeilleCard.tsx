@@ -178,38 +178,38 @@ export function VeilleCard({ post, onSelect, onDismiss, onClick }: Props) {
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-              onClick={(e) => { e.stopPropagation(); onSelect(post.id) }}
-              disabled={post.status === 'selected'}
-            >
-              <ThumbsUp className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={(e) => { e.stopPropagation(); onDismiss(post.id) }}
-              disabled={post.status === 'dismissed'}
-            >
-              <ThumbsDown className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 pt-2 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 gap-1.5 text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-950"
+            onClick={(e) => { e.stopPropagation(); onSelect(post.id) }}
+            disabled={post.status === 'selected'}
+          >
+            <ThumbsUp className="h-4 w-4" />
+            <span className="text-xs font-medium">Garder</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 gap-1.5 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-800 dark:hover:bg-red-950"
+            onClick={(e) => { e.stopPropagation(); onDismiss(post.id) }}
+            disabled={post.status === 'dismissed'}
+          >
+            <ThumbsDown className="h-4 w-4" />
+            <span className="text-xs font-medium">Rejeter</span>
+          </Button>
           {post.original_url && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-7 px-2"
+              className="h-8 px-2"
               onClick={(e) => {
                 e.stopPropagation()
                 window.open(post.original_url, '_blank')
               }}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-4 w-4" />
             </Button>
           )}
         </div>
