@@ -79,12 +79,25 @@ export function VeilleCard({ post, onSelect, onDismiss, onClick }: Props) {
             alt={post.advertiser_name || 'Post'}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              target.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden')
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <ImageIcon className="h-12 w-12 opacity-30" />
-          </div>
-        )}
+        ) : null}
+        <div className={`fallback-icon w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2 ${post.media_thumbnail_url || post.media_url ? 'hidden absolute inset-0 bg-muted' : ''}`}>
+          {platformIcons[post.platform] ? (
+            <div className="h-10 w-10 flex items-center justify-center opacity-40">
+              {post.platform === 'facebook' && <Facebook className="h-10 w-10" />}
+              {post.platform === 'instagram' && <Instagram className="h-10 w-10" />}
+              {post.platform !== 'facebook' && post.platform !== 'instagram' && <ImageIcon className="h-10 w-10" />}
+            </div>
+          ) : (
+            <ImageIcon className="h-10 w-10 opacity-30" />
+          )}
+          <span className="text-xs opacity-50">{post.advertiser_name || 'Post'}</span>
+        </div>
 
         {/* Score badge */}
         <div className="absolute top-2 right-2">
