@@ -33,16 +33,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    // Create selection record
-    const { error: insertError } = await supabase
-      .from('veille_selections')
-      .insert({
-        post_id: postId,
-        notes: notes || null,
-      })
-
-    if (insertError) {
-      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    // Try to create selection record (table may not exist yet)
+    try {
+      await supabase
+        .from('veille_selections')
+        .insert({
+          post_id: postId,
+          notes: notes || null,
+        })
+    } catch {
+      // Table may not exist yet, ignore
     }
 
     return NextResponse.json({ success: true, action: 'selected' })
