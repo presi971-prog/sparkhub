@@ -40,40 +40,17 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protected routes
+  // Protected routes (admin check moved to page-level to avoid DB call in middleware)
   const protectedPaths = ['/tableau-de-bord', '/profil', '/credits', '/outils', '/admin']
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
 
   if (isProtectedPath && !user) {
-    // Redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/connexion'
     url.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(url)
-  }
-
-  // Admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/connexion'
-      return NextResponse.redirect(url)
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/tableau-de-bord'
-      return NextResponse.redirect(url)
-    }
   }
 
   // Auth pages when already logged in
