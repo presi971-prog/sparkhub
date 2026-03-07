@@ -1,83 +1,36 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Use fallback values for build time
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
-
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  // Lightweight middleware: no Supabase client, no network calls.
+  // Auth is checked by cookie presence only. Real auth validation
+  // happens in page-level server components (getUser()).
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = createServerClient<any>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-'))
 
-  // Use getSession() instead of getUser() to avoid network call to Supabase.
-  // getSession() reads from the cookie locally (no network = no timeout on Edge).
-  // getUser() is used in page-level server components where timeout is longer.
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  const user = session?.user ?? null
-
-  // Protected routes (admin check moved to page-level to avoid DB call in middleware)
+  // Protected routes — redirect to login if no session cookie
   const protectedPaths = ['/tableau-de-bord', '/profil', '/credits', '/outils', '/admin']
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
 
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !hasSession) {
     const url = request.nextUrl.clone()
     url.pathname = '/connexion'
     url.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
-  // Auth pages when already logged in
+  // Auth pages — redirect to dashboard if already logged in
   const authPaths = ['/connexion', '/inscription']
   const isAuthPath = authPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
 
-  if (isAuthPath && user) {
+  if (isAuthPath && hasSession) {
     const url = request.nextUrl.clone()
     url.pathname = '/tableau-de-bord'
     return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  return supabaseResponse
+  return NextResponse.next({ request })
 }
