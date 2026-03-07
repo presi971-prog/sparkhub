@@ -32,13 +32,14 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
+  // Use getSession() instead of getUser() to avoid network call to Supabase.
+  // getSession() reads from the cookie locally (no network = no timeout on Edge).
+  // getUser() is used in page-level server components where timeout is longer.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const user = session?.user ?? null
 
   // Protected routes (admin check moved to page-level to avoid DB call in middleware)
   const protectedPaths = ['/tableau-de-bord', '/profil', '/credits', '/outils', '/admin']
