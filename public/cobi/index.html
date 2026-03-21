@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cobi — Ton assistant IA en Guadeloupe</title>
+<meta name="description" content="Decouvre Cobiwane, la super-app de la Guadeloupe. Parle a Cobi, ton assistant IA !">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #fa7932;
+  --orange-light: #ffb347;
+  --yellow: #ffc800;
+  --dark: #1a1a1a;
+  --cosmic: #0f0a1f;
+  --green: #22c55e;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cosmic);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ====== BACKGROUND ====== */
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(250,121,50,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 100%, rgba(255,200,0,0.08) 0%, transparent 50%);
+}
+
+#stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.star {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.8); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+/* ====== PAGE ====== */
+.page {
+  position: relative; z-index: 1;
+  max-width: 480px; margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+/* ====== HEADER ====== */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.8s ease-out both;
+}
+
+.cobeone-brand {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.header h1 .highlight {
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header .subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.header .subtitle strong { color: var(--orange-light); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ====== COBI AVATAR ====== */
+.cobi-section {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.8s ease-out 0.15s both;
+}
+
+.cobi-avatar {
+  position: relative;
+  width: 180px; height: 180px;
+  margin-bottom: 1rem;
+}
+
+.cobi-ring {
+  position: absolute; inset: -10px;
+  border-radius: 50%;
+  border: 2px solid rgba(250,121,50,0.25);
+  animation: ringPulse 3s ease-in-out infinite;
+}
+
+.cobi-ring:nth-child(2) {
+  inset: -22px;
+  border-color: rgba(255,200,0,0.12);
+  animation-delay: 1s;
+  animation-duration: 4s;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.06); opacity: 0.7; }
+}
+
+.cobi-img-wrapper {
+  position: relative;
+  width: 100%; height: 100%;
+}
+
+.cobi-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(250,121,50,0.3);
+  box-shadow:
+    0 0 30px rgba(250,121,50,0.2),
+    0 0 60px rgba(255,200,0,0.1);
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.cobi-img.active {
+  opacity: 1;
+}
+
+.cobi-avatar:hover .cobi-img.active {
+  box-shadow:
+    0 0 40px rgba(250,121,50,0.35),
+    0 0 80px rgba(255,200,0,0.15);
+}
+
+.cobi-talk-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 16px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+  animation: pulseBtn 2.5s ease-in-out infinite;
+}
+
+.cobi-talk-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+.cobi-talk-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 30px rgba(37,211,102,0.4);
+}
+
+@keyframes pulseBtn {
+  0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.3); }
+  50% { box-shadow: 0 4px 30px rgba(37,211,102,0.5), 0 0 60px rgba(37,211,102,0.15); }
+}
+
+.cobi-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.cobi-role {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.cobi-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--green);
+  font-weight: 500;
+}
+
+.cobi-status .dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+}
+
+/* ====== FEATURES ====== */
+.features {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.8s ease-out 0.3s both;
+}
+
+.feature {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 14px 18px;
+  transition: all 0.3s;
+}
+
+.feature:hover {
+  background: rgba(250,121,50,0.06);
+  border-color: rgba(250,121,50,0.15);
+  transform: translateX(4px);
+}
+
+.feature-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.feature-icon.orange { background: rgba(250,121,50,0.15); }
+.feature-icon.yellow { background: rgba(255,200,0,0.15); }
+.feature-icon.dark { background: rgba(255,255,255,0.08); }
+
+.feature-text h3 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.feature-text p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ====== QR CODE SECTION ====== */
+.qr-section {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.8s ease-out 0.45s both;
+}
+
+.qr-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.qr-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.qr-frame {
+  position: relative;
+  padding: 16px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow:
+    0 0 30px rgba(250,121,50,0.15),
+    0 0 60px rgba(255,200,0,0.08);
+  border: 2px solid rgba(250,121,50,0.2);
+}
+
+.qr-frame canvas {
+  display: block;
+  border-radius: 8px;
+}
+
+.qr-cobi-overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px; height: 56px;
+}
+
+.qr-cobi-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.qr-cobi-img.active { opacity: 1; }
+
+.qr-hint {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  animation: pulseText 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseText {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ====== CTA WHATSAPP SMALL ====== */
+.cta-section {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.8s ease-out 0.55s both;
+}
+
+.cta-or {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cta-whatsapp-small {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  background: rgba(37,211,102,0.12);
+  border: 1px solid rgba(37,211,102,0.25);
+  border-radius: 12px;
+  color: #25D366;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.cta-whatsapp-small svg { width: 18px; height: 18px; fill: #25D366; }
+
+.cta-whatsapp-small:hover {
+  background: rgba(37,211,102,0.2);
+  transform: translateY(-2px);
+}
+
+/* ====== COBI APPS CARDS ====== */
+.apps-section {
+  width: 100%;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.8s ease-out 0.55s both;
+}
+
+.apps-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.apps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.app-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.app-card:hover {
+  border-color: rgba(250,121,50,0.2);
+  transform: translateY(-3px);
+}
+
+.app-card img {
+  width: 100px; height: 100px;
+  border-radius: 14px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.app-badge {
+  display: inline-block;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+
+.app-badge.partner {
+  background: rgba(250,121,50,0.15);
+  color: var(--orange);
+  border: 1px solid rgba(250,121,50,0.25);
+}
+
+.app-badge.store {
+  background: rgba(255,200,0,0.12);
+  color: var(--yellow);
+  border: 1px solid rgba(255,200,0,0.25);
+}
+
+.app-card h4 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.app-card p {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ====== CLIENT CARD ====== */
+.client-card {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 12px;
+  transition: all 0.3s;
+}
+
+.client-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+
+.client-emoji { font-size: 32px; flex-shrink: 0; }
+
+.client-card h4 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.client-card p {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* ====== TRUST BAR ====== */
+.trust {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; flex-wrap: wrap;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.8s ease-out 0.65s both;
+}
+
+.trust-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.75rem;
+  color: var(--orange);
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+}
+
+.trust-check {
+  width: 14px; height: 14px;
+  background: rgba(250,121,50,0.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+  color: var(--orange);
+}
+
+/* ====== FOOTER ====== */
+.footer {
+  text-align: center;
+  animation: fadeUp 0.8s ease-out 0.75s both;
+}
+
+.footer-logo {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.footer-tagline {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer a:hover { color: var(--orange); }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 480px) {
+  .page { padding: 1.5rem 1rem 2.5rem; }
+  .cobi-avatar { width: 150px; height: 150px; }
+  .apps-grid { gap: 8px; }
+  .app-card img { width: 80px; height: 80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div id="stars"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="cobeone-brand">Cobeone</div>
+    <h1>Salut, moi c'est <span class="highlight">Cobi</span></h1>
+    <p class="subtitle">Un petit robot arrive en <strong>Guadeloupe</strong> pour faciliter la vie de tout le monde</p>
+  </div>
+
+  <!-- COBI AVATAR — VRAIE IMAGE -->
+  <div class="cobi-section">
+    <div class="cobi-avatar">
+      <div class="cobi-ring"></div>
+      <div class="cobi-ring"></div>
+      <div class="cobi-img-wrapper">
+        <img class="cobi-img active" src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e8aaac0f11467810ce.jpeg" alt="Cobi Partner">
+        <img class="cobi-img" src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e353d4f15fdfb4f7f8.jpeg" alt="Cobi Store">
+      </div>
+    </div>
+    <span class="cobi-name">Cobi</span>
+    <span class="cobi-role">Mascotte & assistant IA de Cobiwane</span>
+    <span class="cobi-status"><span class="dot"></span> En ligne</span>
+
+    <a href="#qrcode-section" class="cobi-talk-btn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM5 10a1 1 0 0 0-2 0 9 9 0 0 0 8 8.94V22h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.06A9 9 0 0 0 21 10a1 1 0 1 0-2 0 7 7 0 0 1-14 0z"/></svg>
+      Viens discuter avec moi !
+    </a>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon orange">&#x1F50D;</div>
+      <div class="feature-text">
+        <h3>Trouve un pro en 2 clics</h3>
+        <p>Coiffeur, plombier, resto, transport... tout est dans l'app</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon yellow">&#x1F4B0;</div>
+      <div class="feature-text">
+        <h3>Pros : gagnez en visibilite</h3>
+        <p>Inscription gratuite, commission degressive de 15% a 1%</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon dark">&#x1F916;</div>
+      <div class="feature-text">
+        <h3>Outils IA inclus</h3>
+        <p>Posts reseaux sociaux, mini site, studio photo... tout pour grandir</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR CODE — DEMO VOCALE -->
+  <div class="qr-section" id="qrcode-section">
+    <p class="qr-title">Scanne et parle-moi en direct</p>
+    <p class="qr-subtitle">Lance la demo vocale avec Cobi</p>
+    <div class="qr-frame">
+      <div id="qrcode"></div>
+      <div class="qr-cobi-overlay">
+        <img class="qr-cobi-img active" src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e8aaac0f11467810ce.jpeg" alt="Cobi Partner">
+        <img class="qr-cobi-img" src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e353d4f15fdfb4f7f8.jpeg" alt="Cobi Store">
+      </div>
+    </div>
+    <p class="qr-hint">Pointe ta camera sur le QR code</p>
+  </div>
+
+  <!-- OU WHATSAPP -->
+  <div class="cta-section">
+    <p class="cta-or">ou ecris-moi sur WhatsApp</p>
+    <a href="https://wa.me/590691270919?text=Salut%20Cobi%20!%20Je%20veux%20en%20savoir%20plus%20sur%20Cobiwane" class="cta-whatsapp-small" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp : 0691 27 09 19
+    </a>
+  </div>
+
+  <!-- COBI APPS — VRAIES IMAGES -->
+  <div class="apps-section">
+    <p class="apps-title">Cobiwane, c'est 3 apps</p>
+    <div class="apps-grid">
+      <div class="app-card">
+        <img src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e8aaac0f11467810ce.jpeg" alt="Cobi Partner">
+        <span class="app-badge partner">Partner</span>
+        <h4>Pros en deplacement</h4>
+        <p>Electricien, coiffeur, coach, livreur...</p>
+      </div>
+      <div class="app-card">
+        <img src="https://assets.cdn.filesafe.space/15W1kS8V6KqgTPhtzaPZ/media/69bb25e353d4f15fdfb4f7f8.jpeg" alt="Cobi Store">
+        <span class="app-badge store">Store</span>
+        <h4>Commerces avec local</h4>
+        <p>Restaurant, salon, cabinet, boutique...</p>
+      </div>
+    </div>
+
+    <div class="client-card">
+      <span class="client-emoji">&#x1F6D2;</span>
+      <div>
+        <h4>App Client</h4>
+        <p>Particuliers : trouve un pro, reserve, achete, vends, loue</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRUST -->
+  <div class="trust">
+    <div class="trust-item">
+      <span class="trust-check">&#x2713;</span>
+      Inscription gratuite
+    </div>
+    <div class="trust-item">
+      <span class="trust-check">&#x2713;</span>
+      0% le 1er mois
+    </div>
+    <div class="trust-item">
+      <span class="trust-check">&#x2713;</span>
+      100% Guadeloupe
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-logo">Cobeone</div>
+    <p class="footer-tagline">Toute la Guadeloupe dans ta poche</p>
+    <p style="margin-top: 8px; font-size: 0.72rem;">
+      <a href="https://cobeone.com" target="_blank">cobeone.com</a>
+    </p>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+// QR Code generation
+(function() {
+  const qr = qrcode(0, 'M');
+  qr.addData('https://demo.digital-code-growth.com/voice-orb-9492');
+  qr.make();
+  const mc = qr.getModuleCount();
+  const s = 220;
+  const cs = s / mc;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = s; canvas.height = s;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, s, s);
+
+  const grad = ctx.createLinearGradient(0, 0, s, s);
+  grad.addColorStop(0, '#1a1a1a');
+  grad.addColorStop(0.35, '#fa7932');
+  grad.addColorStop(1, '#ffc800');
+
+  const centerR = cs * 4.5;
+  const cX = s / 2, cY = s / 2;
+
+  for (let r = 0; r < mc; r++) {
+    for (let c = 0; c < mc; c++) {
+      if (!qr.isDark(r, c)) continue;
+      const px = c * cs + cs / 2;
+      const py = r * cs + cs / 2;
+      const dx = px - cX, dy = py - cY;
+      if (Math.sqrt(dx * dx + dy * dy) < centerR) continue;
+
+      const isFinder = (r < 7 && c < 7) || (r < 7 && c >= mc - 7) || (r >= mc - 7 && c < 7);
+      if (isFinder) {
+        ctx.fillStyle = '#1a1a1a';
+        const fr = cs * 0.46;
+        ctx.beginPath();
+        ctx.roundRect(px - fr, py - fr, fr * 2, fr * 2, cs * 0.18);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = grad;
+        const dr = cs * 0.38;
+        ctx.beginPath();
+        ctx.moveTo(px, py - dr);
+        ctx.lineTo(px + dr, py);
+        ctx.lineTo(px, py + dr);
+        ctx.lineTo(px - dr, py);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  document.getElementById('qrcode').appendChild(canvas);
+})();
+
+// Stars
+(function() {
+  const c = document.getElementById('stars');
+  const n = window.innerWidth < 500 ? 30 : 60;
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    s.style.animationDelay = (Math.random() * 4) + 's';
+    c.appendChild(s);
+  }
+})();
+
+// Cobi carousel — avatar + QR center synced
+(function() {
+  const avatarImgs = document.querySelectorAll('.cobi-img');
+  const qrImgs = document.querySelectorAll('.qr-cobi-img');
+  let current = 0;
+  setInterval(function() {
+    avatarImgs[current].classList.remove('active');
+    qrImgs[current].classList.remove('active');
+    current = (current + 1) % avatarImgs.length;
+    avatarImgs[current].classList.add('active');
+    qrImgs[current].classList.add('active');
+  }, 3000);
+})();
+</script>
+</body>
+</html>
