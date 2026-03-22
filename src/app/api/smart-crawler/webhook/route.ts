@@ -26,8 +26,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // 3. Extraire les champs
-  const contactId = (body.contactId || body.contact_id) as string | undefined
+  // 3. Log complet du body reçu (debug)
+  console.log('[SmartCrawler] Body reçu:', JSON.stringify(body).slice(0, 2000))
+
+  // 4. Extraire les champs — GHL peut envoyer l'ID sous différents noms
+  const contactObj = body.contact as Record<string, unknown> | undefined
+  const contactId = (body.contactId || body.contact_id || body.id || contactObj?.id) as string | undefined
   const pit = (body.pit || body.PIT) as string | undefined
   const locationId = (body.locationId || body.location_id) as string | undefined
   const website = (body.website || body.Website) as string | undefined

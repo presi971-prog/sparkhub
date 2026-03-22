@@ -32,7 +32,7 @@ export interface ExtractedData {
 }
 
 export interface GHLCustomField {
-  key: string
+  key: string       // format: "contact.field_name"
   field_value: string
 }
 

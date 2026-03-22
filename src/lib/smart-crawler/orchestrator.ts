@@ -12,16 +12,15 @@ import type { WebhookPayload, CrawlResult } from './types'
 
 // IDs des custom fields GHL — à configurer dans les env vars
 // Ces IDs sont visibles dans GHL > Settings > Custom Fields
-const FIELD_IDS = {
-  description: process.env.GHL_FIELD_DESCRIPTION || 'ai_demo_company_description',
-  industry: process.env.GHL_FIELD_INDUSTRY || 'ai_demo_industry',
-  services: process.env.GHL_FIELD_SERVICES || 'ai_demo_services',
-  serviceAreas: process.env.GHL_FIELD_SERVICE_AREAS || 'ai_demo_service_areas',
-  hours: process.env.GHL_FIELD_HOURS || 'ai_demo_hours',
-  memoryKey: process.env.GHL_FIELD_MEMORY_KEY || 'ai_demo_memory_key',
-  faq: process.env.GHL_FIELD_FAQ || 'ai_demo_faq',
-  demoMode: process.env.GHL_FIELD_DEMO_MODE || 'ai_demo_mode',
-  miniSiteUrl: process.env.GHL_FIELD_MINI_SITE_URL || 'ai_demo_mini_site_url',
+// Clés des custom fields GHL — format "contact.xxx" (fieldKey)
+const FIELD_KEYS = {
+  description: 'contact.ai_demo_company_description',
+  industry: 'contact.ai_demo_industry',
+  services: 'contact.ai_demo_services',
+  serviceAreas: 'contact.ai_demo_service_areas',
+  hours: 'contact.ai_demo_hours',
+  memoryKey: 'contact.ai_demo_memory_key',
+  faq: 'contact.ai_demo_faq',
 }
 
 /**
@@ -93,15 +92,13 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
 
   // 6. Écrire dans GHL
   const fields = [
-    { id: FIELD_IDS.description, field_value: extracted.description },
-    { id: FIELD_IDS.industry, field_value: extracted.industry },
-    { id: FIELD_IDS.services, field_value: extracted.services },
-    { id: FIELD_IDS.serviceAreas, field_value: extracted.serviceAreas },
-    { id: FIELD_IDS.hours, field_value: extracted.hours },
-    { id: FIELD_IDS.memoryKey, field_value: memoryKey },
-    { id: FIELD_IDS.faq, field_value: extracted.faq },
-    { id: FIELD_IDS.demoMode, field_value: demoMode },
-    ...(miniSiteUrl ? [{ id: FIELD_IDS.miniSiteUrl, field_value: miniSiteUrl }] : []),
+    { key: FIELD_KEYS.description, field_value: extracted.description },
+    { key: FIELD_KEYS.industry, field_value: extracted.industry },
+    { key: FIELD_KEYS.services, field_value: extracted.services },
+    { key: FIELD_KEYS.serviceAreas, field_value: extracted.serviceAreas },
+    { key: FIELD_KEYS.hours, field_value: extracted.hours },
+    { key: FIELD_KEYS.memoryKey, field_value: memoryKey },
+    { key: FIELD_KEYS.faq, field_value: extracted.faq },
   ]
 
   const success = await updateContactFields(contactId, pit, fields)
