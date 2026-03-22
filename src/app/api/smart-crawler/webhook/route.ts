@@ -26,21 +26,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // 3. Log complet du body reçu (debug)
-  console.log('[SmartCrawler] Body reçu:', JSON.stringify(body).slice(0, 2000))
+  // 3. GHL envoie les données personnalisées dans body.customData
+  const customData = body.customData as Record<string, unknown> | undefined
 
-  // 4. Extraire les champs — GHL peut envoyer l'ID sous différents noms
-  const contactObj = body.contact as Record<string, unknown> | undefined
-  const contactId = (body.contactId || body.contact_id || body.id || contactObj?.id) as string | undefined
-  const pit = (body.pit || body.PIT) as string | undefined
-  const locationId = (body.locationId || body.location_id) as string | undefined
-  const website = (body.website || body.Website) as string | undefined
-  const facebook_url = (body.facebook_url || body.Facebook) as string | undefined
-  const instagram_url = (body.instagram_url || body.Instagram) as string | undefined
-  const linkedin_url = (body.linkedin_url || body.LinkedIn) as string | undefined
-  const company_name = (body.company_name || body.companyName) as string | undefined
-  const first_name = (body.first_name || body.firstName) as string | undefined
-  const email = body.email as string | undefined
+  // 4. Extraire les champs (customData d'abord, puis racine en fallback)
+  const contactId = (customData?.contactId || body.contact_id || body.contactId) as string | undefined
+  const pit = (customData?.pit || body.pit) as string | undefined
+  const locationObj = body.location as Record<string, unknown> | undefined
+  const locationId = (locationObj?.id || body.locationId) as string | undefined
+  const website = (customData?.website || body.website) as string | undefined
+  const facebook_url = (customData?.facebook_url || body['Facebook URL']) as string | undefined
+  const instagram_url = (customData?.instagram_url || body['Instagram URL']) as string | undefined
+  const linkedin_url = (customData?.linkedin_url || body['LinkedIn URL']) as string | undefined
+  const company_name = (customData?.company_name || body.company_name) as string | undefined
+  const first_name = (body.first_name) as string | undefined
+  const email = (customData?.email || body.email) as string | undefined
+
+  console.log(`[SmartCrawler] Parsed: contact=${contactId}, fb=${facebook_url}, web=${website}`)
 
   // 4. Validation
   if (!contactId) {
@@ -54,10 +56,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No PIT token available' }, { status: 400 })
   }
 
-  // 6. Au moins une URL requise
-  if (!website && !facebook_url && !instagram_url && !linkedin_url) {
-    console.warn(`[SmartCrawler] Contact ${contactId}: aucune URL fournie`)
-    return NextResponse.json({ error: 'No URLs provided' }, { status: 400 })
+  // 6. Nettoyer les URLs vides (GHL envoie "https://" quand un champ est vide)
+  const isValidUrl = (u?: string) => u && u.trim() !== '' && u.trim() !== 'https://' && u.trim() !== 'http://'
+  const cleanWebsite = isValidUrl(website) ? website : undefined
+  const cleanFacebook = isValidUrl(facebook_url) ? facebook_url : undefined
+  const cleanInstagram = isValidUrl(instagram_url) ? instagram_url : undefined
+  const cleanLinkedin = isValidUrl(linkedin_url) ? linkedin_url : undefined
+
+  if (!cleanWebsite && !cleanFacebook && !cleanInstagram && !cleanLinkedin) {
+    console.warn(`[SmartCrawler] Contact ${contactId}: aucune URL valide`)
+    return NextResponse.json({ error: 'No valid URLs provided' }, { status: 400 })
   }
 
   // 7. Construire le payload
@@ -65,10 +73,10 @@ export async function POST(request: NextRequest) {
     contactId,
     locationId: locationId || '',
     pit: activePit,
-    website: website || undefined,
-    facebook_url: facebook_url || undefined,
-    instagram_url: instagram_url || undefined,
-    linkedin_url: linkedin_url || undefined,
+    website: cleanWebsite,
+    facebook_url: cleanFacebook,
+    instagram_url: cleanInstagram,
+    linkedin_url: cleanLinkedin,
     company_name: company_name || undefined,
     first_name: first_name || undefined,
     email: email || undefined,
