@@ -29,6 +29,7 @@ export interface ExtractedData {
   serviceAreas: string
   hours: string
   faq: string
+  brandColors: string
 }
 
 export interface GHLCustomField {

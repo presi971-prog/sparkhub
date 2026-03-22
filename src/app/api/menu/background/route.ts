@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const FAL_KEY = process.env.FAL_KEY!
 
@@ -32,6 +33,15 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
+    }
+
+    // Rate limit
+    const rl = rateLimit(getRateLimitKey(req, user.id), 20, 60 * 60 * 1000)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques minutes.' },
+        { status: 429 }
+      )
     }
 
     const { templatePrompt, themeAddition, width, height } = await req.json()

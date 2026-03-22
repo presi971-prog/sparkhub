@@ -1,30 +1,24 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Inter, Outfit } from 'next/font/google'
+import { Geist, Inter, Outfit } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
-import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import './globals.css'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  subsets: ['latin-ext'],
 })
 
 const inter = Inter({
   variable: '--font-inter',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  subsets: ['latin-ext'],
+  weight: ['400', '600'],
 })
 
 const outfit = Outfit({
   variable: '--font-outfit',
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  subsets: ['latin-ext'],
+  weight: ['600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -89,11 +83,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${outfit.variable} antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'SparkHub',
+              url: 'https://sparkhub.digital-code-growth.com',
+              logo: 'https://sparkhub.digital-code-growth.com/logo.png',
+              description: 'Plateforme d\'outils IA pour livreurs et professionnels en Guadeloupe',
+              areaServed: {
+                '@type': 'Place',
+                name: 'Guadeloupe',
+              },
+              sameAs: [],
+            }),
+          }}
+        />
+      </head>
+      <body className={`${geistSans.variable} ${inter.variable} ${outfit.variable} antialiased`}>
         <ThemeProvider>
-          <SmoothScrollProvider>
-            {children}
-          </SmoothScrollProvider>
+          {children}
           <Toaster position="top-right" />
         </ThemeProvider>
       </body>

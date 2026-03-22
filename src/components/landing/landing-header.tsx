@@ -51,7 +51,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+                <Sparkles aria-hidden="true" className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className={`font-bold text-xl ${isScrolled ? 'text-foreground' : 'text-white'}`}>
                 Spark<span className="text-primary">Hub</span>
@@ -86,7 +86,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                       ? 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
                       : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
                   }`}
-                  aria-label="Toggle theme"
+                  aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
                 >
                   {theme === 'dark' ? (
                     <Sun className="w-5 h-5" />
@@ -124,7 +124,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
                     >
                       S'inscrire
-                      <ChevronDown className={`w-4 h-4 transition-transform ${isRegisterOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown aria-hidden="true" className={`w-4 h-4 transition-transform ${isRegisterOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     <AnimatePresence>
@@ -141,7 +141,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                             className="flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors"
                           >
                             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Truck className="w-4 h-4 text-primary" />
+                              <Truck aria-hidden="true" className="w-4 h-4 text-primary" />
                             </div>
                             <div>
                               <div className="text-foreground font-medium text-sm">Livreur</div>
@@ -153,7 +153,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                             className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/5 transition-colors border-t border-border"
                           >
                             <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center">
-                              <Building2 className="w-4 h-4 text-secondary" />
+                              <Building2 aria-hidden="true" className="w-4 h-4 text-secondary" />
                             </div>
                             <div>
                               <div className="text-foreground font-medium text-sm">Professionnel</div>
@@ -174,7 +174,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                 <button
                   onClick={toggleTheme}
                   className="p-2 rounded-lg bg-muted text-muted-foreground"
-                  aria-label="Toggle theme"
+                  aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
                 >
                   {theme === 'dark' ? (
                     <Sun className="w-5 h-5" />
@@ -186,6 +186,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 text-foreground"
+                aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -243,7 +244,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-foreground font-medium"
                     >
-                      <LogIn className="w-4 h-4" />
+                      <LogIn aria-hidden="true" className="w-4 h-4" />
                       Connexion
                     </Link>
                     <Link
@@ -251,7 +252,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-medium"
                     >
-                      <Truck className="w-4 h-4" />
+                      <Truck aria-hidden="true" className="w-4 h-4" />
                       Je suis Livreur
                     </Link>
                     <Link
@@ -259,7 +260,7 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-secondary text-secondary-foreground font-medium"
                     >
-                      <Building2 className="w-4 h-4" />
+                      <Building2 aria-hidden="true" className="w-4 h-4" />
                       Je suis Professionnel
                     </Link>
                   </div>

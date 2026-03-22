@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight, Truck, Building2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -15,6 +15,8 @@ function VideoBackground() {
         muted
         loop
         playsInline
+        preload="metadata"
+        aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
       >
         <source
@@ -35,9 +37,11 @@ function VideoBackground() {
 export function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const heroRef = useRef<HTMLElement>(null)
+  const rafRef = useRef<number>(0)
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(() => {
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect()
         setMousePosition({
@@ -45,10 +49,16 @@ export function HeroSection() {
           y: (e.clientY - rect.top) / rect.height - 0.5,
         })
       }
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    })
   }, [])
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      cancelAnimationFrame(rafRef.current)
+    }
+  }, [handleMouseMove])
 
   return (
     <section ref={heroRef} className="relative min-h-screen overflow-hidden bg-black">
@@ -143,7 +153,7 @@ export function HeroSection() {
                   whileHover={{ scale: 1.2, opacity: 1 }}
                 />
                 <div className="relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Truck className="w-8 h-8 text-primary" />
+                  <Truck aria-hidden="true" className="w-8 h-8 text-primary" />
                 </div>
               </div>
 
@@ -157,7 +167,7 @@ export function HeroSection() {
 
               <div className="flex items-center text-cyan-400 font-semibold group-hover:gap-4 gap-2 transition-all duration-300">
                 Créer mon profil
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+                <ArrowRight aria-hidden="true" className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
               </div>
             </motion.div>
           </Link>
@@ -180,7 +190,7 @@ export function HeroSection() {
                   whileHover={{ scale: 1.2, opacity: 1 }}
                 />
                 <div className="relative w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                  <Building2 className="w-8 h-8 text-secondary" />
+                  <Building2 aria-hidden="true" className="w-8 h-8 text-secondary" />
                 </div>
               </div>
 
@@ -194,7 +204,7 @@ export function HeroSection() {
 
               <div className="flex items-center text-orange-400 font-semibold group-hover:gap-4 gap-2 transition-all duration-300">
                 Trouver des livreurs
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+                <ArrowRight aria-hidden="true" className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
               </div>
             </motion.div>
           </Link>

@@ -1,11 +1,10 @@
 import { LandingHeader, LandingFooter } from '@/components/landing'
+import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider'
 import { createClient } from '@/lib/supabase/server'
+import { Suspense } from 'react'
 
-export default async function MarketingLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+// Composant async pour charger le user sans bloquer le rendu
+async function HeaderWithUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,11 +18,23 @@ export default async function MarketingLayout({
     profile = data
   }
 
+  return <LandingHeader user={profile} />
+}
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <LandingHeader user={profile} />
-      <main className="flex-1">{children}</main>
-      <LandingFooter />
-    </div>
+    <SmoothScrollProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <Suspense fallback={<LandingHeader user={null} />}>
+          <HeaderWithUser />
+        </Suspense>
+        <main className="flex-1">{children}</main>
+        <LandingFooter />
+      </div>
+    </SmoothScrollProvider>
   )
 }

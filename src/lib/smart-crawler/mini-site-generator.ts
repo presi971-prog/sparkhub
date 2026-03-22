@@ -27,6 +27,7 @@ export function generateMiniSiteUrl(
     services: extractedData.services || '',
     desc: extractedData.description || '',
     hours: extractedData.hours || '',
+    colors: extractedData.brandColors || '',
   })
 
   return `${baseUrl}/demo-site?${params.toString()}`

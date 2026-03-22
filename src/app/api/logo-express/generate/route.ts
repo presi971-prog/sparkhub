@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
@@ -513,6 +514,15 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Rate limit
+    const rl = rateLimit(getRateLimitKey(req, user.id), 20, 60 * 60 * 1000)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques minutes.' },
+        { status: 429 }
+      )
     }
 
     const { businessType, businessName, slogan, description, logoStyle, paletteColors } = await req.json()

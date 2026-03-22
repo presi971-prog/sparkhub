@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
@@ -314,12 +315,20 @@ async function submitImageJobs(
 
 export async function POST(req: Request) {
   try {
-    // 1. Auth
+    // 0. Rate limit (10 générations/heure par user)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    const rl = rateLimit(getRateLimitKey(req, user.id), 10, 60 * 60 * 1000)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques minutes.' },
+        { status: 429 }
+      )
     }
 
     // 2. Validation

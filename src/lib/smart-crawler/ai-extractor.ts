@@ -5,29 +5,31 @@ import type { CrawlResult, ExtractedData, DemoMode } from './types'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 
-const SYSTEM_PROMPT = `You are an expert business data analyst. You receive crawled content from multiple sources (website, Facebook, Instagram, LinkedIn) for a SINGLE business.
+const SYSTEM_PROMPT = `Tu es un expert en analyse de données commerciales. Tu reçois le contenu crawlé de plusieurs sources (site web, Facebook, Instagram, LinkedIn) pour UNE MÊME entreprise.
 
-Your job: extract and synthesize the key business information.
+Ton travail : extraire et synthétiser les informations clés de cette entreprise.
 
-RULES:
-- Combine information from ALL available sources. If something is missing from the website but found on Facebook, use Facebook.
-- If a source is empty or failed, ignore it.
-- Always respond in ENGLISH (this is for a GHL CRM system).
-- If you cannot find specific information, use an empty string "".
-- For hours, use format: "Mon-Fri: 9am-5pm, Sat: 10am-2pm" etc.
-- For FAQ, generate 5-8 relevant Q&A pairs based on what you know about the business.
-- For industry, use a generic category (Restaurant, Hair Salon, Auto Repair, Bakery, Law Firm, etc.)
-- For services, list the main services/products separated by commas.
-- For service areas, identify geographic areas from the content (city, region).
+RÈGLES :
+- Combine les infos de TOUTES les sources disponibles. Si une info manque sur le site mais est sur Facebook, utilise Facebook.
+- Si une source est vide ou a échoué, ignore-la.
+- Réponds TOUJOURS en FRANÇAIS.
+- Si tu ne trouves pas une info, mets une chaîne vide "".
+- Pour les horaires, utilise le format : "Lun-Ven : 9h-17h, Sam : 10h-14h" etc.
+- Pour la FAQ, génère 5-8 questions/réponses pertinentes basées sur ce que tu sais du business.
+- Pour le secteur, utilise un terme français (Restaurant, Salon de coiffure, Garage auto, Boulangerie, Cabinet d'avocats, etc.)
+- Pour les services, liste les principaux services/produits séparés par des virgules, en français.
+- Pour les zones de service, identifie les zones géographiques (ville, région).
+- Pour les couleurs, si tu vois des mentions de couleurs dans le contenu (logo, charte graphique, thème), note-les. Sinon mets "".
 
-Respond ONLY with valid JSON matching this exact schema:
+Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
 {
-  "description": "2-3 sentence company description",
-  "industry": "Industry category",
-  "services": "Comma-separated list of main services",
-  "serviceAreas": "Geographic areas served",
-  "hours": "Business hours",
-  "faq": "Q: question?\\nA: answer\\n\\nQ: question?\\nA: answer"
+  "description": "Description de l'entreprise en 2-3 phrases",
+  "industry": "Catégorie du secteur",
+  "services": "Liste des principaux services séparés par des virgules",
+  "serviceAreas": "Zones géographiques desservies",
+  "hours": "Horaires d'ouverture",
+  "faq": "Q: question ?\\nR: réponse\\n\\nQ: question ?\\nR: réponse",
+  "brandColors": "Couleurs dominantes si identifiées (ex: orange, noir)"
 }`
 
 function buildUserPrompt(results: CrawlResult[], companyName?: string): string {
@@ -38,7 +40,7 @@ function buildUserPrompt(results: CrawlResult[], companyName?: string): string {
 
   const name = companyName ? ` "${companyName}"` : ''
 
-  return `Here is the crawled data for the business${name}:\n\n${sections.join('\n\n')}\n\nExtract the structured information.`
+  return `Voici les données crawlées pour l'entreprise${name} :\n\n${sections.join('\n\n')}\n\nExtrais les informations structurées.`
 }
 
 /**
@@ -102,6 +104,7 @@ export async function extractBusinessData(
       serviceAreas: parsed.serviceAreas || '',
       hours: parsed.hours || '',
       faq: parsed.faq || '',
+      brandColors: parsed.brandColors || '',
     }
   } catch {
     console.error('[SmartCrawler] JSON invalide:', jsonMatch[0])

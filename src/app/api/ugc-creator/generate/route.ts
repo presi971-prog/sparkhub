@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { TOOLS_CONFIG } from '@/config/tiers'
+import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const N8N_UGC_WEBHOOK_URL = process.env.N8N_UGC_WEBHOOK_URL!
 const CREDITS_COST = TOOLS_CONFIG.video_ugc.credits
@@ -14,6 +15,15 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Rate limit
+    const rl = rateLimit(getRateLimitKey(req, user.id), 20, 60 * 60 * 1000)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques minutes.' },
+        { status: 429 }
+      )
     }
 
     // 2. Validation FormData

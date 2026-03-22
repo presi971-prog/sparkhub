@@ -61,6 +61,7 @@ export function DashboardSidebar({ profile }: Props) {
         size="icon"
         className="fixed top-4 left-4 z-50 md:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
       >
         {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>

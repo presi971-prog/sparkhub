@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { SITE_THEMES } from '@/app/(dashboard)/outils/mini-site/mini-site-templates'
+import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const KIE_API_KEY = process.env.KIE_API_KEY!
 const FAL_KEY = process.env.FAL_KEY!
@@ -26,7 +27,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
     }
 
-    const { business_name, business_type, slogan, services, address, theme, hero_config, is_update } = await req.json()
+    // Rate limit
+    const rl = rateLimit(getRateLimitKey(req, user.id), 20, 60 * 60 * 1000)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques minutes.' },
+        { status: 429 }
+      )
+    }
+
+    const { business_name, business_type, slogan, services, address, theme, hero_config } = await req.json()
 
     if (!business_name || !business_name.trim()) {
       return NextResponse.json({ error: 'Le nom du commerce est requis' }, { status: 400 })
@@ -524,7 +534,7 @@ async function buildDirectPrompt(config: Record<string, unknown>, businessType: 
 }
 
 async function generateHeroImage(
-  themePrompt: string,
+  _themePrompt: string,
   businessName: string,
   businessType: string,
   heroConfig?: Record<string, unknown>,

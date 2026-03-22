@@ -530,12 +530,17 @@ async function refundCredits(adminSupabase: any, userId: string, originalBalance
 // ═══════════════════════════════════════════════════════════════
 
 export async function GET() {
-  return NextResponse.json({
-    engines: {
-      basique: true,
-      tendances: !!TAVILY_API_KEY,
-      viral: !!SERPER_API_KEY,
-      expert: !!PERPLEXITY_API_KEY,
-    },
-  })
+  try {
+    return NextResponse.json({
+      engines: {
+        basique: true,
+        tendances: !!TAVILY_API_KEY,
+        viral: !!SERPER_API_KEY,
+        expert: !!PERPLEXITY_API_KEY,
+      },
+    })
+  } catch (error) {
+    console.error('[API Error] GET /api/spark-video/ideas:', error)
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 })
+  }
 }
