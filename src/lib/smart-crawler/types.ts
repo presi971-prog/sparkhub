@@ -30,6 +30,8 @@ export interface ExtractedData {
   hours: string
   faq: string
   brandColors: string
+  logoUrl: string
+  imageUrls: string[]
 }
 
 export interface GHLCustomField {

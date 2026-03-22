@@ -28,6 +28,8 @@ export function generateMiniSiteUrl(
     desc: extractedData.description || '',
     hours: extractedData.hours || '',
     colors: extractedData.brandColors || '',
+    logo: extractedData.logoUrl || '',
+    imgs: extractedData.imageUrls.join('|'),
   })
 
   return `${baseUrl}/demo-site?${params.toString()}`
