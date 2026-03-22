@@ -9,7 +9,7 @@ import type { WebhookPayload } from '@/lib/smart-crawler/types'
 // Augmenter le timeout Vercel à 60 secondes (Pro plan)
 export const maxDuration = 60
 
-const EXPECTED_PIT = process.env.GHL_PIT_TOKEN
+const SERVER_PIT = process.env.GHL_PIT_TOKEN
 
 export async function POST(request: NextRequest) {
   // 1. Rate limit : 20 req/min par IP (protection anti-spam)
@@ -48,14 +48,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing contactId' }, { status: 400 })
   }
 
-  if (!pit) {
-    return NextResponse.json({ error: 'Missing PIT token' }, { status: 400 })
-  }
-
-  // 5. Vérifier le PIT (si configuré côté serveur)
-  if (EXPECTED_PIT && pit !== EXPECTED_PIT) {
-    console.error(`[SmartCrawler] PIT invalide pour contact ${contactId}`)
-    return NextResponse.json({ error: 'Invalid PIT' }, { status: 403 })
+  // 5. Utiliser le PIT du webhook ou celui du serveur
+  const activePit = pit || SERVER_PIT
+  if (!activePit) {
+    return NextResponse.json({ error: 'No PIT token available' }, { status: 400 })
   }
 
   // 6. Au moins une URL requise
@@ -68,7 +64,7 @@ export async function POST(request: NextRequest) {
   const payload: WebhookPayload = {
     contactId,
     locationId: locationId || '',
-    pit,
+    pit: activePit,
     website: website || undefined,
     facebook_url: facebook_url || undefined,
     instagram_url: instagram_url || undefined,
