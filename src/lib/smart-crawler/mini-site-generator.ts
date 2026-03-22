@@ -17,7 +17,8 @@ export function generateMiniSiteUrl(
   companyName: string,
   extractedData: ExtractedData
 ): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkhub.digital-code-growth.com'
+  // Toujours utiliser le domaine de production (NEXT_PUBLIC_APP_URL peut être localhost)
+  const baseUrl = 'https://sparkhub.digital-code-growth.com'
 
   const params = new URLSearchParams({
     cid: contactId,
