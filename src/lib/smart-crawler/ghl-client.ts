@@ -5,18 +5,18 @@ const GHL_API_BASE = 'https://services.leadconnectorhq.com'
 const GHL_API_VERSION = '2021-07-28'
 
 interface GHLUpdatePayload {
-  customFields: Array<{ key: string; field_value: string }>
+  customFields: Array<{ id: string; field_value: string }>
 }
 
 /**
  * Met à jour les custom fields d'un contact GHL.
  * Utilise le PIT (Private Integration Token) pour l'authentification.
- * Format : { key: "contact.field_name", field_value: "valeur" }
+ * Format : { id: "internalFieldId", field_value: "valeur" }
  */
 export async function updateContactFields(
   contactId: string,
   pitToken: string,
-  fields: Array<{ key: string; field_value: string }>
+  fields: Array<{ id: string; field_value: string }>
 ): Promise<boolean> {
   const url = `${GHL_API_BASE}/contacts/${contactId}`
 

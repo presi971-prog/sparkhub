@@ -12,15 +12,14 @@ import type { WebhookPayload, CrawlResult } from './types'
 
 // IDs des custom fields GHL — à configurer dans les env vars
 // Ces IDs sont visibles dans GHL > Settings > Custom Fields
-// Clés des custom fields GHL — format "contact.xxx" (fieldKey)
-const FIELD_KEYS = {
-  description: 'contact.ai_demo_company_description',
-  industry: 'contact.ai_demo_industry',
-  services: 'contact.ai_demo_services',
-  serviceAreas: 'contact.ai_demo_service_areas',
-  hours: 'contact.ai_demo_hours',
-  memoryKey: 'contact.ai_demo_memory_key',
-  faq: 'contact.ai_demo_faq',
+// IDs internes des custom fields GHL (trouvés via l'API contacts)
+const FIELD_IDS = {
+  description: 'SinwSUnXHLkzYZfeiiAt',
+  industry: 'n8OA1p2bKpGPoR0LLBVa',
+  services: 'fa2a2U0TfblbWHBhUD1D',
+  serviceAreas: 'wPG567tRa4nL6NhXUgSb',
+  hours: '8FTympBEanG4WErZgJSO',
+  faq: 'eyTCI2cknifRwOKELlxs',
 }
 
 /**
@@ -92,13 +91,12 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
 
   // 6. Écrire dans GHL
   const fields = [
-    { key: FIELD_KEYS.description, field_value: extracted.description },
-    { key: FIELD_KEYS.industry, field_value: extracted.industry },
-    { key: FIELD_KEYS.services, field_value: extracted.services },
-    { key: FIELD_KEYS.serviceAreas, field_value: extracted.serviceAreas },
-    { key: FIELD_KEYS.hours, field_value: extracted.hours },
-    { key: FIELD_KEYS.memoryKey, field_value: memoryKey },
-    { key: FIELD_KEYS.faq, field_value: extracted.faq },
+    { id: FIELD_IDS.description, field_value: extracted.description },
+    { id: FIELD_IDS.industry, field_value: extracted.industry },
+    { id: FIELD_IDS.services, field_value: extracted.services },
+    { id: FIELD_IDS.serviceAreas, field_value: extracted.serviceAreas },
+    { id: FIELD_IDS.hours, field_value: extracted.hours },
+    { id: FIELD_IDS.faq, field_value: extracted.faq },
   ]
 
   const success = await updateContactFields(contactId, pit, fields)
