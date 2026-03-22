@@ -89,11 +89,38 @@ export function extractImageUrls(crawlResults: CrawlResult[]): string[] {
 }
 
 /**
+ * Télécharge une image et la convertit en base64.
+ */
+async function downloadImageAsBase64(imageUrl: string): Promise<{ base64: string; mediaType: string } | null> {
+  try {
+    const response = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) })
+    if (!response.ok) return null
+
+    const buffer = await response.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const contentType = response.headers.get('content-type') || 'image/jpeg'
+    const mediaType = contentType.split(';')[0].trim()
+
+    return { base64, mediaType }
+  } catch {
+    return null
+  }
+}
+
+/**
  * Analyse les couleurs dominantes d'une image via Claude Vision.
+ * Télécharge l'image d'abord (Facebook bloque Claude via robots.txt).
  */
 async function analyzeImageColors(imageUrl: string): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return ''
+
+  // Télécharger l'image en base64
+  const imageData = await downloadImageAsBase64(imageUrl)
+  if (!imageData) {
+    console.warn('[SmartCrawler] Impossible de télécharger l\'image pour analyse couleurs')
+    return ''
+  }
 
   try {
     const response = await fetch(ANTHROPIC_API_URL, {
@@ -110,7 +137,7 @@ async function analyzeImageColors(imageUrl: string): Promise<string> {
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'url', url: imageUrl } },
+            { type: 'image', source: { type: 'base64', media_type: imageData.mediaType, data: imageData.base64 } },
             { type: 'text', text: COLOR_ANALYSIS_PROMPT },
           ],
         }],
@@ -128,6 +155,7 @@ async function analyzeImageColors(imageUrl: string): Promise<string> {
     if (!jsonMatch) return ''
 
     const colors = JSON.parse(jsonMatch[0])
+    console.log(`[SmartCrawler] Couleurs détectées:`, colors)
     return [colors.primaryColor, colors.secondaryColor, colors.accentColor]
       .filter(Boolean)
       .join(',')
