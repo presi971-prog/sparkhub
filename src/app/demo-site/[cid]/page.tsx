@@ -246,8 +246,6 @@ export default async function DemoSitePage(props: {
   searchParams: Promise<Record<string, string>>
 }) {
   const { cid: contactId } = await props.params
-  const searchParams = await props.searchParams
-  const colors = searchParams.colors || ''
 
   if (!contactId) {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontFamily: 'sans-serif' }}>Aucun commerce à afficher</div>
@@ -258,8 +256,8 @@ export default async function DemoSitePage(props: {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontFamily: 'sans-serif' }}>Commerce introuvable</div>
   }
 
-  const colorList = colors.split(',').filter(c => c.startsWith('#'))
-  const primary = colorList[0] || '#e67e22'
+  // Couleur d'accent par défaut — sera remplacée par les vraies couleurs quand le custom field sera ajouté
+  const primary = '#e67e22'
 
   return <MiniSite data={data} primary={primary} />
 }
