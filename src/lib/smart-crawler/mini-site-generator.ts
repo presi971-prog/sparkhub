@@ -20,14 +20,12 @@ export function generateMiniSiteUrl(
   // Toujours utiliser le domaine de production (NEXT_PUBLIC_APP_URL peut être localhost)
   const baseUrl = 'https://sparkhub.digital-code-growth.com'
 
-  // URL courte : juste le contact ID + couleurs
+  // URL courte avec l'ID dans le chemin (pas en query param)
   // La page récupère les données directement depuis GHL
-  const params = new URLSearchParams({
-    cid: contactId,
-    colors: extractedData.brandColors || '',
-  })
+  const colors = extractedData.brandColors || ''
+  const colorParam = colors ? `?colors=${encodeURIComponent(colors)}` : ''
 
-  return `${baseUrl}/demo-site?${params.toString()}`
+  return `${baseUrl}/demo-site/${contactId}${colorParam}`
 }
 
 /**
