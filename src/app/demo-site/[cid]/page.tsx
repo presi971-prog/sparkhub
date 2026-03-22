@@ -236,6 +236,11 @@ function MiniSite({ data, primary }: { data: SiteData; primary: string }) {
           </a>
         </div>
         <div className="footer">Aperçu généré par DCG AI</div>
+        <script
+          src="https://widgets.leadconnectorhq.com/loader.js"
+          data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
+          data-widget-id="69a4824de7bf964f7dfea20d"
+        />
       </body>
     </html>
   )
