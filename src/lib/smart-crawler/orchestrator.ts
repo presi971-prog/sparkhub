@@ -89,7 +89,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   // 5. Générer un memory key unique
   const memoryKey = crypto.randomUUID()
 
-  // 6. Écrire dans GHL
+  // 6. Écrire dans GHL — custom fields
   const fields = [
     { id: FIELD_IDS.description, field_value: extracted.description },
     { id: FIELD_IDS.industry, field_value: extracted.industry },
@@ -100,6 +100,25 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   ]
 
   const success = await updateContactFields(contactId, pit, fields)
+
+  // 7. Si pas de site web → écrire l'URL du mini-site dans le champ website du contact
+  //    pour que la page démo DemoDrop affiche le mini-site au lieu d'une erreur
+  if (demoMode === 'without_site' && miniSiteUrl) {
+    const websiteUpdate = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ website: miniSiteUrl }),
+    })
+    if (websiteUpdate.ok) {
+      console.log(`[SmartCrawler] Website mis à jour avec mini-site: ${miniSiteUrl}`)
+    } else {
+      console.error(`[SmartCrawler] Échec mise à jour website: ${websiteUpdate.status}`)
+    }
+  }
 
   const duration = Date.now() - startTime
   if (success) {

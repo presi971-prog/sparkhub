@@ -6,7 +6,8 @@ import type { CrawlResult } from '../types'
 const MAX_CHARS = 8000
 
 export async function crawlWebsite(url?: string): Promise<CrawlResult> {
-  if (!url) {
+  // Filtrer les URLs vides ou invalides (GHL envoie "https://" quand le champ est vide)
+  if (!url || url.trim() === '' || url.trim() === 'https://' || url.trim() === 'http://') {
     return { source: 'website', url: '', content: '', success: false }
   }
 
