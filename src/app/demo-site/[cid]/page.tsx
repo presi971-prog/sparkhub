@@ -1,5 +1,5 @@
 // Mini-site généré pour les prospects SANS site web
-// Récupère les données du contact GHL et affiche un site pro avec les VRAIES couleurs
+// Fond clair, pro, couleurs de la marque en accent
 
 import { Suspense } from 'react'
 
@@ -12,7 +12,6 @@ const FIELD_MAP: Record<string, string> = {
   'fa2a2U0TfblbWHBhUD1D': 'services',
   'wPG567tRa4nL6NhXUgSb': 'serviceAreas',
   '8FTympBEanG4WErZgJSO': 'hours',
-  'eyTCI2cknifRwOKELlxs': 'faq',
 }
 
 interface SiteData {
@@ -51,193 +50,173 @@ async function fetchContactData(contactId: string): Promise<SiteData | null> {
   } catch { return null }
 }
 
-function MiniSite({ data, primary, secondary, accent }: { data: SiteData; primary: string; secondary: string; accent: string }) {
+function MiniSite({ data, primary }: { data: SiteData; primary: string }) {
   return (
     <html lang="fr">
       <head>
-        <title>{data.company} — Aperçu</title>
+        <title>{data.company}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style dangerouslySetInnerHTML={{ __html: `
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: ${secondary};
-            color: #fff;
+            background: #ffffff;
+            color: #1a1a2e;
             min-height: 100vh;
           }
-          .hero {
-            background: linear-gradient(180deg, ${primary}15 0%, ${secondary} 100%);
-            padding: 80px 24px 60px;
-            text-align: center;
-            border-bottom: 1px solid ${primary}30;
+          .topbar {
+            background: ${primary};
+            height: 4px;
           }
-          .badge {
-            display: inline-block;
-            background: ${primary}18;
-            color: ${primary};
-            border: 1px solid ${primary}35;
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            margin-bottom: 32px;
+          .hero {
+            background: #fafbfc;
+            padding: 60px 24px 48px;
+            text-align: center;
+            border-bottom: 1px solid #e8ecf1;
           }
           .company-name {
-            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
             font-weight: 800;
-            color: ${primary};
-            margin-bottom: 8px;
-            line-height: 1.1;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            line-height: 1.15;
           }
           .industry {
-            color: #8899aa;
+            color: ${primary};
             font-size: 14px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 28px;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
           }
           .description {
-            color: #b0bec5;
-            max-width: 620px;
+            color: #555;
+            max-width: 600px;
             margin: 0 auto;
-            line-height: 1.75;
+            line-height: 1.7;
             font-size: 16px;
           }
+          .location-bar {
+            text-align: center;
+            padding: 14px 24px;
+            background: #f5f6f8;
+            color: #666;
+            font-size: 14px;
+            border-bottom: 1px solid #e8ecf1;
+          }
           .section {
-            max-width: 780px;
+            max-width: 760px;
             margin: 0 auto;
-            padding: 56px 24px;
+            padding: 48px 24px;
           }
           .section-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
-            color: #fff;
-            margin-bottom: 28px;
+            color: #1a1a2e;
+            margin-bottom: 24px;
             text-align: center;
-            position: relative;
           }
-          .section-title::after {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 3px;
-            background: ${primary};
-            margin: 12px auto 0;
-            border-radius: 2px;
+          .section-title span {
+            display: inline-block;
+            border-bottom: 3px solid ${primary};
+            padding-bottom: 6px;
           }
           .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
           }
           .service-card {
-            background: #ffffff08;
-            border: 1px solid ${primary}20;
-            border-radius: 14px;
-            padding: 22px 18px;
-            text-align: center;
+            background: #f8f9fb;
+            border: 1px solid #e8ecf1;
+            border-left: 3px solid ${primary};
+            border-radius: 8px;
+            padding: 18px 16px;
             font-size: 15px;
-            color: #e0e6ed;
-            transition: border-color 0.2s, transform 0.2s;
-          }
-          .service-card:hover {
-            border-color: ${primary}60;
-            transform: translateY(-2px);
+            color: #333;
           }
           .hours-box {
-            background: #ffffff06;
-            border: 1px solid ${primary}15;
-            border-radius: 14px;
-            padding: 28px 24px;
-            text-align: center;
+            background: #f8f9fb;
+            border: 1px solid #e8ecf1;
+            border-radius: 10px;
+            padding: 24px;
+            max-width: 400px;
+            margin: 0 auto;
           }
           .hours-line {
-            color: #c0cad5;
+            color: #444;
             font-size: 15px;
-            padding: 6px 0;
-            border-bottom: 1px solid #ffffff08;
+            padding: 8px 0;
+            border-bottom: 1px solid #eef0f3;
+            display: flex;
+            justify-content: center;
           }
           .hours-line:last-child { border-bottom: none; }
-          .location {
-            text-align: center;
-            padding: 0 24px 20px;
-            color: #7a8a9a;
-            font-size: 14px;
+          .divider {
+            height: 1px;
+            background: #e8ecf1;
           }
           .cta-section {
             text-align: center;
-            padding: 40px 24px 60px;
-            border-top: 1px solid #ffffff08;
+            padding: 48px 24px;
+            background: #fafbfc;
+            border-top: 1px solid #e8ecf1;
           }
           .cta-text {
-            color: #8899aa;
+            color: #666;
             font-size: 15px;
-            max-width: 440px;
-            margin: 0 auto 28px;
+            max-width: 420px;
+            margin: 0 auto 24px;
             line-height: 1.6;
           }
           .cta-button {
             display: inline-block;
             background: ${primary};
             color: #fff;
-            padding: 18px 40px;
-            border-radius: 14px;
-            font-size: 17px;
+            padding: 16px 36px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 700;
             text-decoration: none;
-            box-shadow: 0 6px 30px ${primary}50;
-            transition: transform 0.2s, box-shadow 0.2s;
-          }
-          .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 40px ${primary}70;
+            box-shadow: 0 4px 16px ${primary}40;
           }
           .footer {
             text-align: center;
-            padding: 20px;
-            color: #4a5568;
-            font-size: 12px;
-          }
-          .divider {
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, ${primary}20, transparent);
-            margin: 0;
+            padding: 16px;
+            color: #aaa;
+            font-size: 11px;
+            background: #fafbfc;
           }
         `}} />
       </head>
       <body>
+        <div className="topbar" />
         <div className="hero">
-          <div className="badge">Aperçu de votre futur site</div>
           <h1 className="company-name">{data.company}</h1>
           {data.industry && <p className="industry">{data.industry}</p>}
           {data.description && <p className="description">{data.description}</p>}
         </div>
 
         {data.serviceAreas && (
-          <div className="location">📍 {data.serviceAreas}</div>
+          <div className="location-bar">📍 {data.serviceAreas}</div>
         )}
 
         {data.services.length > 0 && (
-          <>
-            <div className="divider" />
-            <div className="section">
-              <h2 className="section-title">Nos Services</h2>
-              <div className="services-grid">
-                {data.services.map((s, i) => (
-                  <div key={i} className="service-card">{s}</div>
-                ))}
-              </div>
+          <div className="section">
+            <h2 className="section-title"><span>Nos Services</span></h2>
+            <div className="services-grid">
+              {data.services.map((s, i) => (
+                <div key={i} className="service-card">{s}</div>
+              ))}
             </div>
-          </>
+          </div>
         )}
 
         {data.hours && (
           <>
             <div className="divider" />
             <div className="section">
-              <h2 className="section-title">Horaires</h2>
+              <h2 className="section-title"><span>Horaires</span></h2>
               <div className="hours-box">
                 {data.hours.split(/[;|]/).map((h, i) => (
                   <div key={i} className="hours-line">{h.trim()}</div>
@@ -247,17 +226,16 @@ function MiniSite({ data, primary, secondary, accent }: { data: SiteData; primar
           </>
         )}
 
-        <div className="divider" />
         <div className="cta-section">
           <p className="cta-text">
             Nous pouvons créer votre site professionnel et y intégrer une IA vocale
-            qui répond à vos clients 24h/24, 7j/7.
+            qui répond à vos clients 24h/24.
           </p>
           <a href="https://digital-code-growth.com" className="cta-button">
             Découvrir DCG AI
           </a>
         </div>
-        <div className="footer">Aperçu généré par DCG AI — digital-code-growth.com</div>
+        <div className="footer">Aperçu généré par DCG AI</div>
       </body>
     </html>
   )
@@ -272,19 +250,16 @@ export default async function DemoSitePage(props: {
   const colors = searchParams.colors || ''
 
   if (!contactId) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontFamily: 'sans-serif' }}>Aucun commerce à afficher</div>
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontFamily: 'sans-serif' }}>Aucun commerce à afficher</div>
   }
 
   const data = await fetchContactData(contactId)
   if (!data) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontFamily: 'sans-serif' }}>Commerce introuvable</div>
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontFamily: 'sans-serif' }}>Commerce introuvable</div>
   }
 
-  // Couleurs : depuis l'analyse IA ou défaut
   const colorList = colors.split(',').filter(c => c.startsWith('#'))
-  const primary = colorList[0] || '#e8a838'
-  const secondary = colorList[1] || '#1a1510'
-  const accent = colorList[2] || primary
+  const primary = colorList[0] || '#e67e22'
 
-  return <MiniSite data={data} primary={primary} secondary={secondary} accent={accent} />
+  return <MiniSite data={data} primary={primary} />
 }
