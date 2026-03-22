@@ -2,10 +2,12 @@
 // Reçoit les demandes de crawl depuis GHL (remplace TurboMock)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { after } from 'next/server'
 import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 import { crawlAndExtract } from '@/lib/smart-crawler/orchestrator'
 import type { WebhookPayload } from '@/lib/smart-crawler/types'
+
+// Augmenter le timeout Vercel à 60 secondes (Pro plan)
+export const maxDuration = 60
 
 const EXPECTED_PIT = process.env.GHL_PIT_TOKEN
 
@@ -79,14 +81,22 @@ export async function POST(request: NextRequest) {
     linkedin_url && 'li',
   ].filter(Boolean).join(',')}]`)
 
-  // 8. Traitement asynchrone — retourne 200 immédiatement
-  after(() => crawlAndExtract(payload))
-
-  return NextResponse.json({
-    status: 'processing',
-    contactId,
-    message: 'Smart Crawler started. Fields will be updated shortly.',
-  })
+  // 8. Traitement synchrone — on attend le résultat avant de répondre
+  try {
+    await crawlAndExtract(payload)
+    return NextResponse.json({
+      status: 'completed',
+      contactId,
+      message: 'Smart Crawler finished. Contact fields updated.',
+    })
+  } catch (error) {
+    console.error(`[SmartCrawler] Erreur pour contact ${contactId}:`, error)
+    return NextResponse.json({
+      status: 'error',
+      contactId,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }, { status: 500 })
+  }
 }
 
 // GET pour vérifier que l'endpoint est actif
