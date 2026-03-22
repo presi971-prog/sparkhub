@@ -29,7 +29,7 @@ async function fetchContactData(contactId: string): Promise<SiteData | null> {
   try {
     const response = await fetch(`${GHL_API_BASE}/contacts/${contactId}`, {
       headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
-      next: { revalidate: 60 },
+      cache: 'no-store',
     })
     if (!response.ok) return null
     const data = await response.json()
