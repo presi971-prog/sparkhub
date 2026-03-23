@@ -21,6 +21,8 @@ interface SiteData {
   services: string[]
   serviceAreas: string
   hours: string
+  email: string
+  firstName: string
 }
 
 async function fetchContactData(contactId: string): Promise<SiteData | null> {
@@ -41,6 +43,8 @@ async function fetchContactData(contactId: string): Promise<SiteData | null> {
     }
     return {
       company: contact.companyName || '',
+      email: contact.email || '',
+      firstName: contact.firstName || '',
       industry: fields.industry || '',
       description: fields.description || '',
       services: (fields.services || '').split(',').map((s: string) => s.trim()).filter(Boolean),
@@ -241,6 +245,22 @@ function MiniSite({ data, primary }: { data: SiteData; primary: string }) {
           data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
           data-widget-id="69a4824de7bf964f7dfea20d"
         />
+        {data.email && (
+          <script dangerouslySetInnerHTML={{ __html: `
+            window.addEventListener('message', function(e) {
+              if (e.data && e.data.type === 'LC_CHAT_WIDGET_READY') {
+                var iframe = document.querySelector('iframe[src*="widgets.leadconnectorhq"]');
+                if (iframe) {
+                  iframe.contentWindow.postMessage({
+                    type: 'LC_SET_CONTACT',
+                    email: '${data.email}',
+                    name: '${data.firstName}'
+                  }, '*');
+                }
+              }
+            });
+          `}} />
+        )}
       </body>
     </html>
   )
