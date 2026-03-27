@@ -33,6 +33,9 @@ export default function ConnexionPage() {
         </Suspense>
       </CardContent>
       <CardFooter className="flex flex-col gap-4 text-center text-sm">
+        <Link href="/connexion/reset-password" className="text-primary hover:underline text-sm">
+          Mot de passe oublié ?
+        </Link>
         <p className="text-muted-foreground">
           Pas encore de compte ?{' '}
           <Link href="/inscription/livreur" className="text-primary hover:underline font-medium">

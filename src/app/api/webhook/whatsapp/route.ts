@@ -1,10 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
 import { sendTextMessage, sendListMessage, markAsRead } from '@/lib/whatsapp'
 import { generateAIResponse, buildWelcomeMessage } from '@/lib/whatsapp-ai'
 import type { Commerce, CommerceItem, CommerceFaq, WhatsAppMessage } from '@/types/database'
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!
+const WHATSAPP_APP_SECRET = process.env.WHATSAPP_APP_SECRET
+
+/**
+ * Verify Meta webhook HMAC signature
+ */
+function verifyMetaSignature(rawBody: string, signatureHeader: string | null): boolean {
+  if (!WHATSAPP_APP_SECRET) {
+    console.warn('[Webhook] WHATSAPP_APP_SECRET not configured — skipping HMAC verification')
+    return true
+  }
+  if (!signatureHeader) return false
+
+  const expectedSignature = crypto
+    .createHmac('sha256', WHATSAPP_APP_SECRET)
+    .update(rawBody, 'utf8')
+    .digest('hex')
+
+  return crypto.timingSafeEqual(
+    Buffer.from(`sha256=${expectedSignature}`),
+    Buffer.from(signatureHeader)
+  )
+}
 
 // ============================================
 // GET — Vérification webhook Meta
@@ -28,7 +51,16 @@ export async function GET(request: NextRequest) {
 // ============================================
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.text()
+
+    // Verify Meta HMAC signature
+    const signature = request.headers.get('x-hub-signature-256')
+    if (!verifyMetaSignature(rawBody, signature)) {
+      console.error('[Webhook] Invalid HMAC signature')
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
+    }
+
+    const body = JSON.parse(rawBody)
 
     // Vérifier que c'est un message WhatsApp
     const entry = body?.entry?.[0]

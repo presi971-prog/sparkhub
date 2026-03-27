@@ -5,6 +5,10 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { STRIPE_PRICES, FOUNDER_CREDIT_MULTIPLIER } from '@/config/stripe'
 import Stripe from 'stripe'
 
+// Simple in-memory deduplication (reset on cold start — acceptable for idempotent handlers)
+const processedEvents = new Set<string>()
+const MAX_PROCESSED_EVENTS = 10000
+
 // Helper to get plan from price ID
 function getPlanFromPriceId(priceId: string): 'basic' | 'pro' | 'premium' | null {
   if (priceId === STRIPE_PRICES.subscriptions.basic.priceId) return 'basic'
@@ -34,6 +38,16 @@ export async function POST(request: NextRequest) {
     console.error('Webhook signature verification failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
+
+  // Deduplicate: skip already-processed events
+  if (processedEvents.has(event.id)) {
+    return NextResponse.json({ received: true, duplicate: true })
+  }
+  if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
+    const first = processedEvents.values().next().value
+    if (first) processedEvents.delete(first)
+  }
+  processedEvents.add(event.id)
 
   const supabase = await createAdminClient()
 
