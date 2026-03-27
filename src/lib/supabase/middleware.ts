@@ -37,9 +37,22 @@ export async function updateSession(request: NextRequest) {
 
   // Only call getUser() on protected/auth paths (avoid network call on public pages)
   if (isProtectedPath || isAuthPath) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    let user = null
+
+    try {
+      // Timeout de 3s pour éviter GATEWAY_TIMEOUT sur cookies expirés
+      const result = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ])
+
+      if (result && typeof result === 'object' && 'data' in result) {
+        user = (result as { data: { user: unknown } }).data.user
+      }
+    } catch {
+      // Si getUser() échoue, traiter comme non connecté
+      user = null
+    }
 
     if (isProtectedPath && !user) {
       const url = request.nextUrl.clone()
