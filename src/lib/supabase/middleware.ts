@@ -25,32 +25,34 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: getUser() valide le token avec Supabase (pas getSession qui lit le storage)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const protectedPaths = ['/tableau-de-bord', '/profil', '/credits', '/outils', '/admin']
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
-
-  if (isProtectedPath && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/connexion'
-    url.searchParams.set('redirectTo', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
-  }
 
   const authPaths = ['/connexion', '/inscription']
   const isAuthPath = authPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
 
-  if (isAuthPath && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/tableau-de-bord'
-    return NextResponse.redirect(url)
+  // Only call getUser() on protected/auth paths (avoid network call on public pages)
+  if (isProtectedPath || isAuthPath) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (isProtectedPath && !user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/connexion'
+      url.searchParams.set('redirectTo', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+
+    if (isAuthPath && user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/tableau-de-bord'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
