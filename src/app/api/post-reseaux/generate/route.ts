@@ -26,6 +26,9 @@ const STYLE_LABELS: Record<string, string> = {
   ambiance: 'Ambiance — montrer l\'atmosphère du lieu',
   performance: 'Performance — action en mouvement, énergie et dynamisme',
   lieu: 'Le lieu — l\'espace mis en valeur avec une ambiance qui donne envie',
+  studio_produit: 'Studio Produit — photo produit e-commerce avec éclairage studio professionnel',
+  decor_pro: 'Décor Pro — garder le produit, remplacer le fond par un décor professionnel',
+  mannequin_ia: 'Mannequin IA — un mannequin IA présente ou porte le produit',
 }
 
 // Agent IA unique : analyse la photo + contexte pro → génère prompt compositing + légende + hashtags
@@ -168,6 +171,30 @@ Le prompt doit :
 [E4] "Performance" :
 → Keep ONLY the person's face. REMOVE their current clothes. DRESS them in a rock-star stage outfit (open jacket, chains, rings). THE DROP MOMENT : confetti and flames erupting from the stage, thousands of hands raised, frozen strobe lights. The instant everyone loses their mind.
 
+═══ STUDIO PRODUIT (pour TOUS les types) ═══
+
+[SP] "Studio Produit" :
+→ Refer to the image provided. Keep the product/object EXACTLY as it appears — do NOT modify, redesign, or reimagine it. Simply call it "the product" in your prompt. Place the product on a clean white or light grey studio surface. Add professional studio lighting: soft key light from the left at 45 degrees, fill light from the right, subtle backlight for edge separation. Eliminate all background distractions. The result must look like a high-end e-commerce catalog photo. Sharp focus, no distractions, the product is the ONLY star. 4K product photography quality.
+
+═══ DÉCOR PRO (pour TOUS les types) ═══
+
+[DP] "Decor Pro" :
+→ Refer to the image provided. Keep the product/object EXACTLY as it appears — do NOT modify, redesign, or reimagine it. Simply call it "the product" in your prompt. REPLACE the entire background with a professional setting that matches the business type:
+- Restaurant: elegant wooden table, warm ambient restaurant, soft candlelight
+- Artisan: modern showroom, perfect lighting, design magazine setting
+- Beauté: luxury vanity counter, marble, soft pink/gold tones, orchids
+- Commerce: trendy lifestyle flat lay, pastel background, designer accessories around
+- Sport: premium gym or outdoor nature setting, dynamic lighting
+- Tourisme: tropical paradise, turquoise water, palm trees, golden hour
+- Auto: showroom floor, mirror reflections, dramatic spotlights
+- Événementiel: elegant event setup, fairy lights, premium decor
+Professional advertising photography lighting. The product remains UNTOUCHED, only the environment changes.
+
+═══ MANNEQUIN IA (pour TOUS les types) ═══
+
+[MI] "Mannequin IA" :
+→ Refer to the image provided. Keep the product/object EXACTLY as it appears — do NOT modify, redesign, or reimagine it. Simply call it "the product" in your prompt. Add a professional model naturally holding, wearing, or presenting the product. The model should be appropriate for the business type (Caribbean/Guadeloupe appearance by default). Professional advertising photography with studio or lifestyle setting. The product must be clearly visible and the focal point. The model enhances the product presentation, not the other way around.
+
 MISSION 2 — LÉGENDE + HASHTAGS (en français)
 Écris une légende Instagram/Facebook en français qui :
 - Tutoie le lecteur, ton chaleureux et proche
@@ -245,6 +272,32 @@ IMPORTANT : Réponds UNIQUEMENT au format JSON suivant, sans markdown, sans back
       tourisme: 'Using the provided image, keep the place recognizable. Transform into an unreal paradise: crystal turquoise water, tropical fish visible, pure white sand, rainbow, colorful birds in flight. More beautiful than reality.',
       auto: 'Using the provided image, keep the vehicle recognizable. Place on a night road with blurred city lights, luminous headlight trails, road sparks. Fast & Furious cinematic look.',
       evenementiel: 'Using the provided image, keep ONLY the person\'s face. REMOVE their current clothes. DRESS them in a flashy stage outfit with LED lights. Place on a massive Tomorrowland stage with 50,000 people, fireworks, smoke and lasers.',
+    }
+
+    // Fallback pour les 3 nouveaux styles produit
+    if (postStyle === 'studio_produit') {
+      return {
+        editPrompt: 'Refer to the image provided. Keep the product EXACTLY as it appears. Place it on a clean white studio surface with professional three-point lighting: key light left 45 degrees, fill light right, backlight for edge separation. E-commerce catalog quality. Sharp focus, clean background, the product is the only star.' +
+          '\n\nCRITICAL: Do NOT modify the product itself. Only change the background and lighting.',
+        caption: `${message || 'Notre produit, sublimé en studio'}\n\nQualité pro, sans quitter ${name} 📸\n\n📍 Guadeloupe`,
+        hashtags: '#guadeloupe #971 #produit #ecommerce #photopro #studio #qualite',
+      }
+    }
+    if (postStyle === 'decor_pro') {
+      return {
+        editPrompt: 'Refer to the image provided. Keep the product EXACTLY as it appears. Replace the background with an elegant professional setting with warm lighting and premium decor. Professional advertising photography.' +
+          '\n\nCRITICAL: Do NOT modify the product itself. Only change the background and environment.',
+        caption: `${message || 'On vous montre notre savoir-faire'}\n\nVenez voir par vous-même ${name} ✨\n\n📍 Guadeloupe`,
+        hashtags: '#guadeloupe #971 #gwada #antilles #qualite #pro #decouverte',
+      }
+    }
+    if (postStyle === 'mannequin_ia') {
+      return {
+        editPrompt: 'Refer to the image provided. Keep the product EXACTLY as it appears. Add a professional model naturally presenting the product in a studio or lifestyle setting. Caribbean appearance. Professional advertising photography.' +
+          '\n\nCRITICAL: Do NOT modify the product itself. The model enhances the presentation.',
+        caption: `${message || 'Découvrez notre produit porté avec style'}\n\nDisponible ${name} 🌟\n\n📍 Guadeloupe`,
+        hashtags: '#guadeloupe #971 #gwada #antilles #style #mode #produit',
+      }
     }
 
     return {

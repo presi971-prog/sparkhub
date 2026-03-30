@@ -36,6 +36,9 @@ const POST_STYLES = [
   { id: 'ambiance', label: 'Ambiance', desc: 'Ton lieu transformé en endroit de rêve magique', forTypes: ['restaurant', 'beaute', 'commerce', 'tourisme', 'evenementiel'] },
   { id: 'performance', label: 'Performance', desc: 'Action, puissance et énergie : une scène de film', forTypes: ['sport', 'evenementiel'] },
   { id: 'lieu', label: 'Le lieu', desc: 'Ton espace projeté dans un univers futuriste ou paradisiaque', forTypes: ['sport', 'tourisme'] },
+  { id: 'studio_produit', label: '📸 Studio Produit', desc: 'Ta photo produit transformée en photo e-commerce studio pro', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'decor_pro', label: '🎨 Décor Pro', desc: 'Garde ton produit, remplace le fond par un décor professionnel', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
+  { id: 'mannequin_ia', label: '🧑 Mannequin IA', desc: 'Un mannequin IA présente ou porte ton produit', forTypes: ['restaurant', 'artisan', 'beaute', 'commerce', 'sport', 'tourisme', 'auto', 'evenementiel'] },
 ]
 
 const BUSINESS_GUIDES: Record<string, { title: string; tips: string[]; photo: string }> = {
