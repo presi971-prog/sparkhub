@@ -619,7 +619,7 @@ async function submitVideoJobs(
       const prompt = videoPrompts[i]?.prompt || 'Subtle natural movement in the scene'
 
       const submitResponse = await fetch(
-        'https://queue.fal.run/fal-ai/kling-video/v3/standard/image-to-video',
+        'https://queue.fal.run/fal-ai/kling-video/v1.6/standard/image-to-video',
         {
           method: 'POST',
           headers: {
@@ -628,7 +628,7 @@ async function submitVideoJobs(
           },
           body: JSON.stringify({
             prompt,
-            start_image_url: img.image_url,
+            image_url: img.image_url,
             duration: String(clipDuration),
             aspect_ratio: '9:16',
             negative_prompt: 'bad quality, blurry, distorted, morphing face, extra limbs, deformed hands, jittery movement, sudden jumps, flickering',
