@@ -333,7 +333,7 @@ export async function POST(req: Request) {
     let falError: string | null = null
 
     try {
-      const submitResponse = await fetch('https://queue.fal.run/fal-ai/nano-banana-pro/edit', {
+      const submitResponse = await fetch('https://queue.fal.run/fal-ai/nano-banana-2/edit', {
         method: 'POST',
         headers: {
           'Authorization': `Key ${FAL_KEY}`,

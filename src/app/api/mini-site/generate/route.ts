@@ -558,8 +558,8 @@ async function generateHeroImage(
 
   console.log('[MINI-SITE] Prompt final envoye a fal.ai :', prompt)
 
-  // fal.ai flux/dev — haute qualite
-  const response = await fetch('https://fal.run/fal-ai/flux/dev', {
+  // fal.ai Nano Banana 2 — photorealisme superieur
+  const response = await fetch('https://fal.run/fal-ai/nano-banana-2', {
     method: 'POST',
     headers: {
       'Authorization': `Key ${FAL_KEY}`,
@@ -567,10 +567,9 @@ async function generateHeroImage(
     },
     body: JSON.stringify({
       prompt,
-      image_size: 'landscape_16_9',
+      aspect_ratio: '16:9',
+      resolution: '2K',
       num_images: 1,
-      num_inference_steps: 28,
-      guidance_scale: 3.5,
     }),
   })
 

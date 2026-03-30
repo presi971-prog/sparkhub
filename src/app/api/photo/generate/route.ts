@@ -13,18 +13,24 @@ const PRICING: Record<string, Record<number, number>> = {
   '4k_pro': { 1: TOOLS_CONFIG.photo_4k_1.credits, 4: TOOLS_CONFIG.photo_4k_4.credits },
 }
 
-// Modèle fal.ai selon qualité
+// Modèle fal.ai selon qualité (Nano Banana 2 = photorealisme superieur)
 const FAL_MODELS: Record<string, string> = {
-  standard: 'fal-ai/flux/dev',
-  '4k_pro': 'fal-ai/flux-pro',
+  standard: 'fal-ai/nano-banana-2',
+  '4k_pro': 'fal-ai/nano-banana-pro',
 }
 
-// Formats de sortie
-const IMAGE_SIZES: Record<string, string> = {
-  square: 'square_hd',
-  portrait: 'portrait_4_3',
-  landscape: 'landscape_16_9',
-  story: 'portrait_16_9',
+// Formats de sortie (aspect_ratio pour Nano Banana)
+const ASPECT_RATIOS: Record<string, string> = {
+  square: '1:1',
+  portrait: '4:5',
+  landscape: '16:9',
+  story: '9:16',
+}
+
+// Resolution selon qualité
+const RESOLUTIONS: Record<string, string> = {
+  standard: '2K',
+  '4k_pro': '4K',
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -362,7 +368,8 @@ export async function POST(req: Request) {
 
     // Soumettre N jobs fal.ai en parallèle (mode queue)
     const falModel = FAL_MODELS[quality] || FAL_MODELS.standard
-    const imageSize = IMAGE_SIZES[format] || IMAGE_SIZES.square
+    const aspectRatio = ASPECT_RATIOS[format] || ASPECT_RATIOS.square
+    const resolution = RESOLUTIONS[quality] || RESOLUTIONS.standard
 
     const falJobs = await Promise.allSettled(
       geminiResult.photos.map(async (photo) => {
@@ -374,9 +381,9 @@ export async function POST(req: Request) {
           },
           body: JSON.stringify({
             prompt: photo.prompt,
-            image_size: imageSize,
+            aspect_ratio: aspectRatio,
+            resolution,
             num_images: 1,
-            enable_safety_checker: false,
           }),
         })
 
