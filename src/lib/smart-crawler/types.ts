@@ -29,6 +29,7 @@ export interface ExtractedData {
   serviceAreas: string
   hours: string
   faq: string
+  hasChat: boolean
   brandColors: string
   logoUrl: string
   imageUrls: string[]

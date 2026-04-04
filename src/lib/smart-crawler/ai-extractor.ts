@@ -19,6 +19,7 @@ RÈGLES :
 - Pour le secteur, utilise un terme français (Restaurant, Salon de coiffure, Garage auto, Boulangerie, Cabinet d'avocats, etc.)
 - Pour les services, liste les principaux services/produits séparés par des virgules, en français.
 - Pour les zones de service, identifie les zones géographiques (ville, région).
+- Pour hasChat, vérifie si le site web contient un widget de chat en ligne (exemples : Tidio, Zendesk, Intercom, Drift, LiveChat, Crisp, HubSpot Chat, Tawk.to, ou tout autre widget de chat/messagerie intégré). Cherche des indices comme : balises script de chat, boutons flottants de chat, iframes de chat, mentions de "live chat", "chat with us", "chattez avec nous". Retourne true UNIQUEMENT si tu trouves des preuves concrètes d'un chat intégré. En cas de doute, retourne false.
 
 Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
 {
@@ -27,7 +28,8 @@ Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
   "services": "Liste des principaux services séparés par des virgules",
   "serviceAreas": "Zones géographiques desservies",
   "hours": "Horaires d'ouverture",
-  "faq": "Q: question ?\\nR: réponse\\n\\nQ: question ?\\nR: réponse"
+  "faq": "Q: question ?\\nR: réponse\\n\\nQ: question ?\\nR: réponse",
+  "hasChat": false
 }`
 
 const COLOR_ANALYSIS_PROMPT = `Analyse cette image (logo ou photo de profil d'une entreprise).
@@ -237,6 +239,7 @@ export async function extractBusinessData(
       serviceAreas: parsed.serviceAreas || '',
       hours: parsed.hours || '',
       faq: parsed.faq || '',
+      hasChat: parsed.hasChat === true,
       brandColors: brandColors || '',
       logoUrl: imageUrls[0] || '',
       imageUrls: imageUrls.slice(1),

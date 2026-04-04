@@ -20,6 +20,7 @@ const FIELD_IDS = {
   serviceAreas: 'wPG567tRa4nL6NhXUgSb',
   hours: '8FTympBEanG4WErZgJSO',
   faq: 'eyTCI2cknifRwOKELlxs',
+  hasChat: 'CRYCGS8LJIq6qfsp6Scd',
 }
 
 /**
@@ -90,6 +91,9 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   const memoryKey = crypto.randomUUID()
 
   // 6. Écrire dans GHL — custom fields
+  const hasChatValue = extracted.hasChat ? 'HAS CHAT' : 'NO CHAT'
+  console.log(`[SmartCrawler] Chat détecté: ${hasChatValue}`)
+
   const fields = [
     { id: FIELD_IDS.description, field_value: extracted.description },
     { id: FIELD_IDS.industry, field_value: extracted.industry },
@@ -97,6 +101,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     { id: FIELD_IDS.serviceAreas, field_value: extracted.serviceAreas },
     { id: FIELD_IDS.hours, field_value: extracted.hours },
     { id: FIELD_IDS.faq, field_value: extracted.faq },
+    { id: FIELD_IDS.hasChat, field_value: hasChatValue },
   ]
 
   const success = await updateContactFields(contactId, pit, fields)
