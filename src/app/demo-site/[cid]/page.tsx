@@ -25,35 +25,48 @@ interface SiteData {
   firstName: string
 }
 
-async function fetchContactData(cidOrEmail: string): Promise<SiteData | null> {
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamfaoqmvoqzps.supabase.co'
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+async function resolveContactId(slug: string): Promise<string | null> {
+  // D'abord essayer l'ID direct dans GHL
   const pitToken = process.env.GHL_PIT_TOKEN
-  const locationId = process.env.GHL_LOCATION_ID || '15W1kS8V6KqgTPhtzaPZ'
-  if (!pitToken || !cidOrEmail) return null
+  if (!pitToken) return null
+  const directResponse = await fetch(`${GHL_API_BASE}/contacts/${slug}`, {
+    headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
+    cache: 'no-store',
+  })
+  if (directResponse.ok) return slug
+
+  // Sinon chercher dans la table de mapping Supabase (slug en minuscules → ID original)
+  if (!SUPABASE_KEY) return null
+  const mapResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/demo_site_mapping?slug=eq.${encodeURIComponent(slug.toLowerCase())}&limit=1`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+      cache: 'no-store',
+    }
+  )
+  if (!mapResponse.ok) return null
+  const rows = await mapResponse.json()
+  if (rows.length === 0) return null
+  return rows[0].contact_id
+}
+
+async function fetchContactData(slug: string): Promise<SiteData | null> {
+  const pitToken = process.env.GHL_PIT_TOKEN
+  if (!pitToken || !slug) return null
   try {
-    // Essayer d'abord par ID direct
-    let response = await fetch(`${GHL_API_BASE}/contacts/${cidOrEmail}`, {
+    const contactId = await resolveContactId(slug)
+    if (!contactId) return null
+    const response = await fetch(`${GHL_API_BASE}/contacts/${contactId}`, {
       headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
       cache: 'no-store',
     })
-    // Si ça échoue (casse incorrecte ou c'est un email), chercher par recherche
-    if (!response.ok) {
-      const searchResponse = await fetch(
-        `${GHL_API_BASE}/contacts/?locationId=${locationId}&query=${encodeURIComponent(cidOrEmail)}&limit=1`,
-        {
-          headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
-          cache: 'no-store',
-        }
-      )
-      if (!searchResponse.ok) return null
-      const searchData = await searchResponse.json()
-      const contacts = searchData.contacts || []
-      if (contacts.length === 0) return null
-      response = await fetch(`${GHL_API_BASE}/contacts/${contacts[0].id}`, {
-        headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
-        cache: 'no-store',
-      })
-      if (!response.ok) return null
-    }
+    if (!response.ok) return null
     const data = await response.json()
     const contact = data.contact || data
     const fields: Record<string, string> = {}
