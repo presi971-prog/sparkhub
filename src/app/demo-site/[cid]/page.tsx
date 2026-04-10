@@ -136,13 +136,12 @@ function MiniSite({ data }: { data: SiteData }) {
     .join('')
     .toUpperCase()
 
-  // Couleurs dynamiques — fallback sur les couleurs SparkHub par défaut
   const c = data.brandColors || {
-    primary: '#8b5cf6',
-    background: '#0a0a1a',
-    accent: '#3b82f6',
-    text: '#e2e8f0',
-    secondary: '#0f1629',
+    primary: '#C9A84C',
+    background: '#080C1A',
+    accent: '#E8D5A3',
+    text: '#F0EDE6',
+    secondary: '#0E1330',
   }
 
   return (
@@ -152,358 +151,354 @@ function MiniSite({ data }: { data: SiteData }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
         <style dangerouslySetInnerHTML={{ __html: `
-          * { margin: 0; padding: 0; box-sizing: border-box; }
+          *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
           body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'DM Sans', -apple-system, sans-serif;
             background: ${c.background};
             color: ${c.text};
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
           }
 
-          /* Hero */
+          /* ═══ Decorative line patterns ═══ */
+          .deco-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            padding: 0 20px;
+          }
+          .deco-line::before, .deco-line::after {
+            content: '';
+            flex: 1;
+            max-width: 60px;
+            height: 1px;
+            background: ${c.primary}40;
+          }
+          .deco-diamond {
+            width: 6px;
+            height: 6px;
+            background: ${c.primary};
+            transform: rotate(45deg);
+            flex-shrink: 0;
+          }
+
+          /* ═══ Hero ═══ */
           .hero {
             position: relative;
-            padding: 80px 24px 60px;
+            padding: 48px 20px 36px;
             text-align: center;
-            background: linear-gradient(180deg, ${c.secondary} 0%, ${c.background} 100%);
+            background:
+              radial-gradient(ellipse 120% 80% at 50% -20%, ${c.primary}12 0%, transparent 60%),
+              linear-gradient(175deg, ${c.secondary} 0%, ${c.background} 100%);
             overflow: hidden;
-          }
-
-          .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, ${c.primary}20 0%, transparent 70%);
-            pointer-events: none;
           }
 
           .hero::after {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, ${c.primary}66, transparent);
+            background: linear-gradient(90deg, transparent 5%, ${c.primary}30 50%, transparent 95%);
           }
 
-          .logo-circle {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, ${c.primary}, ${c.accent});
+          .logo-wrap {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: ${c.background};
+            border: 2px solid ${c.primary}50;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            font-weight: 800;
-            color: white;
-            box-shadow: 0 8px 32px ${c.primary}50;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: ${c.primary};
             position: relative;
             overflow: hidden;
           }
 
-          .logo-circle img {
+          .logo-wrap::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, ${c.primary}00, ${c.primary}60, ${c.primary}00);
+            z-index: -1;
+          }
+
+          .logo-wrap img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 50%;
           }
 
           .company-name {
-            font-size: clamp(2rem, 5vw, 3rem);
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
             font-weight: 800;
-            color: ${c.primary};
-            margin-bottom: 8px;
-            line-height: 1.1;
-            position: relative;
+            color: ${c.text};
+            margin-bottom: 6px;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
           }
 
-          .industry-badge {
-            display: inline-block;
-            background: ${c.primary}20;
-            border: 1px solid ${c.primary}40;
-            color: ${c.primary};
-            font-size: 12px;
-            font-weight: 600;
+          .industry-tag {
+            font-size: 10px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            margin-bottom: 28px;
-            position: relative;
+            letter-spacing: 3px;
+            color: ${c.primary};
+            margin-bottom: 20px;
+            display: block;
           }
 
           .description {
-            color: #94a3b8;
-            max-width: 560px;
-            margin: 0 auto;
+            color: ${c.text}99;
+            font-size: 13px;
             line-height: 1.7;
-            font-size: 16px;
+            max-width: 320px;
+            margin: 0 auto;
+            font-weight: 300;
+          }
+
+          /* ═══ Location ═══ */
+          .location {
+            text-align: center;
+            padding: 14px 20px;
+            font-size: 12px;
+            color: ${c.primary};
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: ${c.primary}08;
+          }
+
+          /* ═══ Menu Section ═══ */
+          .menu {
+            padding: 32px 20px;
             position: relative;
           }
 
-          /* Location */
-          .location-bar {
+          .section-header {
             text-align: center;
-            padding: 16px 24px;
-            color: ${c.text}99;
-            font-size: 14px;
-            font-weight: 500;
-            border-top: 1px solid ${c.text}0d;
-            border-bottom: 1px solid ${c.text}0d;
-            background: ${c.secondary}80;
+            margin-bottom: 24px;
           }
 
-          /* Sections */
-          .section {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 56px 24px;
-          }
-
-          .section-title {
-            font-size: 22px;
+          .section-label {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
             font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 32px;
+            color: ${c.text};
+            margin-bottom: 8px;
+          }
+
+          .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+          }
+
+          .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: ${c.secondary}60;
+            border-left: 2px solid transparent;
+            transition: all 0.25s ease;
+            position: relative;
+          }
+
+          .menu-item:first-child {
+            border-radius: 12px 12px 0 0;
+          }
+          .menu-item:last-child {
+            border-radius: 0 0 12px 12px;
+          }
+
+          .menu-item:hover {
+            background: ${c.secondary};
+            border-left-color: ${c.primary};
+          }
+
+          .menu-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: ${c.primary}60;
+            margin-right: 14px;
+            flex-shrink: 0;
+          }
+
+          .menu-item:hover .menu-dot {
+            background: ${c.primary};
+            box-shadow: 0 0 8px ${c.primary}60;
+          }
+
+          .menu-text {
+            font-size: 13px;
+            color: ${c.text}cc;
+            font-weight: 400;
+            line-height: 1.3;
+          }
+
+          /* ═══ Hours ═══ */
+          .hours {
+            padding: 28px 20px;
             text-align: center;
           }
 
-          .section-title::after {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 3px;
-            background: linear-gradient(90deg, ${c.accent}, ${c.primary});
-            margin: 12px auto 0;
-            border-radius: 2px;
-          }
-
-          /* Services */
-          .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-          }
-
-          .service-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+          .hours-content {
+            background: ${c.secondary}40;
+            border: 1px solid ${c.primary}15;
             border-radius: 14px;
             padding: 20px;
-            font-size: 15px;
-            color: #cbd5e1;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-          }
-
-          .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-            background: linear-gradient(180deg, ${c.accent}, ${c.primary});
-            border-radius: 3px 0 0 3px;
-          }
-
-          .service-card:hover {
-            border-color: ${c.primary}50;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-          }
-
-          /* Hours */
-          .hours-box {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 16px;
-            padding: 28px;
-            max-width: 440px;
-            margin: 0 auto;
           }
 
           .hours-line {
-            color: #94a3b8;
-            font-size: 15px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: center;
+            color: ${c.text}88;
+            font-size: 13px;
+            padding: 8px 0;
+            font-weight: 300;
           }
 
-          .hours-line:last-child { border-bottom: none; }
-
-          /* Divider */
-          .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
-          }
-
-          /* CTA */
-          .cta-section {
+          /* ═══ CTA ═══ */
+          .cta {
+            padding: 20px 20px 32px;
             text-align: center;
-            padding: 56px 24px 80px;
-            position: relative;
           }
 
-          .cta-section::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 400px;
-            background: radial-gradient(circle, ${c.accent}15 0%, transparent 70%);
-            pointer-events: none;
+          .cta-inner {
+            background: linear-gradient(135deg, ${c.primary}15, ${c.primary}08);
+            border: 1px solid ${c.primary}25;
+            border-radius: 16px;
+            padding: 28px 20px;
           }
 
-          .cta-card {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 40px 32px;
-            max-width: 500px;
-            margin: 0 auto;
-            position: relative;
+          .cta-label {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: ${c.text};
+            margin-bottom: 8px;
           }
 
-          .cta-emoji {
-            font-size: 40px;
-            margin-bottom: 16px;
-          }
-
-          .cta-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 12px;
-          }
-
-          .cta-text {
-            color: #94a3b8;
-            font-size: 15px;
-            max-width: 380px;
-            margin: 0 auto 28px;
+          .cta-desc {
+            font-size: 12px;
+            color: ${c.text}77;
             line-height: 1.6;
+            margin-bottom: 20px;
+            font-weight: 300;
           }
 
-          .cta-button {
+          .cta-btn {
             display: inline-block;
-            background: linear-gradient(135deg, ${c.accent}, ${c.primary});
-            color: #fff;
-            padding: 14px 32px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
+            background: ${c.primary};
+            color: ${c.background};
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             text-decoration: none;
-            box-shadow: 0 4px 20px ${c.primary}50;
+            letter-spacing: 0.5px;
             transition: all 0.3s ease;
           }
 
-          .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px ${c.primary}66;
+          .cta-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px ${c.primary}40;
           }
 
-          /* Footer */
-          .footer {
+          /* ═══ Footer ═══ */
+          .foot {
             text-align: center;
-            padding: 20px;
-            color: #475569;
-            font-size: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 16px;
+            font-size: 10px;
+            color: ${c.text}33;
+            letter-spacing: 0.5px;
           }
+          .foot a { color: ${c.primary}66; text-decoration: none; }
 
-          .footer a {
-            color: ${c.primary};
-            text-decoration: none;
+          /* ═══ Animations ═══ */
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
           }
-
-          /* Responsive */
-          @media (max-width: 640px) {
-            .hero { padding: 60px 20px 48px; }
-            .section { padding: 40px 20px; }
-            .services-grid { grid-template-columns: 1fr; }
-            .cta-card { padding: 32px 24px; }
-          }
+          .hero { animation: fadeUp 0.6s ease both; }
+          .menu { animation: fadeUp 0.6s ease 0.15s both; }
+          .hours { animation: fadeUp 0.6s ease 0.25s both; }
+          .cta { animation: fadeUp 0.6s ease 0.35s both; }
         `}} />
       </head>
       <body>
         <div className="hero">
-          <div className="logo-circle">
+          <div className="logo-wrap">
             {data.logoUrl ? <img src={data.logoUrl} alt={data.company} /> : initials}
           </div>
           <h1 className="company-name">{data.company}</h1>
-          {data.industry && <div className="industry-badge">{data.industry}</div>}
-          {data.description && <p className="description">{data.description}</p>}
+          {data.industry && <span className="industry-tag">{data.industry}</span>}
+          <div className="deco-line"><div className="deco-diamond" /></div>
+          {data.description && <p className="description" style={{ marginTop: '16px' }}>{data.description}</p>}
         </div>
 
         {data.serviceAreas && (
-          <div className="location-bar">📍 {data.serviceAreas}</div>
+          <div className="location">📍 {data.serviceAreas}</div>
         )}
 
         {data.services.length > 0 && (
-          <div className="section">
-            <h2 className="section-title">Nos Services</h2>
-            <div className="services-grid">
+          <div className="menu">
+            <div className="section-header">
+              <h2 className="section-label">Nos Services</h2>
+              <div className="deco-line"><div className="deco-diamond" /></div>
+            </div>
+            <div className="menu-list">
               {data.services.map((s, i) => (
-                <div key={i} className="service-card">{s}</div>
+                <div key={i} className="menu-item">
+                  <div className="menu-dot" />
+                  <span className="menu-text">{s}</span>
+                </div>
               ))}
             </div>
           </div>
         )}
 
         {data.hours && (
-          <>
-            <div className="divider" />
-            <div className="section">
-              <h2 className="section-title">Horaires</h2>
-              <div className="hours-box">
-                {data.hours.split(/[;|]/).map((h, i) => (
-                  <div key={i} className="hours-line">{h.trim()}</div>
-                ))}
-              </div>
+          <div className="hours">
+            <div className="section-header">
+              <h2 className="section-label">Horaires</h2>
+              <div className="deco-line"><div className="deco-diamond" /></div>
             </div>
-          </>
+            <div className="hours-content">
+              {data.hours.split(/[;|]/).map((h, i) => (
+                <div key={i} className="hours-line">{h.trim()}</div>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div className="divider" />
-
-        <div className="cta-section">
-          <div className="cta-card">
-            <div className="cta-emoji">🤖</div>
-            <h3 className="cta-title">Votre assistant IA 24h/24</h3>
-            <p className="cta-text">
-              Nous pouvons créer votre site professionnel et y intégrer une IA vocale
-              qui répond à vos clients même quand vous êtes occupé.
+        <div className="cta">
+          <div className="cta-inner">
+            <h3 className="cta-label">Un assistant IA pour vous</h3>
+            <p className="cta-desc">
+              Site professionnel + IA vocale qui gère vos appels 24h/24, même quand vous êtes occupé.
             </p>
-            <a href="https://digital-code-growth.com" className="cta-button">
-              Découvrir DCG AI →
+            <a href="https://digital-code-growth.com" className="cta-btn">
+              En savoir plus
             </a>
           </div>
         </div>
 
-        <div className="footer">
-          Aperçu généré par <a href="https://digital-code-growth.com">DCG AI</a>
+        <div className="foot">
+          Aperçu par <a href="https://digital-code-growth.com">DCG AI</a>
         </div>
 
         <script
