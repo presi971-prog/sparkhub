@@ -1,12 +1,14 @@
 {
+  "crons": [
+    {
+      "path": "/api/content-machine/generate-daily",
+      "schedule": "0 8 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/demo-site/:path*",
       "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "ALLOWALL"
-        },
         {
           "key": "Content-Security-Policy",
           "value": "frame-ancestors *"
@@ -14,7 +16,7 @@
       ]
     },
     {
-      "source": "/:path*",
+      "source": "/((?!demo-site).*)",
       "headers": [
         {
           "key": "X-Frame-Options",
