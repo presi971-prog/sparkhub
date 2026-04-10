@@ -25,15 +25,35 @@ interface SiteData {
   firstName: string
 }
 
-async function fetchContactData(contactId: string): Promise<SiteData | null> {
+async function fetchContactData(cidOrEmail: string): Promise<SiteData | null> {
   const pitToken = process.env.GHL_PIT_TOKEN
-  if (!pitToken || !contactId) return null
+  const locationId = process.env.GHL_LOCATION_ID || '15W1kS8V6KqgTPhtzaPZ'
+  if (!pitToken || !cidOrEmail) return null
   try {
-    const response = await fetch(`${GHL_API_BASE}/contacts/${contactId}`, {
+    // Essayer d'abord par ID direct
+    let response = await fetch(`${GHL_API_BASE}/contacts/${cidOrEmail}`, {
       headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
       cache: 'no-store',
     })
-    if (!response.ok) return null
+    // Si ça échoue (casse incorrecte ou c'est un email), chercher par recherche
+    if (!response.ok) {
+      const searchResponse = await fetch(
+        `${GHL_API_BASE}/contacts/?locationId=${locationId}&query=${encodeURIComponent(cidOrEmail)}&limit=1`,
+        {
+          headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
+          cache: 'no-store',
+        }
+      )
+      if (!searchResponse.ok) return null
+      const searchData = await searchResponse.json()
+      const contacts = searchData.contacts || []
+      if (contacts.length === 0) return null
+      response = await fetch(`${GHL_API_BASE}/contacts/${contacts[0].id}`, {
+        headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
+        cache: 'no-store',
+      })
+      if (!response.ok) return null
+    }
     const data = await response.json()
     const contact = data.contact || data
     const fields: Record<string, string> = {}
