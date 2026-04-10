@@ -14,6 +14,14 @@ const FIELD_MAP: Record<string, string> = {
   '8FTympBEanG4WErZgJSO': 'hours',
 }
 
+interface BrandColors {
+  primary: string
+  background: string
+  accent: string
+  text: string
+  secondary: string
+}
+
 interface SiteData {
   company: string
   industry: string
@@ -23,46 +31,77 @@ interface SiteData {
   hours: string
   email: string
   firstName: string
+  brandColors: BrandColors | null
+  logoUrl: string
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamfaoqmvoqzps.supabase.co'
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-async function resolveContactId(slug: string): Promise<string | null> {
-  // D'abord essayer l'ID direct dans GHL
+interface MappingResult {
+  contactId: string
+  brandColors: BrandColors | null
+  logoUrl: string
+}
+
+async function resolveContact(slug: string): Promise<MappingResult | null> {
   const pitToken = process.env.GHL_PIT_TOKEN
   if (!pitToken) return null
+
+  // D'abord essayer l'ID direct dans GHL
   const directResponse = await fetch(`${GHL_API_BASE}/contacts/${slug}`, {
     headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
     cache: 'no-store',
   })
-  if (directResponse.ok) return slug
+  if (directResponse.ok) {
+    // ID direct OK, chercher quand même les couleurs dans Supabase
+    let brandColors: BrandColors | null = null
+    let logoUrl = ''
+    if (SUPABASE_KEY) {
+      const mapResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/demo_site_mapping?slug=eq.${encodeURIComponent(slug.toLowerCase())}&limit=1`,
+        {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          cache: 'no-store',
+        }
+      )
+      if (mapResponse.ok) {
+        const rows = await mapResponse.json()
+        if (rows.length > 0) {
+          brandColors = rows[0].brand_colors || null
+          logoUrl = rows[0].logo_url || ''
+        }
+      }
+    }
+    return { contactId: slug, brandColors, logoUrl }
+  }
 
-  // Sinon chercher dans la table de mapping Supabase (slug en minuscules → ID original)
+  // Sinon chercher dans la table de mapping Supabase
   if (!SUPABASE_KEY) return null
   const mapResponse = await fetch(
     `${SUPABASE_URL}/rest/v1/demo_site_mapping?slug=eq.${encodeURIComponent(slug.toLowerCase())}&limit=1`,
     {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-      },
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
       cache: 'no-store',
     }
   )
   if (!mapResponse.ok) return null
   const rows = await mapResponse.json()
   if (rows.length === 0) return null
-  return rows[0].contact_id
+  return {
+    contactId: rows[0].contact_id,
+    brandColors: rows[0].brand_colors || null,
+    logoUrl: rows[0].logo_url || '',
+  }
 }
 
 async function fetchContactData(slug: string): Promise<SiteData | null> {
   const pitToken = process.env.GHL_PIT_TOKEN
   if (!pitToken || !slug) return null
   try {
-    const contactId = await resolveContactId(slug)
-    if (!contactId) return null
-    const response = await fetch(`${GHL_API_BASE}/contacts/${contactId}`, {
+    const mapping = await resolveContact(slug)
+    if (!mapping) return null
+    const response = await fetch(`${GHL_API_BASE}/contacts/${mapping.contactId}`, {
       headers: { 'Authorization': `Bearer ${pitToken}`, 'Version': GHL_API_VERSION },
       cache: 'no-store',
     })
@@ -83,6 +122,8 @@ async function fetchContactData(slug: string): Promise<SiteData | null> {
       services: (fields.services || '').split(',').map((s: string) => s.trim()).filter(Boolean),
       serviceAreas: fields.serviceAreas || '',
       hours: fields.hours || '',
+      brandColors: mapping.brandColors,
+      logoUrl: mapping.logoUrl,
     }
   } catch { return null }
 }
@@ -94,6 +135,15 @@ function MiniSite({ data }: { data: SiteData }) {
     .map(w => w[0])
     .join('')
     .toUpperCase()
+
+  // Couleurs dynamiques — fallback sur les couleurs SparkHub par défaut
+  const c = data.brandColors || {
+    primary: '#8b5cf6',
+    background: '#0a0a1a',
+    accent: '#3b82f6',
+    text: '#e2e8f0',
+    secondary: '#0f1629',
+  }
 
   return (
     <html lang="fr">
@@ -108,8 +158,8 @@ function MiniSite({ data }: { data: SiteData }) {
 
           body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0a0a1a;
-            color: #e2e8f0;
+            background: ${c.background};
+            color: ${c.text};
             min-height: 100vh;
             overflow-x: hidden;
           }
@@ -119,7 +169,7 @@ function MiniSite({ data }: { data: SiteData }) {
             position: relative;
             padding: 80px 24px 60px;
             text-align: center;
-            background: linear-gradient(180deg, #0f1629 0%, #0a0a1a 100%);
+            background: linear-gradient(180deg, ${c.secondary} 0%, ${c.background} 100%);
             overflow: hidden;
           }
 
@@ -131,7 +181,7 @@ function MiniSite({ data }: { data: SiteData }) {
             transform: translateX(-50%);
             width: 800px;
             height: 800px;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+            background: radial-gradient(circle, ${c.primary}20 0%, transparent 70%);
             pointer-events: none;
           }
 
@@ -142,7 +192,7 @@ function MiniSite({ data }: { data: SiteData }) {
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent);
+            background: linear-gradient(90deg, transparent, ${c.primary}66, transparent);
           }
 
           .logo-circle {
@@ -150,21 +200,28 @@ function MiniSite({ data }: { data: SiteData }) {
             height: 80px;
             margin: 0 auto 24px;
             border-radius: 20px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, ${c.primary}, ${c.accent});
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 28px;
             font-weight: 800;
             color: white;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 8px 32px ${c.primary}50;
             position: relative;
+            overflow: hidden;
+          }
+
+          .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
           }
 
           .company-name {
             font-size: clamp(2rem, 5vw, 3rem);
             font-weight: 800;
-            color: #f8fafc;
+            color: ${c.primary};
             margin-bottom: 8px;
             line-height: 1.1;
             position: relative;
@@ -172,9 +229,9 @@ function MiniSite({ data }: { data: SiteData }) {
 
           .industry-badge {
             display: inline-block;
-            background: rgba(139, 92, 246, 0.15);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            color: #a78bfa;
+            background: ${c.primary}20;
+            border: 1px solid ${c.primary}40;
+            color: ${c.primary};
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
@@ -198,12 +255,12 @@ function MiniSite({ data }: { data: SiteData }) {
           .location-bar {
             text-align: center;
             padding: 16px 24px;
-            color: #64748b;
+            color: ${c.text}99;
             font-size: 14px;
             font-weight: 500;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(15, 22, 41, 0.5);
+            border-top: 1px solid ${c.text}0d;
+            border-bottom: 1px solid ${c.text}0d;
+            background: ${c.secondary}80;
           }
 
           /* Sections */
@@ -226,7 +283,7 @@ function MiniSite({ data }: { data: SiteData }) {
             display: block;
             width: 40px;
             height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(90deg, ${c.accent}, ${c.primary});
             margin: 12px auto 0;
             border-radius: 2px;
           }
@@ -259,12 +316,12 @@ function MiniSite({ data }: { data: SiteData }) {
             left: 0;
             width: 3px;
             height: 100%;
-            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(180deg, ${c.accent}, ${c.primary});
             border-radius: 3px 0 0 3px;
           }
 
           .service-card:hover {
-            border-color: rgba(139, 92, 246, 0.3);
+            border-color: ${c.primary}50;
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           }
@@ -313,7 +370,7 @@ function MiniSite({ data }: { data: SiteData }) {
             transform: translateX(-50%);
             width: 600px;
             height: 400px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            background: radial-gradient(circle, ${c.accent}15 0%, transparent 70%);
             pointer-events: none;
           }
 
@@ -351,20 +408,20 @@ function MiniSite({ data }: { data: SiteData }) {
 
           .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, ${c.accent}, ${c.primary});
             color: #fff;
             padding: 14px 32px;
             border-radius: 12px;
             font-size: 15px;
             font-weight: 700;
             text-decoration: none;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 4px 20px ${c.primary}50;
             transition: all 0.3s ease;
           }
 
           .cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 8px 30px ${c.primary}66;
           }
 
           /* Footer */
@@ -377,7 +434,7 @@ function MiniSite({ data }: { data: SiteData }) {
           }
 
           .footer a {
-            color: #8b5cf6;
+            color: ${c.primary};
             text-decoration: none;
           }
 
@@ -392,7 +449,9 @@ function MiniSite({ data }: { data: SiteData }) {
       </head>
       <body>
         <div className="hero">
-          <div className="logo-circle">{initials}</div>
+          <div className="logo-circle">
+            {data.logoUrl ? <img src={data.logoUrl} alt={data.company} /> : initials}
+          </div>
           <h1 className="company-name">{data.company}</h1>
           {data.industry && <div className="industry-badge">{data.industry}</div>}
           {data.description && <p className="description">{data.description}</p>}
