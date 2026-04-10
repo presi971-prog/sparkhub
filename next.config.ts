@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       {
         source: '/demo-site/:path*',
         headers: [
-          { key: 'X-Frame-Options', value: 'ALLOWALL' },
+          { key: 'X-Frame-Options', value: '' },
           { key: 'Content-Security-Policy', value: 'frame-ancestors *' },
         ],
       },
