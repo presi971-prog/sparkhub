@@ -21,7 +21,8 @@ import {
   Shield,
   FileText,
   Users,
-  MessageCircle
+  MessageCircle,
+  Zap
 } from 'lucide-react'
 import { useState } from 'react'
 import { Profile, Tier } from '@/types/database'
@@ -44,6 +45,7 @@ const secondaryNav = [
 ]
 
 const adminNav = [
+  { name: 'Content Machine', href: '/content-machine', icon: Zap },
   { name: 'Dashboard Admin', href: '/admin', icon: Shield },
   { name: 'Ressources', href: '/admin/ressources', icon: FileText },
   { name: 'Utilisateurs', href: '/admin/utilisateurs', icon: Users },
