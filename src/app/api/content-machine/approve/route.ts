@@ -60,11 +60,15 @@ export async function PATCH(req: Request) {
     // Construire la mise a jour
     const updateData: Record<string, unknown> = {
       status: STATUS_MAP[action],
-      reviewed_at: new Date().toISOString(),
+    }
+
+    // Schema cm_contents : approved_at (pas reviewed_at), text_content (pas text)
+    if (action === 'approve') {
+      updateData.approved_at = new Date().toISOString()
     }
 
     if (action === 'modify' && newText) {
-      updateData.text = newText
+      updateData.text_content = newText
     }
 
     // Appliquer la mise a jour
