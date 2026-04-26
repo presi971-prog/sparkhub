@@ -11,8 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  Send,
-  ExternalLink,
 } from 'lucide-react'
 
 // Brand color mapping
@@ -47,8 +45,6 @@ interface ContentCardProps {
     content_type: string
     status: string
     created_at: string
-    fb_post_id?: string | null
-    ig_post_id?: string | null
     brand?: {
       id: string
       name: string
@@ -66,7 +62,6 @@ interface ContentCardProps {
   onReject?: (id: string) => void
   onEdit?: (id: string, text: string) => void
   onRegenerate?: (id: string) => void
-  onPublish?: (id: string) => void
 }
 
 export function ContentCard({
@@ -75,7 +70,6 @@ export function ContentCard({
   onReject,
   onEdit,
   onRegenerate,
-  onPublish,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -172,9 +166,25 @@ export function ContentCard({
           </div>
         ) : (
           <div>
-            <p className={`text-sm text-slate-300 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
-              {text || 'Aucun texte'}
-            </p>
+            {/* Premiere ligne = titre (format genere par Claude : "TITRE\n\ndescription") */}
+            {(() => {
+              const firstNewline = text.indexOf('\n')
+              const hasTitle = firstNewline > 0 && firstNewline < 120
+              const title = hasTitle ? text.slice(0, firstNewline).trim() : null
+              const body = hasTitle ? text.slice(firstNewline).trim() : text
+              return (
+                <>
+                  {title && (
+                    <h3 className="text-base font-semibold text-slate-100 mb-2 leading-snug">
+                      {title}
+                    </h3>
+                  )}
+                  <p className={`text-sm text-slate-300 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
+                    {body || 'Aucun texte'}
+                  </p>
+                </>
+              )
+            })()}
             {isLong && (
               <button
                 onClick={() => setExpanded(!expanded)}
@@ -246,41 +256,6 @@ export function ContentCard({
               Rejeter
             </button>
           </>
-        )}
-
-        {/* Publish action — visible quand approuve ou echec publi */}
-        {(content.status === 'approved' || content.status === 'publish_failed') && (
-          <button
-            onClick={() => onPublish?.(content.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors"
-          >
-            <Send className="h-3.5 w-3.5" />
-            {content.status === 'publish_failed' ? 'Reessayer' : 'Publier FB+IG'}
-          </button>
-        )}
-
-        {/* Liens vers les posts publies */}
-        {content.fb_post_id && (
-          <a
-            href={`https://www.facebook.com/${content.fb_post_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 text-xs font-medium hover:bg-blue-500/20 transition-colors"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Voir FB
-          </a>
-        )}
-        {content.ig_post_id && (
-          <a
-            href={`https://www.instagram.com/p/${content.ig_post_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 text-pink-300 text-xs font-medium hover:bg-pink-500/20 transition-colors"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Voir IG
-          </a>
         )}
 
         {/* Secondary actions */}
