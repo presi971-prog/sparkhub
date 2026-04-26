@@ -45,28 +45,45 @@ interface CalendarEntry {
  * Genere le texte pour un contenu en appelant Claude directement
  * (pas de fetch interne pour eviter les problemes de cold start / timeout).
  */
+interface Proposition {
+  title: string
+  description: string
+}
+
+interface GenerateTextResult {
+  propositions: Proposition[]
+  imagePrompt: string
+}
+
 async function generateTextForEntry(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   brand: any,
   contentType: string,
   theme: string
-): Promise<{ text: string; imagePrompts: string[]; slides?: unknown[]; videoScript?: unknown }> {
+): Promise<GenerateTextResult> {
   const args = (brand.key_arguments || []).join(', ')
   const colors = brand.colors || {}
 
   const photoStyle = `photorealistic professional photograph, shot on Canon EOS R5, natural lighting, shallow depth of field, 8K quality. NEVER illustration, NEVER cartoon, NEVER drawing, NEVER digital art, NEVER anime, NEVER clipart. Real people, real places, real objects only.`
 
-  let formatInstruction = ''
-  if (contentType === 'post_image') {
-    formatInstruction = `Genere un post avec texte en francais + 1 prompt d'image en ANGLAIS.
-JSON: { "text": "texte du post en francais avec emojis et hashtags", "imagePrompts": ["${photoStyle} Caribbean/Guadeloupe tropical setting, brand colors ${colors.primary || ''} and ${colors.secondary || ''}, diverse Caribbean people with dark/mixed skin, square 1080x1080, warm golden hour lighting. No text, no logos, no watermarks in image. Describe the SPECIFIC scene relevant to the post theme."] }`
-  } else if (contentType === 'carousel') {
-    formatInstruction = `Genere un carousel (4-6 slides) avec textes en francais + prompts image en ANGLAIS.
-JSON: { "text": "accroche en francais", "slides": [{"title":"titre court", "text":"explication 2-3 phrases", "imagePrompt":"${photoStyle} Caribbean setting, brand colors ${colors.primary || ''} ${colors.secondary || ''}, square format, specific scene for this slide"}], "imagePrompts": ["slide 1 prompt", "slide 2 prompt"] }`
-  } else {
-    formatInstruction = `Genere un script video (15-30s) avec voix off en francais + prompts image en ANGLAIS.
-JSON: { "text": "accroche en francais", "videoScript": {"title":"titre", "scenes":[{"sceneNumber":1, "voiceover":"texte voix off en francais", "visualDescription":"description visuelle", "imagePrompt":"${photoStyle} Caribbean Guadeloupe, brand colors ${colors.primary || ''} ${colors.secondary || ''}, cinematic, square format"}]}, "imagePrompts": ["scene 1 prompt"] }`
-  }
+  // Mode "5 propositions" : pour chaque theme on genere 5 angles editoriaux
+  // distincts. Thierry choisira lesquels publier. 1 image commune partagee
+  // par les 5 propositions (cout maitrise).
+  const formatInstruction = `Genere 5 propositions de post DIFFERENTES sur ce theme, chacune avec un angle editorial distinct (douleur / preuve / pedagogie / temoignage / promotion). Chaque proposition a un TITRE court (max 10 mots, accrocheur) et une DESCRIPTION complete (3 a 6 lignes, emojis moderes 1-2, hashtags FR a la fin dont 1 sur la Guadeloupe).
+
+JSON STRICT (sans markdown, sans backticks) :
+{
+  "propositions": [
+    { "title": "titre court 1", "description": "description complete 1 avec emojis et hashtags" },
+    { "title": "titre court 2", "description": "..." },
+    { "title": "titre court 3", "description": "..." },
+    { "title": "titre court 4", "description": "..." },
+    { "title": "titre court 5", "description": "..." }
+  ],
+  "imagePrompt": "${photoStyle} Caribbean/Guadeloupe tropical setting, brand colors ${colors.primary || ''} and ${colors.secondary || ''}, diverse Caribbean people with dark/mixed skin, square 1080x1080, warm golden hour lighting. No text, no logos, no watermarks. Describe the SPECIFIC scene relevant to the post theme."
+}
+
+CONTENT TYPE = ${contentType} (info pour adapter le ton, mais le format JSON ci-dessus reste identique).`
 
   const systemPrompt = `Tu es un expert en creation de contenu pour les reseaux sociaux, specialise dans le marche de la Guadeloupe et des Antilles francaises.
 
@@ -228,66 +245,83 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
           continue
         }
 
-        // === POST IMAGE / CAROUSEL : pipeline standard ===
-        // 1. Generer le texte
+        // === POST IMAGE / CAROUSEL : pipeline 5 propositions ===
+        // 1. Generer 5 angles editoriaux + 1 prompt image commun
         const textResult = await generateTextForEntry(
           entry.cm_brands,
           entry.content_type,
           entry.theme
         )
 
-        // 2. Generer les images sequentiellement
-        const assets: Array<{ storagePath: string; publicUrl: string; prompt: string }> = []
+        if (!Array.isArray(textResult.propositions) || textResult.propositions.length === 0) {
+          throw new Error('Claude n\'a renvoye aucune proposition exploitable')
+        }
 
-        for (const prompt of textResult.imagePrompts) {
-          try {
-            const imageUrls = await generateKieImage(prompt, '1:1')
-            const imageResponse = await fetch(imageUrls[0])
-            if (!imageResponse.ok) continue
-
+        // 2. Generer 1 image commune (partagee par les 5 propositions)
+        let storagePath: string | null = null
+        let publicUrl: string | null = null
+        try {
+          const imageUrls = await generateKieImage(textResult.imagePrompt, '1:1')
+          const imageResponse = await fetch(imageUrls[0])
+          if (imageResponse.ok) {
             const imageBuffer = await imageResponse.arrayBuffer()
             const timestamp = Date.now()
-            const storagePath = `${entry.cm_brands.slug}/${today}/${timestamp}.png`
-
+            storagePath = `${entry.cm_brands.slug}/${today}/${timestamp}.png`
             const { error: uploadError } = await supabase.storage
               .from('content-machine')
               .upload(storagePath, imageBuffer, { contentType: 'image/png', upsert: false })
-
-            if (!uploadError) {
+            if (uploadError) {
+              storagePath = null
+            } else {
               const { data: publicUrlData } = supabase.storage.from('content-machine').getPublicUrl(storagePath)
-              assets.push({ storagePath, publicUrl: publicUrlData.publicUrl, prompt })
+              publicUrl = publicUrlData.publicUrl
             }
-          } catch (imgError) {
-            console.error(`[generate-daily] Erreur image pour ${entry.id}:`, imgError)
           }
+        } catch (imgError) {
+          console.error(`[generate-daily] Erreur image pour ${entry.id}:`, imgError)
         }
 
-        // 3. Stocker le contenu
-        const { data: content, error: contentError } = await supabase
-          .from('cm_contents')
-          .insert({
-            brand_id: entry.brand_id,
-            calendar_id: entry.id,
-            content_type: entry.content_type,
-            text_content: textResult.text,
-            text_prompt: `Theme: ${entry.theme}`,
-            image_prompts: textResult.imagePrompts,
-            video_script: textResult.videoScript ? JSON.stringify(textResult.videoScript) : null,
-            status: 'pending',
-          })
-          .select().single()
+        // 3. Pour chaque proposition : 1 cm_contents + 1 cm_assets (meme image)
+        let createdCount = 0
+        for (let i = 0; i < textResult.propositions.length; i++) {
+          const prop = textResult.propositions[i]
+          const text = `${prop.title}\n\n${prop.description}`
 
-        if (contentError) throw new Error(`Erreur cm_contents: ${contentError.message}`)
+          const { data: content, error: contentError } = await supabase
+            .from('cm_contents')
+            .insert({
+              brand_id: entry.brand_id,
+              calendar_id: entry.id,
+              content_type: entry.content_type,
+              text_content: text,
+              text_prompt: `Theme: ${entry.theme} | Angle ${i + 1}/${textResult.propositions.length}`,
+              image_prompts: [textResult.imagePrompt],
+              status: 'pending',
+            })
+            .select().single()
 
-        // 4. Stocker les assets
-        for (const asset of assets) {
-          await supabase.from('cm_assets').insert({
-            content_id: content.id, type: 'image', storage_path: asset.storagePath,
-            public_url: asset.publicUrl, prompt: asset.prompt, position: assets.indexOf(asset),
-          })
+          if (contentError) {
+            console.error(`[generate-daily] Erreur insert proposition ${i}:`, contentError)
+            continue
+          }
+
+          if (storagePath && publicUrl) {
+            await supabase.from('cm_assets').insert({
+              content_id: content.id,
+              type: 'image',
+              storage_path: storagePath,
+              public_url: publicUrl,
+              prompt: textResult.imagePrompt,
+              position: 0,
+            })
+          }
+          createdCount++
         }
 
-        // 5. Mettre a jour le calendrier
+        if (createdCount === 0) {
+          throw new Error('Aucune proposition n\'a pu etre persistee')
+        }
+
         await supabase.from('cm_calendar').update({ status: 'generated' }).eq('id', entry.id)
         results.push({ calendarId: entry.id, brand: entry.cm_brands.slug, status: 'success' })
       } catch (entryError) {
