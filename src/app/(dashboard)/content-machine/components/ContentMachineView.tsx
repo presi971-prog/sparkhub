@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ContentCard } from './ContentCard'
 import {
   Sparkles,
   Calendar,
   Filter,
-  Loader2,
   FileText,
 } from 'lucide-react'
 
@@ -65,8 +65,8 @@ const TYPE_DOT_COLORS: Record<string, string> = {
 }
 
 export function ContentMachineView({ contents, calendar, brands }: ContentMachineViewProps) {
+  const router = useRouter()
   const [activeBrand, setActiveBrand] = useState<string>('all')
-  const [isGenerating, setIsGenerating] = useState(false)
 
   // Filter contents by selected brand
   const filteredContents = activeBrand === 'all'
@@ -96,35 +96,34 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
     return date.toDateString() === today.toDateString()
   }
 
-  // Action handlers (placeholder - will connect to API)
-  const handleApprove = async (id: string) => {
-    // TODO: call API route to update status
-    console.log('Approve:', id)
-  }
-
-  const handleReject = async (id: string) => {
-    // TODO: call API route to update status
-    console.log('Reject:', id)
-  }
-
-  const handleEdit = async (id: string, text: string) => {
-    // TODO: call API route to update text
-    console.log('Edit:', id, text)
-  }
-
-  const handleRegenerate = async (id: string) => {
-    // TODO: call API route to regenerate
-    console.log('Regenerate:', id)
-  }
-
-  const handleGenerate = async () => {
-    setIsGenerating(true)
+  const callApprove = async (
+    id: string,
+    action: 'approve' | 'reject' | 'modify',
+    newText?: string,
+  ) => {
     try {
-      // TODO: call API route to trigger generation
-      await new Promise((r) => setTimeout(r, 2000))
-    } finally {
-      setIsGenerating(false)
+      const res = await fetch('/api/content-machine/approve', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentId: id, action, newText }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(`Echec : ${err.error || res.statusText}`)
+        return
+      }
+      router.refresh()
+    } catch (e) {
+      alert(`Erreur reseau : ${e instanceof Error ? e.message : String(e)}`)
     }
+  }
+
+  const handleApprove = (id: string) => callApprove(id, 'approve')
+  const handleReject = (id: string) => callApprove(id, 'reject')
+  const handleEdit = (id: string, text: string) => callApprove(id, 'modify', text)
+  const handleRegenerate = (id: string) => {
+    if (!confirm('Rejeter ce contenu ? Le cron pourra regenerer demain.')) return
+    callApprove(id, 'reject')
   }
 
   const pendingCount = filteredContents.filter((c) => c.status === 'pending').length
@@ -216,27 +215,10 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
             <h3 className="text-lg font-semibold text-slate-300 mb-2">
               Aucun contenu genere aujourd&apos;hui
             </h3>
-            <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
-              Le contenu sera genere automatiquement selon le calendrier editorial.
-              Tu peux aussi lancer une generation manuelle.
+            <p className="text-sm text-slate-500 max-w-md mx-auto">
+              Le cron auto genere les contenus chaque nuit a 4h (Guadeloupe)
+              selon le calendrier editorial. Reviens demain matin pour valider.
             </p>
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 text-white font-medium text-sm hover:from-blue-600 hover:to-violet-600 transition-all shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generation en cours...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generer maintenant
-                </>
-              )}
-            </button>
           </div>
         )}
       </section>
