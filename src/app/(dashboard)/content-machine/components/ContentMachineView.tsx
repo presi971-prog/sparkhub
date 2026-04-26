@@ -126,6 +126,32 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
     callApprove(id, 'reject')
   }
 
+  const handlePublish = async (id: string) => {
+    if (!confirm('Publier sur Facebook + Instagram ?')) return
+    try {
+      const res = await fetch('/api/content-machine/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentId: id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        alert(`Echec publication : ${data.error || res.statusText}`)
+        return
+      }
+      const fb = data.results?.facebook
+      const ig = data.results?.instagram
+      const lines = [
+        fb ? `Facebook : ${fb.ok ? 'OK (' + fb.postId + ')' : 'echec — ' + fb.error}` : null,
+        ig ? `Instagram : ${ig.ok ? 'OK (' + ig.postId + ')' : 'echec — ' + ig.error}` : null,
+      ].filter(Boolean).join('\n')
+      alert(lines || 'Publication terminee')
+      router.refresh()
+    } catch (e) {
+      alert(`Erreur reseau : ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
   const pendingCount = filteredContents.filter((c) => c.status === 'pending').length
   const approvedCount = filteredContents.filter((c) => c.status === 'approved').length
 
@@ -201,6 +227,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
                 onReject={handleReject}
                 onEdit={handleEdit}
                 onRegenerate={handleRegenerate}
+                onPublish={handlePublish}
               />
             ))}
           </div>

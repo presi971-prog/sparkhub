@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
+  Send,
+  ExternalLink,
 } from 'lucide-react'
 
 // Brand color mapping
@@ -32,7 +34,10 @@ const STATUS_STYLES: Record<string, { label: string; color: string }> = {
   pending: { label: 'En attente', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' },
   approved: { label: 'Approuve', color: 'bg-green-500/20 text-green-300 border-green-500/30' },
   rejected: { label: 'Rejete', color: 'bg-red-500/20 text-red-300 border-red-500/30' },
+  publishing: { label: 'Publication...', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' },
   published: { label: 'Publie', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+  publish_failed: { label: 'Echec publi.', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' },
+  modified: { label: 'Modifie', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
 }
 
 interface ContentCardProps {
@@ -42,6 +47,8 @@ interface ContentCardProps {
     content_type: string
     status: string
     created_at: string
+    fb_post_id?: string | null
+    ig_post_id?: string | null
     brand?: {
       id: string
       name: string
@@ -59,6 +66,7 @@ interface ContentCardProps {
   onReject?: (id: string) => void
   onEdit?: (id: string, text: string) => void
   onRegenerate?: (id: string) => void
+  onPublish?: (id: string) => void
 }
 
 export function ContentCard({
@@ -67,6 +75,7 @@ export function ContentCard({
   onReject,
   onEdit,
   onRegenerate,
+  onPublish,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -237,6 +246,41 @@ export function ContentCard({
               Rejeter
             </button>
           </>
+        )}
+
+        {/* Publish action — visible quand approuve ou echec publi */}
+        {(content.status === 'approved' || content.status === 'publish_failed') && (
+          <button
+            onClick={() => onPublish?.(content.id)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-medium hover:bg-blue-500/25 transition-colors"
+          >
+            <Send className="h-3.5 w-3.5" />
+            {content.status === 'publish_failed' ? 'Reessayer' : 'Publier FB+IG'}
+          </button>
+        )}
+
+        {/* Liens vers les posts publies */}
+        {content.fb_post_id && (
+          <a
+            href={`https://www.facebook.com/${content.fb_post_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 text-xs font-medium hover:bg-blue-500/20 transition-colors"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Voir FB
+          </a>
+        )}
+        {content.ig_post_id && (
+          <a
+            href={`https://www.instagram.com/p/${content.ig_post_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 text-pink-300 text-xs font-medium hover:bg-pink-500/20 transition-colors"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Voir IG
+          </a>
         )}
 
         {/* Secondary actions */}
