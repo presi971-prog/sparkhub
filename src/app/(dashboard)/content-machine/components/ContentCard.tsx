@@ -175,11 +175,11 @@ export function ContentCard({
               return (
                 <>
                   {title && (
-                    <h3 className="text-base font-semibold text-slate-100 mb-2 leading-snug">
+                    <h3 className="text-lg font-semibold text-white mb-2 leading-snug">
                       {title}
                     </h3>
                   )}
-                  <p className={`text-sm text-slate-300 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
+                  <p className={`text-base text-slate-100 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
                     {body || 'Aucun texte'}
                   </p>
                 </>
