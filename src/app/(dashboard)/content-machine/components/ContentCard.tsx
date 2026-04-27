@@ -13,29 +13,29 @@ import {
   Image as ImageIcon,
 } from 'lucide-react'
 
-// Brand color mapping
+// Brand color mapping (badges sur fond blanc)
 const BRAND_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  cobeone: { bg: 'bg-violet-500/20', text: 'text-violet-300', border: 'border-violet-500/30' },
-  'dcg ai': { bg: 'bg-blue-500/20', text: 'text-blue-300', border: 'border-blue-500/30' },
-  sparkhub: { bg: 'bg-pink-500/20', text: 'text-pink-300', border: 'border-pink-500/30' },
+  cobeone: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+  'dcg ai': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  sparkhub: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
 }
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  post: { label: 'Post', color: 'bg-emerald-500/20 text-emerald-300' },
-  carrousel: { label: 'Carrousel', color: 'bg-amber-500/20 text-amber-300' },
-  video: { label: 'Video', color: 'bg-rose-500/20 text-rose-300' },
-  story: { label: 'Story', color: 'bg-cyan-500/20 text-cyan-300' },
-  reel: { label: 'Reel', color: 'bg-fuchsia-500/20 text-fuchsia-300' },
+  post: { label: 'Post', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+  carrousel: { label: 'Carrousel', color: 'bg-amber-50 text-amber-700 border border-amber-200' },
+  video: { label: 'Video', color: 'bg-rose-50 text-rose-700 border border-rose-200' },
+  story: { label: 'Story', color: 'bg-cyan-50 text-cyan-700 border border-cyan-200' },
+  reel: { label: 'Reel', color: 'bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200' },
 }
 
 const STATUS_STYLES: Record<string, { label: string; color: string }> = {
-  pending: { label: 'En attente', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' },
-  approved: { label: 'Approuve', color: 'bg-green-500/20 text-green-300 border-green-500/30' },
-  rejected: { label: 'Rejete', color: 'bg-red-500/20 text-red-300 border-red-500/30' },
-  publishing: { label: 'Publication...', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' },
-  published: { label: 'Publie', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-  publish_failed: { label: 'Echec publi.', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' },
-  modified: { label: 'Modifie', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+  pending: { label: 'En attente', color: 'bg-yellow-50 text-yellow-800 border-yellow-300' },
+  approved: { label: 'Approuve', color: 'bg-green-50 text-green-800 border-green-300' },
+  rejected: { label: 'Rejete', color: 'bg-red-50 text-red-800 border-red-300' },
+  publishing: { label: 'Publication...', color: 'bg-cyan-50 text-cyan-800 border-cyan-300' },
+  published: { label: 'Publie', color: 'bg-blue-50 text-blue-800 border-blue-300' },
+  publish_failed: { label: 'Echec publi.', color: 'bg-orange-50 text-orange-800 border-orange-300' },
+  modified: { label: 'Modifie', color: 'bg-purple-50 text-purple-800 border-purple-300' },
 }
 
 interface ContentCardProps {
@@ -77,9 +77,9 @@ export function ContentCard({
   const [copied, setCopied] = useState(false)
 
   const brandKey = content.brand?.name?.toLowerCase() || ''
-  const brandStyle = BRAND_COLORS[brandKey] || { bg: 'bg-slate-500/20', text: 'text-slate-300', border: 'border-slate-500/30' }
+  const brandStyle = BRAND_COLORS[brandKey] || { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' }
   const contentTypeKey = content.content_type === 'post_image' ? 'post' : content.content_type
-  const typeStyle = TYPE_LABELS[contentTypeKey] || { label: content.content_type, color: 'bg-slate-500/20 text-slate-300' }
+  const typeStyle = TYPE_LABELS[contentTypeKey] || { label: content.content_type, color: 'bg-slate-50 text-slate-700 border border-slate-200' }
   const statusStyle = STATUS_STYLES[content.status] || STATUS_STYLES.pending
 
   const text = content.text_content || ''
@@ -123,7 +123,7 @@ export function ContentCard({
   const images = content.assets?.filter((a) => a.type === 'image' || a.type === 'carousel_slide') || []
 
   return (
-    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-5 shadow-2xl hover:-translate-y-1 hover:shadow-primary/5 transition-all duration-300">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
       {/* Header: brand + type + status */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         {content.brand && (
@@ -147,18 +147,18 @@ export function ContentCard({
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               rows={6}
-              className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 resize-y"
+              className="w-full bg-white border border-slate-300 rounded-lg p-3 text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-y"
             />
             <div className="flex gap-2">
               <button
                 onClick={handleSaveEdit}
-                className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-300 text-xs font-medium hover:bg-green-500/30 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 border border-green-200 text-xs font-medium hover:bg-green-200 transition-colors"
               >
                 Enregistrer
               </button>
               <button
                 onClick={handleCancelEdit}
-                className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium hover:bg-white/10 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium hover:bg-slate-200 transition-colors"
               >
                 Annuler
               </button>
@@ -175,11 +175,11 @@ export function ContentCard({
               return (
                 <>
                   {title && (
-                    <h3 className="text-lg font-semibold text-white mb-2 leading-snug">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2 leading-snug">
                       {title}
                     </h3>
                   )}
-                  <p className={`text-base text-slate-100 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
+                  <p className={`text-base text-slate-800 leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-3' : ''}`}>
                     {body || 'Aucun texte'}
                   </p>
                 </>
@@ -188,7 +188,7 @@ export function ContentCard({
             {isLong && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="mt-1 flex items-center gap-1 text-xs text-primary/70 hover:text-primary transition-colors"
+                className="mt-1 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 {expanded ? (
                   <>
@@ -211,7 +211,7 @@ export function ContentCard({
           {images.slice(0, 4).map((asset) => (
             <div
               key={asset.id}
-              className="relative aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10"
+              className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -230,27 +230,27 @@ export function ContentCard({
       )}
 
       {images.length === 0 && (
-        <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <ImageIcon className="h-4 w-4 text-slate-600" />
+        <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+          <ImageIcon className="h-4 w-4 text-slate-500" />
           <span className="text-xs text-slate-600">Aucun visuel</span>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
+      <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200">
         {/* Primary actions */}
         {content.status === 'pending' && (
           <>
             <button
               onClick={() => onApprove?.(content.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/15 text-green-400 text-xs font-medium hover:bg-green-500/25 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-100 text-green-800 border border-green-200 text-xs font-medium hover:bg-green-200 transition-colors"
             >
               <Check className="h-3.5 w-3.5" />
               Approuver
             </button>
             <button
               onClick={() => onReject?.(content.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 text-xs font-medium hover:bg-red-500/25 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-800 border border-red-200 text-xs font-medium hover:bg-red-200 transition-colors"
             >
               <X className="h-3.5 w-3.5" />
               Rejeter
@@ -261,21 +261,21 @@ export function ContentCard({
         {/* Secondary actions */}
         <button
           onClick={() => setIsEditing(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium hover:bg-white/10 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium hover:bg-slate-200 transition-colors"
         >
           <Pencil className="h-3.5 w-3.5" />
           Editer
         </button>
         <button
           onClick={() => onRegenerate?.(content.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium hover:bg-white/10 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium hover:bg-slate-200 transition-colors"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Regenerer
         </button>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium hover:bg-white/10 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium hover:bg-slate-200 transition-colors"
         >
           <Copy className="h-3.5 w-3.5" />
           {copied ? 'Copie !' : 'Copier'}
@@ -283,7 +283,7 @@ export function ContentCard({
         {images.length > 0 && (
           <button
             onClick={handleDownloadAssets}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium hover:bg-white/10 hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 text-xs font-medium hover:bg-blue-200 transition-colors"
           >
             <Download className="h-3.5 w-3.5" />
             Assets

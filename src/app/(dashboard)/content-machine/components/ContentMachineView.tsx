@@ -134,13 +134,13 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-slate-100 flex items-center gap-3">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 shadow-lg shadow-violet-500/20">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             DCG Content Machine
           </h1>
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-slate-600">
             Contenu genere automatiquement pour tes marques.
             {pendingCount > 0 && (
               <span className="ml-2 text-yellow-400 font-medium">
@@ -164,7 +164,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
             activeBrand === 'all'
               ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white border border-white/15'
-              : 'bg-white/5 text-slate-400 border border-transparent hover:bg-white/10 hover:text-slate-300'
+              : 'bg-slate-100 text-slate-600 border border-transparent hover:bg-slate-200 hover:text-slate-700'
           }`}
         >
           Toutes
@@ -176,7 +176,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               activeBrand === brand.id
                 ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white border border-white/15'
-                : 'bg-white/5 text-slate-400 border border-transparent hover:bg-white/10 hover:text-slate-300'
+                : 'bg-slate-100 text-slate-600 border border-transparent hover:bg-slate-200 hover:text-slate-700'
             }`}
           >
             {brand.name}
@@ -186,7 +186,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
 
       {/* Today's Content */}
       <section>
-        <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-200 mb-4 flex items-center gap-2">
+        <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
           Contenu du jour
         </h2>
@@ -206,13 +206,13 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
           </div>
         ) : (
           /* Empty state */
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 sm:p-12 text-center">
+          <div className="backdrop-blur-xl bg-slate-100 border border-white/10 rounded-2xl p-8 sm:p-12 text-center">
             <div className="flex justify-center mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 border border-white/10">
                 <FileText className="h-8 w-8 text-slate-500" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-slate-300 mb-2">
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">
               Aucun contenu genere aujourd&apos;hui
             </h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">
@@ -225,12 +225,12 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
 
       {/* Weekly Calendar */}
       <section>
-        <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-200 mb-4 flex items-center gap-2">
+        <h2 className="font-heading text-lg sm:text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           Calendrier de la semaine
         </h2>
 
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl overflow-x-auto">
+        <div className="backdrop-blur-xl bg-slate-100 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl overflow-x-auto">
           <div className="grid grid-cols-7 gap-2 sm:gap-3 min-w-[500px]">
             {weekDays.map((date, i) => {
               const entries = getCalendarForDate(date)
@@ -250,7 +250,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
                     <span className={`text-xs font-medium ${today ? 'text-primary' : 'text-slate-500'}`}>
                       {DAY_LABELS[i]}
                     </span>
-                    <span className={`text-sm font-semibold ${today ? 'text-primary' : 'text-slate-400'}`}>
+                    <span className={`text-sm font-semibold ${today ? 'text-primary' : 'text-slate-600'}`}>
                       {dayNum}
                     </span>
                   </div>
@@ -265,11 +265,11 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
                         return (
                           <div
                             key={entry.id}
-                            className="flex items-center gap-1.5 p-1.5 rounded-md bg-white/5"
+                            className="flex items-center gap-1.5 p-1.5 rounded-md bg-slate-100"
                           >
                             <span className={`h-2 w-2 rounded-full flex-shrink-0 ${dotColor}`} />
                             <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${typeColor}`} />
-                            <span className="text-[10px] text-slate-400 truncate">
+                            <span className="text-[10px] text-slate-600 truncate">
                               {entry.content_type}
                             </span>
                           </div>
@@ -292,7 +292,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
               return (
                 <div key={brand.id} className="flex items-center gap-1.5">
                   <span className={`h-2.5 w-2.5 rounded-full ${dotColor}`} />
-                  <span className="text-xs text-slate-400">{brand.name}</span>
+                  <span className="text-xs text-slate-600">{brand.name}</span>
                 </div>
               )
             })}
@@ -300,7 +300,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
             {Object.entries(TYPE_DOT_COLORS).map(([type, color]) => (
               <div key={type} className="flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${color}`} />
-                <span className="text-xs text-slate-400 capitalize">{type}</span>
+                <span className="text-xs text-slate-600 capitalize">{type}</span>
               </div>
             ))}
           </div>
