@@ -126,6 +126,26 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
     callApprove(id, 'reject')
   }
 
+  const handlePublish = async (id: string) => {
+    if (!confirm('Pousser ce post vers ton GHL Social Planner (en brouillon) ? Tu pourras finaliser et publier depuis Marketing → Social Planner.')) return
+    try {
+      const res = await fetch('/api/content-machine/publish-ghl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentId: id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(`Echec publication : ${data.error || res.statusText}`)
+        return
+      }
+      alert(`OK : ${data.message}\n\nGHL Post ID : ${data.ghlPostId}\nComptes cibles : ${data.accountsCount}`)
+      router.refresh()
+    } catch (e) {
+      alert(`Erreur reseau : ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
   const pendingCount = filteredContents.filter((c) => c.status === 'pending').length
   const approvedCount = filteredContents.filter((c) => c.status === 'approved').length
 
@@ -201,6 +221,7 @@ export function ContentMachineView({ contents, calendar, brands }: ContentMachin
                 onReject={handleReject}
                 onEdit={handleEdit}
                 onRegenerate={handleRegenerate}
+                onPublish={handlePublish}
               />
             ))}
           </div>
