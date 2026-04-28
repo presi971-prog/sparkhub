@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
+  Send,
 } from 'lucide-react'
 
 // Brand color mapping (badges sur fond blanc)
@@ -62,6 +63,7 @@ interface ContentCardProps {
   onReject?: (id: string) => void
   onEdit?: (id: string, text: string) => void
   onRegenerate?: (id: string) => void
+  onPublish?: (id: string) => void
 }
 
 export function ContentCard({
@@ -70,6 +72,7 @@ export function ContentCard({
   onReject,
   onEdit,
   onRegenerate,
+  onPublish,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -256,6 +259,18 @@ export function ContentCard({
               Rejeter
             </button>
           </>
+        )}
+
+        {/* Push to GHL Social Planner — visible sur pending et approved */}
+        {(content.status === 'pending' || content.status === 'approved' || content.status === 'modified') && (
+          <button
+            onClick={() => onPublish?.(content.id)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+            title="Pousser ce post vers GHL Social Planner (en brouillon)"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Publier vers GHL
+          </button>
         )}
 
         {/* Secondary actions */}
