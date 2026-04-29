@@ -10,22 +10,22 @@ export const FOUNDER_CREDIT_MULTIPLIER = {
 } as const
 
 export const STRIPE_PRICES = {
-  // Abonnements mensuels
+  // Abonnements mensuels (compte Live DOM-COM Digital Expert — 29/04/2026)
   subscriptions: {
     basic: {
-      priceId: 'price_1SvhiaHbbIrNBYlv0CefmYBr',
+      priceId: 'price_1TRhnEHk2brUxPOcm96LYyw8',
       name: 'Abonnement Basic',
       amount: 990, // 9.90€ en centimes
       baseCredits: 50,
     },
     pro: {
-      priceId: 'price_1SviraHbbIrNBYlvIHQz8fAC',
+      priceId: 'price_1TRhnGHk2brUxPOcynTYYHPc',
       name: 'Abonnement Pro',
       amount: 1990, // 19.90€ en centimes
       baseCredits: 150,
     },
     premium: {
-      priceId: 'price_1SvisCHbbIrNBYlvw8Jjqiu0',
+      priceId: 'price_1TRhnIHk2brUxPOcb0O1IKsX',
       name: 'Abonnement Premium',
       amount: 2990, // 29.90€ en centimes
       baseCredits: 300,
@@ -35,17 +35,17 @@ export const STRIPE_PRICES = {
   // Packs de crédits supplémentaires (même prix pour tous)
   credits: {
     pack_50: {
-      priceId: 'price_1SvhnsHbbIrNBYlvUVdVcaSD',
+      priceId: 'price_1TRhnLHk2brUxPOcGbpcBF8x',
       credits: 50,
       price: 1200, // 12€
     },
     pack_100: {
-      priceId: 'price_1SvhpUHbbIrNBYlv8zin8ePK',
+      priceId: 'price_1TRhnNHk2brUxPOcQFT4IWdH',
       credits: 100,
       price: 2000, // 20€ (dégressif)
     },
     pack_200: {
-      priceId: 'price_1SvhqOHbbIrNBYlvZ3QIL4XS',
+      priceId: 'price_1TRhnPHk2brUxPOcMJm8BVyl',
       credits: 200,
       price: 3600, // 36€ (dégressif)
     },
