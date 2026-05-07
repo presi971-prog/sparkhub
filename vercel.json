@@ -16,7 +16,16 @@
       ]
     },
     {
-      "source": "/((?!demo-site).*)",
+      "source": "/api/chat-demo",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *"
+        }
+      ]
+    },
+    {
+      "source": "/((?!demo-site|api/chat-demo).*)",
       "headers": [
         {
           "key": "X-Frame-Options",
