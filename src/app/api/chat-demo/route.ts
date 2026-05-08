@@ -73,11 +73,20 @@
 // ----------
 // 07/05/2026 — Création initiale après bug du 05/05/2026.
 // 07/05/2026 v2 — Ajout affichage du site prospect via screenshot Microlink.
+// 07/05/2026 v3 — Si l'URL passée est sociale (FB/IG/LI), lookup GHL par email
+//                 pour récupérer le mini-site URL généré par Smart Crawler
+//                 (le trigger link a figé l'URL sociale, mais Smart Crawler
+//                 a remplacé contact.website par l'URL du mini-site DCG AI
+//                 entre temps — on doit utiliser cette dernière, sinon
+//                 l'iframe affiche la page de login Facebook/Instagram).
 // =============================================================================
 
 import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
+
+const GHL_API_BASE = 'https://services.leadconnectorhq.com'
+const GHL_LOCATION_ID = '15W1kS8V6KqgTPhtzaPZ' // sub-account DCG AI
 
 function escapeHtml(s: string): string {
   return s
@@ -92,12 +101,66 @@ function isHttpUrl(s: string): boolean {
   return /^https?:\/\//i.test(s)
 }
 
+function isSocialUrl(s: string): boolean {
+  return /facebook\.com|fb\.com|fb\.me|instagram\.com|linkedin\.com|lnkd\.in/i.test(s)
+}
+
+/**
+ * Look up a GHL contact by email and return its current `website` field.
+ * Used when the URL passed to the iframe is a social URL (FB/IG/LI) — in
+ * that case Smart Crawler has generated a mini-site and written it to
+ * contact.website, but the trigger link froze the URL with the social URL.
+ * This lookup gets the up-to-date mini-site URL.
+ */
+async function fetchContactWebsite(email: string): Promise<string | null> {
+  const pit = process.env.GHL_PIT_TOKEN
+  if (!pit) {
+    console.warn('[chat-demo] GHL_PIT_TOKEN missing — cannot lookup contact')
+    return null
+  }
+  try {
+    const url = `${GHL_API_BASE}/contacts/?locationId=${GHL_LOCATION_ID}&query=${encodeURIComponent(email)}`
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${pit}`,
+        Version: '2021-07-28',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) {
+      console.warn(`[chat-demo] GHL lookup ${res.status} for ${email}`)
+      return null
+    }
+    const data = (await res.json()) as { contacts?: Array<{ website?: string; email?: string }> }
+    const list = data.contacts || []
+    const match = list.find((c) => c.email?.toLowerCase() === email.toLowerCase()) || list[0]
+    return match?.website || null
+  } catch (e) {
+    console.warn('[chat-demo] GHL lookup error:', e)
+    return null
+  }
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const url = searchParams.get('url') || ''
+  const email = searchParams.get('email') || ''
   const loc = searchParams.get('loc') || ''
 
-  const cleanUrl = isHttpUrl(url) ? url : ''
+  let cleanUrl = isHttpUrl(url) ? url : ''
+
+  // Si l'URL passée est sociale (Facebook/Instagram/LinkedIn), on essaie de
+  // récupérer la valeur à jour de contact.website (le mini-site DCG AI que
+  // Smart Crawler a généré). Sinon on continue avec l'URL d'origine.
+  if (cleanUrl && isSocialUrl(cleanUrl) && email) {
+    const fresh = await fetchContactWebsite(email)
+    if (fresh && isHttpUrl(fresh) && !isSocialUrl(fresh)) {
+      console.log(`[chat-demo] URL sociale (${cleanUrl}) remplacée par mini-site (${fresh}) via lookup contact`)
+      cleanUrl = fresh
+    }
+  }
+
   const safeUrl = escapeHtml(cleanUrl)
 
   // Microlink renders a screenshot of the prospect's site (no X-Frame-Options issue).
