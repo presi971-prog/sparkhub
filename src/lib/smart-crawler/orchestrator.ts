@@ -106,6 +106,33 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
 
   const success = await updateContactFields(contactId, pit, fields)
 
+  // 6b. Écrire le businessName extrait dans le champ standard `companyName` du contact GHL.
+  //     Ça alimente la variable {{contact.company_name}} utilisée dans les funnels (titre,
+  //     prompts agents, trigger links, etc.). Sans ça, les emplacements {{company}} affichent
+  //     "undefined" et le bot ne peut pas se présenter "de [NOM ENTREPRISE]".
+  if (extracted.businessName) {
+    try {
+      const nameUpdate = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${pit}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ companyName: extracted.businessName }),
+      })
+      if (nameUpdate.ok) {
+        console.log(`[SmartCrawler] companyName mis à jour: "${extracted.businessName}"`)
+      } else {
+        console.error(`[SmartCrawler] Échec mise à jour companyName: ${nameUpdate.status} ${await nameUpdate.text().catch(() => '')}`)
+      }
+    } catch (e) {
+      console.error(`[SmartCrawler] Erreur PUT companyName:`, e)
+    }
+  } else {
+    console.warn(`[SmartCrawler] businessName non extrait pour contact ${contactId} — {{company}} restera vide.`)
+  }
+
   // 7. Si pas de site web → écrire l'URL du mini-site dans le champ website du contact
   //    pour que la page démo DemoDrop affiche le mini-site au lieu d'une erreur
   if (demoMode === 'without_site' && miniSiteUrl) {

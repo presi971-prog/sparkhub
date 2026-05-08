@@ -23,6 +23,7 @@ export interface CrawlResult {
 }
 
 export interface ExtractedData {
+  businessName: string
   description: string
   industry: string
   services: string

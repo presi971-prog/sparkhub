@@ -14,6 +14,13 @@ RÈGLES :
 - Si une source est vide ou a échoué, ignore-la.
 - Réponds TOUJOURS en FRANÇAIS.
 - Si tu ne trouves pas une info, mets une chaîne vide "".
+- Pour businessName, extrait le nom commercial réel de l'entreprise tel qu'affiché publiquement (ex: "Boulangerie Lefèvre", "Cabinet Dupont & Associés", "TranspoQuickD"). C'est une info CRITIQUE — fais le maximum pour la trouver. Sources possibles, par ordre de priorité :
+  1. Site web : balise <title>, og:site_name, en-tête, logo, mentions légales, footer
+  2. Facebook : nom de la page (en haut), section "À propos"
+  3. Instagram : nom du compte affiché (pas le @handle), bio
+  4. LinkedIn : nom de l'organisation
+  Si tu trouves plusieurs variantes (ex: "TranspoQuickD" et "TQD Transport"), garde la version la plus complète et la plus utilisée.
+  Pas de slogan ni de tagline (genre "le transport rapide en Guadeloupe"). Si VRAIMENT introuvable après avoir cherché partout, mets "".
 - Pour les horaires, utilise le format : "Lun-Ven : 9h-17h, Sam : 10h-14h" etc.
 - Pour la FAQ, génère 5-8 questions/réponses pertinentes basées sur ce que tu sais du business.
 - Pour le secteur, utilise un terme français (Restaurant, Salon de coiffure, Garage auto, Boulangerie, Cabinet d'avocats, etc.)
@@ -23,6 +30,7 @@ RÈGLES :
 
 Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
 {
+  "businessName": "Nom commercial de l'entreprise",
   "description": "Description de l'entreprise en 2-3 phrases",
   "industry": "Catégorie du secteur",
   "services": "Liste des principaux services séparés par des virgules",
@@ -233,6 +241,7 @@ export async function extractBusinessData(
     const parsed = JSON.parse(jsonMatch[0])
     console.log(`[SmartCrawler] Couleurs marque: ${brandColors || 'non détectées'}`)
     return {
+      businessName: parsed.businessName || '',
       description: parsed.description || '',
       industry: parsed.industry || '',
       services: parsed.services || '',
