@@ -72,16 +72,39 @@
 // HISTORIQUE
 // ----------
 // 07/05/2026 — Création initiale après bug du 05/05/2026.
+// 07/05/2026 v2 — Ajout affichage du site prospect via screenshot Microlink.
 // =============================================================================
 
 import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function isHttpUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s)
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const url = searchParams.get('url') || ''
   const loc = searchParams.get('loc') || ''
+
+  const cleanUrl = isHttpUrl(url) ? url : ''
+  const safeUrl = escapeHtml(cleanUrl)
+
+  // Microlink renders a screenshot of the prospect's site (no X-Frame-Options issue).
+  // Free tier: 50 req/day per IP. For higher volume, add MICROLINK_API_KEY.
+  const screenshotUrl = cleanUrl
+    ? `https://api.microlink.io/?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=375&viewport.height=812&viewport.deviceScaleFactor=2&waitFor=3000`
+    : ''
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -90,17 +113,25 @@ export async function GET(request: NextRequest) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DCG AI — Chat Demo Relay</title>
   <style>
-    html, body { margin: 0; padding: 0; background: transparent; }
+    html, body { margin: 0; padding: 0; height: 100%; background: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .site-shot { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border: 0; background: #f4f4f4; }
+    .placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #888; font-size: 14px; padding: 24px; text-align: center; }
   </style>
 </head>
 <body>
+  ${
+    screenshotUrl
+      ? `<img class="site-shot" src="${escapeHtml(screenshotUrl)}" alt="Aperçu de ${safeUrl}" onerror="this.style.display='none'; document.getElementById('fallback').style.display='flex';" />
+  <div id="fallback" class="placeholder" style="display:none;">Aperçu du site indisponible — votre démo continue normalement.</div>`
+      : `<div class="placeholder">Démo en cours — votre assistante IA répond dans la fenêtre de chat.</div>`
+  }
   <script>
-    // DCG AI Chat Demo Relay
-    // Site: ${url}
-    // Loc:  ${loc}
+    // DCG AI Chat Demo Relay v2
+    // Site: ${safeUrl || '(none)'}
+    // Loc:  ${escapeHtml(loc)}
     // Loaded at: ${new Date().toISOString()}
-    // Status: subscription always granted (no third-party check)
-    console.log('DCG AI chat demo relay loaded — no subscription error sent.');
+    // Status: subscription always granted (no third-party check). Site shown via Microlink screenshot.
+    console.log('DCG AI chat demo relay v2 loaded.');
   </script>
 </body>
 </html>`
@@ -111,7 +142,7 @@ export async function GET(request: NextRequest) {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Frame-Options': 'ALLOWALL',
-      'Content-Security-Policy': "frame-ancestors *",
+      'Content-Security-Policy': "frame-ancestors *; img-src 'self' https:; default-src 'self' 'unsafe-inline'",
     },
   })
 }
