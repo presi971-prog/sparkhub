@@ -104,12 +104,14 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     { id: FIELD_IDS.hasChat, field_value: hasChatValue },
   ]
 
-  const success = await updateContactFields(contactId, pit, fields)
-
-  // 6b. Écrire le businessName extrait dans le champ standard `companyName` du contact GHL.
-  //     Ça alimente la variable {{contact.company_name}} utilisée dans les funnels (titre,
-  //     prompts agents, trigger links, etc.). Sans ça, les emplacements {{company}} affichent
-  //     "undefined" et le bot ne peut pas se présenter "de [NOM ENTREPRISE]".
+  // 6a. Écrire le businessName D'ABORD (avant les Custom Fields AI Demo).
+  //     RAISON : la page funnel "Demo Opt-In Checker (Do NOT Touch)" surveille les
+  //     Custom Fields AI Demo. Dès qu'ils sont remplis, elle redirige vers la page
+  //     Chat Demo en figeant l'URL avec ?company={{contact.company_name}}.
+  //     Si on écrivait companyName APRÈS les Custom Fields, la page Checker
+  //     redirigerait avant que le companyName soit en base → URL avec company=undefined.
+  //     En écrivant companyName d'abord, on garantit qu'il est déjà à jour quand la
+  //     page Checker détecte les Custom Fields prêts et déclenche la redirection.
   if (extracted.businessName) {
     try {
       const nameUpdate = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
@@ -122,7 +124,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
         body: JSON.stringify({ companyName: extracted.businessName }),
       })
       if (nameUpdate.ok) {
-        console.log(`[SmartCrawler] companyName mis à jour: "${extracted.businessName}"`)
+        console.log(`[SmartCrawler] companyName écrit AVANT Custom Fields: "${extracted.businessName}"`)
       } else {
         console.error(`[SmartCrawler] Échec mise à jour companyName: ${nameUpdate.status} ${await nameUpdate.text().catch(() => '')}`)
       }
@@ -132,6 +134,11 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   } else {
     console.warn(`[SmartCrawler] businessName non extrait pour contact ${contactId} — {{company}} restera vide.`)
   }
+
+  // 6b. Écrire les Custom Fields AI Demo APRÈS le companyName.
+  //     La page Checker détecte les Custom Fields prêts et redirige avec
+  //     un companyName déjà à jour (cf. 6a).
+  const success = await updateContactFields(contactId, pit, fields)
 
   // 7. Si pas de site web → écrire l'URL du mini-site dans le champ website du contact
   //    pour que la page démo DemoDrop affiche le mini-site au lieu d'une erreur
