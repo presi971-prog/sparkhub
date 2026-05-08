@@ -136,13 +136,14 @@ function MiniSite({ data }: { data: SiteData }) {
     .join('')
     .toUpperCase()
 
-  const c = data.brandColors || {
+  const fallbackColors = {
     primary: '#C9A84C',
     background: '#080C1A',
     accent: '#E8D5A3',
     text: '#F0EDE6',
     secondary: '#0E1330',
   }
+  const c = { ...fallbackColors, ...(data.brandColors || {}) }
 
   return (
     <html lang="fr">
