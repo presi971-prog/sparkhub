@@ -2,6 +2,7 @@
 // Extrait les données business structurées + analyse visuelle des images
 
 import type { CrawlResult, ExtractedData, DemoMode } from './types'
+import { isSocialUrl } from './crawlers/microlink'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 
@@ -261,10 +262,21 @@ export async function extractBusinessData(
 
 /**
  * Détermine le mode de démo : avec site existant ou sans site (mini-site à générer).
+ *
+ * RÈGLE :
+ * - Pas d'URL → mini-site (without_site).
+ * - URL = page de réseau social (FB / IG / LI) → mini-site (without_site).
+ *   Raison : on NE doit JAMAIS afficher la page Facebook brute du prospect dans
+ *   l'iframe de démo (mauvaise expérience, FB demande login, design impersonnel).
+ *   Le mini-site DCG AI est plus pro et reflète l'identité du prospect.
+ * - URL = vrai site web → with_site (screenshot du site).
  */
 export function detectDemoMode(website?: string): DemoMode {
-  if (website && website.trim().length > 0) {
-    return 'with_site'
+  if (!website || website.trim().length === 0) {
+    return 'without_site'
   }
-  return 'without_site'
+  if (isSocialUrl(website)) {
+    return 'without_site'
+  }
+  return 'with_site'
 }
