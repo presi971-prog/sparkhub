@@ -68,11 +68,21 @@ export async function fetchWithMicrolink(url: string): Promise<string> {
     }
 
     const d = json.data
+    // Récupérer l'URL de l'image principale (logo / cover photo) — utile pour
+    // l'analyse couleurs côté ai-extractor (extractImageUrls regex match les
+    // URLs d'images dans le contenu markdown).
+    const imageUrl =
+      typeof d.image === 'string'
+        ? d.image
+        : d.image?.url || (typeof d.logo === 'string' ? d.logo : d.logo?.url) || ''
+
     const lines: string[] = []
     if (d.title) lines.push(`# ${d.title}`)
     if (d.publisher) lines.push(`**Source :** ${d.publisher}`)
     if (d.author) lines.push(`**Auteur :** ${d.author}`)
     if (d.url) lines.push(`**URL :** ${d.url}`)
+    // Image en markdown — détectable par extractImageUrls (regex .jpg|.png|... ou scontent).
+    if (imageUrl) lines.push('', `![image](${imageUrl})`)
     if (d.description) lines.push('', d.description)
     return lines.join('\n').trim()
   } catch (error) {
