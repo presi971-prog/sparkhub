@@ -278,7 +278,10 @@ export async function extractBusinessData(
       hasChat: parsed.hasChat === true,
       brandColors: brandColors,
       logoUrl: imageUrls[0] || '',
-      heroImageUrl: imageUrls[0] || '',
+      // Hero = 2e image distincte (vraie photo cover/galerie). Si on n'a que
+      // le logo (cas typique des pages FB d'une marque), on laisse vide pour
+      // éviter d'afficher le logo carré en bannière paysage (rendu moche).
+      heroImageUrl: imageUrls[1] || '',
       imageUrls: imageUrls.slice(1),
     }
   } catch {
