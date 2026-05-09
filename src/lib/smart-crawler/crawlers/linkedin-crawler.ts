@@ -20,6 +20,17 @@ const APIFY_ACTOR = 'harvestapi~linkedin-company'
 const APIFY_TIMEOUT = 90_000
 const MAX_CHARS = 4000
 
+interface ApifyLinkedinIndustry {
+  id?: string
+  name?: string
+  title?: string
+  hierarchy?: string
+}
+interface ApifyLinkedinLogo {
+  url?: string
+  width?: number
+  height?: number
+}
 interface ApifyLinkedinCompany {
   id?: string
   universalName?: string
@@ -28,19 +39,22 @@ interface ApifyLinkedinCompany {
   description?: string
   tagline?: string
   website?: string
-  industries?: string[]
+  industries?: Array<ApifyLinkedinIndustry | string>
   industry?: string
   logo?: string | { url?: string }
   logoUrl?: string
+  logos?: ApifyLinkedinLogo[]
   banner?: string | { url?: string }
   bannerUrl?: string
   backgroundCover?: string | { url?: string }
+  backgroundCovers?: ApifyLinkedinLogo[]
   employeeCount?: number
   followerCount?: number
   followers?: number
   locations?: Array<{ city?: string; country?: string; line1?: string; line2?: string; geographicArea?: string; postalCode?: string }>
   headquarters?: { city?: string; country?: string; line1?: string }
-  foundedOn?: { year?: number } | number
+  foundedOn?: { year?: number } | number | null
+  specialities?: string[] // Note : Apify utilise "specialities" (orthographe UK), pas "specialties"
   specialties?: string[]
   error?: string
 }
@@ -115,11 +129,20 @@ export async function crawlLinkedin(url?: string, contactId?: string): Promise<C
       }
     }
 
-    const rawLogoUrl = getImageUrl(company.logo) || company.logoUrl || ''
+    // Logo : champ logo (string ou objet) OU 1re entrée de logos[]
+    const rawLogoUrl =
+      getImageUrl(company.logo) ||
+      company.logoUrl ||
+      company.logos?.[0]?.url ||
+      ''
+    // Hero : banner / backgroundCover (souvent absent — LinkedIn ne renvoie
+    // pas toujours la cover company). Si absent, le mini-site retombe sur
+    // imageUrls[0] = logo.
     const rawHeroUrl =
       getImageUrl(company.banner) ||
       company.bannerUrl ||
       getImageUrl(company.backgroundCover) ||
+      company.backgroundCovers?.[0]?.url ||
       ''
 
     // Persiste les images sur Supabase Storage (URLs LinkedIn CDN expirent aussi)
@@ -141,7 +164,11 @@ export async function crawlLinkedin(url?: string, contactId?: string): Promise<C
     if (company.name) lines.push(`# ${company.name}`)
     if (company.tagline) lines.push(`*${company.tagline}*`)
     if (company.industries?.length) {
-      lines.push(`**Secteur :** ${company.industries.join(', ')}`)
+      // industries peut être array de strings OU array d'objects {name, title, ...}
+      const industryNames = company.industries
+        .map((ind) => (typeof ind === 'string' ? ind : ind.name || ind.title || ''))
+        .filter(Boolean)
+      if (industryNames.length) lines.push(`**Secteur :** ${industryNames.join(', ')}`)
     } else if (company.industry) {
       lines.push(`**Secteur :** ${company.industry}`)
     }
@@ -165,7 +192,8 @@ export async function crawlLinkedin(url?: string, contactId?: string): Promise<C
     }
     const foundedYear = typeof company.foundedOn === 'number' ? company.foundedOn : company.foundedOn?.year
     if (foundedYear) lines.push(`**Fondée en :** ${foundedYear}`)
-    if (company.specialties?.length) lines.push(`**Spécialités :** ${company.specialties.slice(0, 5).join(', ')}`)
+    const specialities = company.specialities ?? company.specialties
+    if (specialities?.length) lines.push(`**Spécialités :** ${specialities.slice(0, 5).join(', ')}`)
     if (company.description) lines.push('', company.description)
 
     if (logoUrl) lines.push('', `![logo](${logoUrl})`)
