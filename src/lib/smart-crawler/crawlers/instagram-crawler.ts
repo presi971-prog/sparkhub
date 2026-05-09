@@ -19,6 +19,7 @@
 // CONFIG : env var APIFY_TOKEN requise (token API Apify).
 
 import type { CrawlResult } from '../types'
+import { persistImage } from '../storage'
 
 const APIFY_ACTOR = 'apify~instagram-profile-scraper'
 const APIFY_TIMEOUT = 90_000 // Apify peut prendre du temps (15-60s)
@@ -59,7 +60,7 @@ function extractUsername(url: string): string {
   return u
 }
 
-export async function crawlInstagram(url?: string): Promise<CrawlResult> {
+export async function crawlInstagram(url?: string, contactId?: string): Promise<CrawlResult> {
   if (!url) {
     return { source: 'instagram', url: '', content: '', success: false }
   }
@@ -123,13 +124,30 @@ export async function crawlInstagram(url?: string): Promise<CrawlResult> {
     }
 
     // Image principale (logo) : photo de profil HD
-    const logoUrl = profile.profilePicUrlHD || profile.profilePicUrl || ''
+    const rawLogoUrl = profile.profilePicUrlHD || profile.profilePicUrl || ''
 
     // Image hero (vraie photo paysage/portrait) : 1er post si dispo
-    let heroUrl = ''
+    let rawHeroUrl = ''
     if (profile.latestPosts && profile.latestPosts.length > 0) {
       const first = profile.latestPosts[0]
-      heroUrl = first.displayUrl || first.images?.[0]?.url || ''
+      rawHeroUrl = first.displayUrl || first.images?.[0]?.url || ''
+    }
+
+    // CDN Instagram signe ses URLs avec expiration courte (quelques heures
+    // → 403 ensuite). On télécharge les images et on les ré-héberge sur
+    // Supabase Storage pour avoir des URLs permanentes. Si contactId est
+    // absent, on garde les URLs Insta brutes (pourront expirer).
+    let logoUrl = rawLogoUrl
+    let heroUrl = rawHeroUrl
+    if (contactId) {
+      const [persistedLogo, persistedHero] = await Promise.all([
+        rawLogoUrl ? persistImage(rawLogoUrl, contactId, 'logo') : Promise.resolve(null),
+        rawHeroUrl && rawHeroUrl !== rawLogoUrl
+          ? persistImage(rawHeroUrl, contactId, 'hero')
+          : Promise.resolve(null),
+      ])
+      logoUrl = persistedLogo || rawLogoUrl
+      heroUrl = persistedHero || rawHeroUrl
     }
 
     // Construire le markdown compatible avec le pipeline (extractImageUrls
