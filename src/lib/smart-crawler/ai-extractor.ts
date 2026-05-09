@@ -278,7 +278,11 @@ export async function extractBusinessData(
       hasChat: parsed.hasChat === true,
       brandColors: brandColors,
       logoUrl: imageUrls[0] || '',
-      heroImageUrl: imageUrls[0] || '',
+      // Si on a une 2e image distincte (cas Instagram avec posts récents,
+      // ou site web avec galerie), on l'utilise en bannière hero — meilleur
+      // effet "wouaa c'est ma photo" qu'un logo carré.
+      // Sinon on retombe sur la 1re image (cas FB qui ne renvoie qu'un logo).
+      heroImageUrl: imageUrls[1] || imageUrls[0] || '',
       imageUrls: imageUrls.slice(1),
     }
   } catch {
