@@ -194,12 +194,15 @@ function MiniSite({ data }: { data: SiteData }) {
             flex-shrink: 0;
           }
 
-          /* ═══ Hero Banner (photo prospect) ═══ */
+          /* ═══ Hero Banner (photo prospect) ═══
+             background-size: contain → l'image est entière (pas de crop moche
+             pour les logos carrés). Fond gradient marque visible sur les bords
+             quand l'image n'est pas en format paysage parfait. */
           .hero-banner {
             position: relative;
             width: 100%;
-            height: 200px;
-            background-size: cover;
+            height: 240px;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             background-color: ${c.secondary};
@@ -208,7 +211,7 @@ function MiniSite({ data }: { data: SiteData }) {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, ${c.background}00 50%, ${c.background}FF 100%);
+            background: linear-gradient(180deg, transparent 70%, ${c.background}FF 100%);
             pointer-events: none;
           }
 
