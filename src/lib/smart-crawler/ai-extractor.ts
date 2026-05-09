@@ -246,7 +246,7 @@ export async function extractBusinessData(
       }),
     }),
     // Analyse couleurs (première image = logo/profil)
-    imageUrls.length > 0 ? analyzeImageColors(imageUrls[0]) : Promise.resolve(''),
+    imageUrls.length > 0 ? analyzeImageColors(imageUrls[0]) : Promise.resolve(null as BrandColors | null),
   ])
 
   if (!textResponse.ok) {
