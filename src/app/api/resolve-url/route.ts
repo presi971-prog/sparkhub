@@ -86,14 +86,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     const data = (await res.json()) as {
-      contacts?: Array<{ website?: string; email?: string }>
+      contacts?: Array<{ website?: string; email?: string; companyName?: string; firstName?: string; id?: string }>
     }
     const list = data.contacts || []
     const match =
       list.find((c) => c.email?.toLowerCase() === email.toLowerCase()) || list[0]
     const website = match?.website || null
+    const companyName = match?.companyName || null
+    const firstName = match?.firstName || null
+    const contactId = match?.id || null
 
-    return new Response(JSON.stringify({ website }), {
+    return new Response(JSON.stringify({ website, companyName, firstName, contactId }), {
       status: 200,
       headers: corsHeaders(),
     })
