@@ -165,8 +165,11 @@ export async function GET(request: NextRequest) {
 
   // Microlink renders a screenshot of the prospect's site (no X-Frame-Options issue).
   // Free tier: 50 req/day per IP. For higher volume, add MICROLINK_API_KEY.
+  // force=true bypasse le cache Microlink — sinon les modifs récentes du
+  // mini-site DCG AI ne sont pas reflétées dans le screenshot affiché au
+  // prospect (Microlink cache plusieurs heures).
   const screenshotUrl = cleanUrl
-    ? `https://api.microlink.io/?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=375&viewport.height=812&viewport.deviceScaleFactor=2&waitFor=3000`
+    ? `https://api.microlink.io/?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=375&viewport.height=812&viewport.deviceScaleFactor=2&waitFor=3000&force=true`
     : ''
 
   const html = `<!DOCTYPE html>
