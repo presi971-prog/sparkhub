@@ -42,7 +42,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     crawlWebsite(website, contactId),
     crawlFacebook(facebook_url, contactId),
     crawlInstagram(instagram_url, contactId),
-    crawlLinkedin(linkedin_url),
+    crawlLinkedin(linkedin_url, contactId),
   ])
 
   // Collecter les résultats réussis

@@ -14,6 +14,7 @@ import { fetchWithJina } from './jina-reader'
 import { fetchWithMicrolink, isLoginPageContent } from './microlink'
 import { crawlFacebook } from './facebook-crawler'
 import { crawlInstagram } from './instagram-crawler'
+import { crawlLinkedin } from './linkedin-crawler'
 import type { CrawlResult } from '../types'
 
 const MAX_CHARS = 8000
@@ -23,6 +24,9 @@ function isFacebookUrl(url: string): boolean {
 }
 function isInstagramUrl(url: string): boolean {
   return /instagram\.com/i.test(url)
+}
+function isLinkedinUrl(url: string): boolean {
+  return /linkedin\.com|lnkd\.in/i.test(url)
 }
 
 export async function crawlWebsite(url?: string, contactId?: string): Promise<CrawlResult> {
@@ -48,6 +52,14 @@ export async function crawlWebsite(url?: string, contactId?: string): Promise<Cr
     console.log(`[crawlWebsite] URL Instagram → routée vers crawlInstagram (Apify)`)
     const igResult = await crawlInstagram(normalizedUrl, contactId)
     return { ...igResult, source: 'website' as const }
+  }
+
+  // Cas 1c : URL LinkedIn → router vers crawlLinkedin (Apify harvestapi/linkedin-company,
+  // qui a name + description + secteur + logo + banner + persiste les images).
+  if (isLinkedinUrl(normalizedUrl)) {
+    console.log(`[crawlWebsite] URL LinkedIn → routée vers crawlLinkedin (Apify)`)
+    const liResult = await crawlLinkedin(normalizedUrl, contactId)
+    return { ...liResult, source: 'website' as const }
   }
 
   // Cas 2 : URL classique → Jina d'abord, fallback Microlink si nécessaire.
