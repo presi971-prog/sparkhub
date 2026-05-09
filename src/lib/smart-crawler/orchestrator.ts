@@ -35,11 +35,12 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   console.log(`[SmartCrawler] Sources: web=${!!website} fb=${!!facebook_url} ig=${!!instagram_url} li=${!!linkedin_url}`)
 
   // 1. Crawl toutes les sources EN PARALLÈLE
-  // Note : crawlInstagram reçoit contactId pour persister les images Insta
-  // (URLs scontent.cdninstagram.com expirent en quelques heures).
+  // Note : crawlFacebook + crawlInstagram reçoivent contactId pour persister
+  // les images sur Supabase Storage (URLs CDN FB/Insta expirent en quelques
+  // heures). Sans contactId, on garderait des URLs éphémères qui cassent.
   const crawlPromises = await Promise.allSettled([
-    crawlWebsite(website),
-    crawlFacebook(facebook_url),
+    crawlWebsite(website, contactId),
+    crawlFacebook(facebook_url, contactId),
     crawlInstagram(instagram_url, contactId),
     crawlLinkedin(linkedin_url),
   ])
