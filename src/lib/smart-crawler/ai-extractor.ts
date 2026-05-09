@@ -1,7 +1,7 @@
 // Smart Crawler — AI Extraction via Claude API
 // Extrait les données business structurées + analyse visuelle des images
 
-import type { CrawlResult, ExtractedData, DemoMode } from './types'
+import type { CrawlResult, ExtractedData, DemoMode, BrandColors } from './types'
 import { isSocialUrl } from './crawlers/microlink'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
@@ -41,15 +41,27 @@ Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
   "hasChat": false
 }`
 
-const COLOR_ANALYSIS_PROMPT = `Analyse cette image (logo ou photo de profil d'une entreprise).
+const COLOR_ANALYSIS_PROMPT = `Analyse cette image (logo, photo de profil ou cover d'une entreprise).
 
-Identifie les 2-3 couleurs dominantes de la marque. Retourne-les en codes hexadécimaux.
+Génère une PALETTE WEB COHÉRENTE de 5 couleurs en HEX, prête à utiliser pour un site vitrine premium :
 
-Réponds UNIQUEMENT avec un JSON :
+- "primary"    : couleur principale de la marque (boutons, accents forts, headings)
+- "secondary"  : couleur de fond secondaire des sections (légèrement plus sombre/claire que background)
+- "accent"     : couleur d'accent pour highlights/dividers (souvent une teinte chaude ou contrastée)
+- "background" : couleur de fond principale du site. Si la marque évoque le luxe/sérieux → fond sombre (#0E1330 type). Sinon → fond clair (#FFFFFF / beige). Choisis selon l'image.
+- "text"       : couleur du texte principal. DOIT avoir un contraste fort avec background (clair sur fond sombre, sombre sur fond clair). Vérifie WCAG AA.
+
+CONTRAINTES :
+- Toutes les couleurs DOIVENT être harmonieuses entre elles (palette cohérente, pas de couleurs aléatoires).
+- Si l'image n'a pas assez d'info pour déduire les couleurs (icône générique, photo unie), génère quand même une palette pro qui correspond à l'ambiance de l'image.
+
+Réponds UNIQUEMENT avec un JSON, AUCUN texte avant ou après :
 {
-  "primaryColor": "#hex",
-  "secondaryColor": "#hex",
-  "accentColor": "#hex"
+  "primary":    "#hex",
+  "secondary":  "#hex",
+  "accent":     "#hex",
+  "background": "#hex",
+  "text":       "#hex"
 }`
 
 function buildUserPrompt(results: CrawlResult[], companyName?: string): string {
@@ -122,15 +134,18 @@ async function downloadImageAsBase64(imageUrl: string): Promise<{ base64: string
  * Analyse les couleurs dominantes d'une image via Claude Vision.
  * Télécharge l'image d'abord (Facebook bloque Claude via robots.txt).
  */
-async function analyzeImageColors(imageUrl: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return ''
+function isValidHex(s: unknown): s is string {
+  return typeof s === 'string' && /^#[0-9A-Fa-f]{6}$/.test(s.trim())
+}
 
-  // Télécharger l'image en base64
+async function analyzeImageColors(imageUrl: string): Promise<BrandColors | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return null
+
   const imageData = await downloadImageAsBase64(imageUrl)
   if (!imageData) {
     console.warn('[SmartCrawler] Impossible de télécharger l\'image pour analyse couleurs')
-    return ''
+    return null
   }
 
   try {
@@ -143,7 +158,7 @@ async function analyzeImageColors(imageUrl: string): Promise<string> {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
+        max_tokens: 300,
         temperature: 0,
         messages: [{
           role: 'user',
@@ -157,22 +172,33 @@ async function analyzeImageColors(imageUrl: string): Promise<string> {
 
     if (!response.ok) {
       console.warn(`[SmartCrawler] Analyse couleurs échouée: ${response.status}`)
-      return ''
+      return null
     }
 
     const data = await response.json()
     const text = data.content?.[0]?.text || ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return ''
+    if (!jsonMatch) return null
 
-    const colors = JSON.parse(jsonMatch[0])
-    console.log(`[SmartCrawler] Couleurs détectées:`, colors)
-    return [colors.primaryColor, colors.secondaryColor, colors.accentColor]
-      .filter(Boolean)
-      .join(',')
+    const raw = JSON.parse(jsonMatch[0])
+    const colors: BrandColors = {
+      primary:    isValidHex(raw.primary)    ? raw.primary.trim()    : '',
+      secondary:  isValidHex(raw.secondary)  ? raw.secondary.trim()  : '',
+      accent:     isValidHex(raw.accent)     ? raw.accent.trim()     : '',
+      background: isValidHex(raw.background) ? raw.background.trim() : '',
+      text:       isValidHex(raw.text)       ? raw.text.trim()       : '',
+    }
+
+    // Si aucune clé valide → null (le mini-site utilisera son fallback complet)
+    const validCount = Object.values(colors).filter(Boolean).length
+    if (validCount === 0) return null
+
+    // Sinon retourne ce qu'on a — clés vides seront remplies par le fallback côté mini-site
+    console.log(`[SmartCrawler] Palette détectée (${validCount}/5):`, colors)
+    return colors
   } catch (error) {
     console.warn('[SmartCrawler] Erreur analyse couleurs:', error)
-    return ''
+    return null
   }
 }
 
@@ -240,7 +266,7 @@ export async function extractBusinessData(
 
   try {
     const parsed = JSON.parse(jsonMatch[0])
-    console.log(`[SmartCrawler] Couleurs marque: ${brandColors || 'non détectées'}`)
+    console.log(`[SmartCrawler] Couleurs marque: ${brandColors ? 'détectées' : 'non détectées'}`)
     return {
       businessName: parsed.businessName || '',
       description: parsed.description || '',
@@ -250,8 +276,9 @@ export async function extractBusinessData(
       hours: parsed.hours || '',
       faq: parsed.faq || '',
       hasChat: parsed.hasChat === true,
-      brandColors: brandColors || '',
+      brandColors: brandColors,
       logoUrl: imageUrls[0] || '',
+      heroImageUrl: imageUrls[0] || '',
       imageUrls: imageUrls.slice(1),
     }
   } catch {

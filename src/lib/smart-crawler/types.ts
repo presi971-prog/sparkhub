@@ -22,6 +22,14 @@ export interface CrawlResult {
   error?: string
 }
 
+export interface BrandColors {
+  primary: string
+  background: string
+  accent: string
+  text: string
+  secondary: string
+}
+
 export interface ExtractedData {
   businessName: string
   description: string
@@ -31,8 +39,9 @@ export interface ExtractedData {
   hours: string
   faq: string
   hasChat: boolean
-  brandColors: string
+  brandColors: BrandColors | null
   logoUrl: string
+  heroImageUrl: string
   imageUrls: string[]
 }
 

@@ -158,8 +158,8 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
       console.error(`[SmartCrawler] Échec mise à jour website: ${websiteUpdate.status}`)
     }
 
-    // 7b. Stocker le mapping slug (minuscules) → contactId (original) dans Supabase
-    //     Le webhook de Pat met l'URL en minuscules, donc le contactId est perdu
+    // 7b. Stocker le mapping + assets visuels (couleurs, logo, hero) dans Supabase
+    //     Le mini-site /demo-site/{slug} les lit depuis cette table.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamfaoqmvoqzps.supabase.co'
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     if (supabaseKey) {
@@ -175,9 +175,12 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
           body: JSON.stringify({
             slug: contactId.toLowerCase(),
             contact_id: contactId,
+            brand_colors: extracted.brandColors,
+            logo_url: extracted.logoUrl || null,
+            hero_image_url: extracted.heroImageUrl || null,
           }),
         })
-        console.log(`[SmartCrawler] Mapping Supabase: ${contactId.toLowerCase()} → ${contactId}`)
+        console.log(`[SmartCrawler] Mapping Supabase: ${contactId.toLowerCase()} → ${contactId} (logo=${!!extracted.logoUrl}, hero=${!!extracted.heroImageUrl}, colors=${!!extracted.brandColors})`)
       } catch (e) {
         console.error(`[SmartCrawler] Échec mapping Supabase:`, e)
       }
