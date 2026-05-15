@@ -55,7 +55,8 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   console.log(`[SmartCrawler] Crawl terminé: ${successfulResults.length}/${results.length} sources réussies`)
 
   if (successfulResults.length === 0) {
-    console.error(`[SmartCrawler] Aucune source crawlée pour contact ${contactId}. Abandon.`)
+    console.error(`[SmartCrawler] Aucune source crawlée pour contact ${contactId}. Marquage en échec → rappel manuel.`)
+    await markContactAsCrawlerFailed(contactId, pit, payload.email)
     return
   }
 
@@ -76,6 +77,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     console.log(`[SmartCrawler] Extraction OK: industry="${extracted.industry}", services="${extracted.services.slice(0, 80)}..."`)
   } catch (error) {
     console.error(`[SmartCrawler] Extraction IA échouée:`, error)
+    await markContactAsCrawlerFailed(contactId, pit, payload.email)
     return
   }
 
@@ -195,5 +197,87 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     console.log(`[SmartCrawler] ✅ Contact ${contactId} mis à jour (${fields.length} champs) en ${duration}ms`)
   } else {
     console.error(`[SmartCrawler] ❌ Échec écriture GHL pour contact ${contactId} après ${duration}ms`)
+  }
+}
+
+/**
+ * Marque un contact comme "Smart Crawler en échec".
+ * Ajoute un tag GHL `smart-crawler-failed` qui déclenche un workflow GHL de rappel manuel,
+ * et écrit un companyName fallback dérivé du domaine de l'email (si non générique).
+ */
+async function markContactAsCrawlerFailed(
+  contactId: string,
+  pit: string,
+  email?: string,
+): Promise<void> {
+  // 1. Calculer un companyName fallback depuis le domaine de l'email.
+  //    Ex: "jimmy@jimmytraiteur.com" → "Jimmytraiteur"
+  //    Pour les emails génériques (gmail, hotmail, etc.) → "À rappeler"
+  const GENERIC_DOMAINS = [
+    'gmail', 'hotmail', 'yahoo', 'outlook', 'free', 'sfr', 'orange',
+    'wanadoo', 'laposte', 'live', 'msn', 'icloud', 'me', 'protonmail',
+  ]
+  let fallbackName = 'À rappeler'
+  if (email) {
+    const domain = email.split('@')[1]?.split('.')[0]
+    if (domain && !GENERIC_DOMAINS.includes(domain.toLowerCase())) {
+      fallbackName = domain
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ')
+    }
+  }
+
+  // 2. Écrire le companyName fallback sur le contact GHL
+  try {
+    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyName: fallbackName }),
+    })
+    console.log(`[SmartCrawler] companyName fallback écrit: "${fallbackName}"`)
+  } catch (e) {
+    console.error(`[SmartCrawler] Erreur PUT companyName fallback:`, e)
+  }
+
+  // 3. Supprimer puis ré-ajouter le tag `smart-crawler-failed`
+  //    pour forcer le déclenchement du workflow GHL même si le tag existait déjà
+  //    (sinon GHL n'émet pas l'event Tag Added si le tag est déjà présent).
+  try {
+    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+    })
+  } catch (_) {
+    // Tag peut ne pas exister, on ignore silencieusement
+  }
+
+  try {
+    const r = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+    })
+    if (r.ok) {
+      console.log(`[SmartCrawler] Tag 'smart-crawler-failed' ajouté au contact ${contactId}`)
+    } else {
+      console.error(`[SmartCrawler] Erreur ajout tag: ${r.status} ${await r.text().catch(() => '')}`)
+    }
+  } catch (e) {
+    console.error(`[SmartCrawler] Erreur ajout tag smart-crawler-failed:`, e)
   }
 }
