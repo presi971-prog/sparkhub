@@ -35,11 +35,14 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   console.log(`[SmartCrawler] Sources: web=${!!website} fb=${!!facebook_url} ig=${!!instagram_url} li=${!!linkedin_url}`)
 
   // 1. Crawl toutes les sources EN PARALLÈLE
+  // Note : crawlFacebook + crawlInstagram reçoivent contactId pour persister
+  // les images sur Supabase Storage (URLs CDN FB/Insta expirent en quelques
+  // heures). Sans contactId, on garderait des URLs éphémères qui cassent.
   const crawlPromises = await Promise.allSettled([
-    crawlWebsite(website),
-    crawlFacebook(facebook_url),
-    crawlInstagram(instagram_url),
-    crawlLinkedin(linkedin_url),
+    crawlWebsite(website, contactId),
+    crawlFacebook(facebook_url, contactId),
+    crawlInstagram(instagram_url, contactId),
+    crawlLinkedin(linkedin_url, contactId),
   ])
 
   // Collecter les résultats réussis
@@ -52,7 +55,8 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
   console.log(`[SmartCrawler] Crawl terminé: ${successfulResults.length}/${results.length} sources réussies`)
 
   if (successfulResults.length === 0) {
-    console.error(`[SmartCrawler] Aucune source crawlée pour contact ${contactId}. Abandon.`)
+    console.error(`[SmartCrawler] Aucune source crawlée pour contact ${contactId}. Marquage en échec → rappel manuel.`)
+    await markContactAsCrawlerFailed(contactId, pit, payload.email)
     return
   }
 
@@ -73,6 +77,7 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     console.log(`[SmartCrawler] Extraction OK: industry="${extracted.industry}", services="${extracted.services.slice(0, 80)}..."`)
   } catch (error) {
     console.error(`[SmartCrawler] Extraction IA échouée:`, error)
+    await markContactAsCrawlerFailed(contactId, pit, payload.email)
     return
   }
 
@@ -104,6 +109,40 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     { id: FIELD_IDS.hasChat, field_value: hasChatValue },
   ]
 
+  // 6a. Écrire le businessName D'ABORD (avant les Custom Fields AI Demo).
+  //     RAISON : la page funnel "Demo Opt-In Checker (Do NOT Touch)" surveille les
+  //     Custom Fields AI Demo. Dès qu'ils sont remplis, elle redirige vers la page
+  //     Chat Demo en figeant l'URL avec ?company={{contact.company_name}}.
+  //     Si on écrivait companyName APRÈS les Custom Fields, la page Checker
+  //     redirigerait avant que le companyName soit en base → URL avec company=undefined.
+  //     En écrivant companyName d'abord, on garantit qu'il est déjà à jour quand la
+  //     page Checker détecte les Custom Fields prêts et déclenche la redirection.
+  if (extracted.businessName) {
+    try {
+      const nameUpdate = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${pit}`,
+          'Version': '2021-07-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ companyName: extracted.businessName }),
+      })
+      if (nameUpdate.ok) {
+        console.log(`[SmartCrawler] companyName écrit AVANT Custom Fields: "${extracted.businessName}"`)
+      } else {
+        console.error(`[SmartCrawler] Échec mise à jour companyName: ${nameUpdate.status} ${await nameUpdate.text().catch(() => '')}`)
+      }
+    } catch (e) {
+      console.error(`[SmartCrawler] Erreur PUT companyName:`, e)
+    }
+  } else {
+    console.warn(`[SmartCrawler] businessName non extrait pour contact ${contactId} — {{company}} restera vide.`)
+  }
+
+  // 6b. Écrire les Custom Fields AI Demo APRÈS le companyName.
+  //     La page Checker détecte les Custom Fields prêts et redirige avec
+  //     un companyName déjà à jour (cf. 6a).
   const success = await updateContactFields(contactId, pit, fields)
 
   // 7. Si pas de site web → écrire l'URL du mini-site dans le champ website du contact
@@ -124,8 +163,8 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
       console.error(`[SmartCrawler] Échec mise à jour website: ${websiteUpdate.status}`)
     }
 
-    // 7b. Stocker le mapping slug (minuscules) → contactId (original) dans Supabase
-    //     Le webhook de Pat met l'URL en minuscules, donc le contactId est perdu
+    // 7b. Stocker le mapping + assets visuels (couleurs, logo, hero) dans Supabase
+    //     Le mini-site /demo-site/{slug} les lit depuis cette table.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamfaoqmvoqzps.supabase.co'
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
     if (supabaseKey) {
@@ -141,9 +180,12 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
           body: JSON.stringify({
             slug: contactId.toLowerCase(),
             contact_id: contactId,
+            brand_colors: extracted.brandColors,
+            logo_url: extracted.logoUrl || null,
+            hero_image_url: extracted.heroImageUrl || null,
           }),
         })
-        console.log(`[SmartCrawler] Mapping Supabase: ${contactId.toLowerCase()} → ${contactId}`)
+        console.log(`[SmartCrawler] Mapping Supabase: ${contactId.toLowerCase()} → ${contactId} (logo=${!!extracted.logoUrl}, hero=${!!extracted.heroImageUrl}, colors=${!!extracted.brandColors})`)
       } catch (e) {
         console.error(`[SmartCrawler] Échec mapping Supabase:`, e)
       }
@@ -155,5 +197,87 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     console.log(`[SmartCrawler] ✅ Contact ${contactId} mis à jour (${fields.length} champs) en ${duration}ms`)
   } else {
     console.error(`[SmartCrawler] ❌ Échec écriture GHL pour contact ${contactId} après ${duration}ms`)
+  }
+}
+
+/**
+ * Marque un contact comme "Smart Crawler en échec".
+ * Ajoute un tag GHL `smart-crawler-failed` qui déclenche un workflow GHL de rappel manuel,
+ * et écrit un companyName fallback dérivé du domaine de l'email (si non générique).
+ */
+async function markContactAsCrawlerFailed(
+  contactId: string,
+  pit: string,
+  email?: string,
+): Promise<void> {
+  // 1. Calculer un companyName fallback depuis le domaine de l'email.
+  //    Ex: "jimmy@jimmytraiteur.com" → "Jimmytraiteur"
+  //    Pour les emails génériques (gmail, hotmail, etc.) → "À rappeler"
+  const GENERIC_DOMAINS = [
+    'gmail', 'hotmail', 'yahoo', 'outlook', 'free', 'sfr', 'orange',
+    'wanadoo', 'laposte', 'live', 'msn', 'icloud', 'me', 'protonmail',
+  ]
+  let fallbackName = 'À rappeler'
+  if (email) {
+    const domain = email.split('@')[1]?.split('.')[0]
+    if (domain && !GENERIC_DOMAINS.includes(domain.toLowerCase())) {
+      fallbackName = domain
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ')
+    }
+  }
+
+  // 2. Écrire le companyName fallback sur le contact GHL
+  try {
+    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyName: fallbackName }),
+    })
+    console.log(`[SmartCrawler] companyName fallback écrit: "${fallbackName}"`)
+  } catch (e) {
+    console.error(`[SmartCrawler] Erreur PUT companyName fallback:`, e)
+  }
+
+  // 3. Supprimer puis ré-ajouter le tag `smart-crawler-failed`
+  //    pour forcer le déclenchement du workflow GHL même si le tag existait déjà
+  //    (sinon GHL n'émet pas l'event Tag Added si le tag est déjà présent).
+  try {
+    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+    })
+  } catch (_) {
+    // Tag peut ne pas exister, on ignore silencieusement
+  }
+
+  try {
+    const r = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${pit}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+    })
+    if (r.ok) {
+      console.log(`[SmartCrawler] Tag 'smart-crawler-failed' ajouté au contact ${contactId}`)
+    } else {
+      console.error(`[SmartCrawler] Erreur ajout tag: ${r.status} ${await r.text().catch(() => '')}`)
+    }
+  } catch (e) {
+    console.error(`[SmartCrawler] Erreur ajout tag smart-crawler-failed:`, e)
   }
 }
