@@ -21,6 +21,78 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamf
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 const BUCKET = 'demo-site-assets'
 
+/**
+ * Vérifie qu'une URL d'image est safe à fetcher côté serveur (protection SSRF).
+ *
+ * Bloque :
+ * - URL non parseable ou protocole non http(s)
+ * - hostname `localhost`, `*.local`, `*.internal`
+ * - IPs privées IPv4 : 127.x.x.x (loopback), 10.x.x.x, 192.168.x.x, 172.16-31.x.x
+ * - IPs spéciales IPv4 : 169.254.x.x (AWS/GCP metadata), 0.x.x.x
+ * - IPs privées IPv6 : ::1 (loopback), fc00::/fd00:: (ULA), fe80:: (link-local)
+ *
+ * RAISON : sans ce filtre, un attaquant qui injecte une URL malveillante dans
+ * le payload du webhook (avant le secret X-Webhook-Secret, ou si secret leak)
+ * peut forcer notre serveur à fetch et stocker des données internes (metadata
+ * cloud, services Vercel internes, etc.) sur notre Supabase Storage public.
+ */
+function isSafeImageUrl(url: string): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    console.warn(`[smart-crawler/storage] SSRF check: URL non parseable (${url.slice(0, 80)})`)
+    return false
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    console.warn(`[smart-crawler/storage] SSRF check: protocole non autorisé "${parsed.protocol}" (${url.slice(0, 80)})`)
+    return false
+  }
+
+  const hostname = parsed.hostname.toLowerCase()
+
+  // Hostnames suspects
+  if (
+    hostname === 'localhost' ||
+    hostname.endsWith('.local') ||
+    hostname.endsWith('.internal')
+  ) {
+    console.warn(`[smart-crawler/storage] SSRF check: hostname interne bloqué "${hostname}"`)
+    return false
+  }
+
+  // IPs IPv4 privées / spéciales
+  const privateIPv4Regexes = [
+    /^127\./,                          // loopback 127.0.0.0/8
+    /^10\./,                           // 10.0.0.0/8
+    /^192\.168\./,                     // 192.168.0.0/16
+    /^172\.(1[6-9]|2[0-9]|3[01])\./,   // 172.16.0.0/12
+    /^169\.254\./,                     // link-local 169.254.0.0/16 (AWS/GCP metadata)
+    /^0\./,                            // 0.0.0.0/8
+  ]
+  for (const regex of privateIPv4Regexes) {
+    if (regex.test(hostname)) {
+      console.warn(`[smart-crawler/storage] SSRF check: IPv4 privée bloquée "${hostname}"`)
+      return false
+    }
+  }
+
+  // IPs IPv6 privées
+  if (
+    hostname === '::1' ||
+    hostname === '[::1]' ||
+    /^\[?fc[0-9a-f]{2}:/i.test(hostname) ||  // ULA fc00::/fd00::
+    /^\[?fd[0-9a-f]{2}:/i.test(hostname) ||
+    /^\[?fe80:/i.test(hostname)              // link-local
+  ) {
+    console.warn(`[smart-crawler/storage] SSRF check: IPv6 privée bloquée "${hostname}"`)
+    return false
+  }
+
+  return true
+}
+
 function getSupabase() {
   if (!SUPABASE_SERVICE_KEY) {
     throw new Error('[smart-crawler/storage] SUPABASE_SERVICE_ROLE_KEY missing')
@@ -48,6 +120,11 @@ export async function persistImage(
   label: string
 ): Promise<string | null> {
   if (!sourceUrl || !contactId) return null
+
+  // Protection SSRF : refuser les URLs internes / IPs privées avant tout fetch
+  if (!isSafeImageUrl(sourceUrl)) {
+    return null
+  }
 
   try {
     const response = await fetch(sourceUrl, {
