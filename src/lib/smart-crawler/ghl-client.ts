@@ -6,21 +6,32 @@ const GHL_API_VERSION = '2021-07-28'
 
 interface GHLUpdatePayload {
   customFields: Array<{ id: string; field_value: string }>
+  companyName?: string
 }
 
 /**
- * Met à jour les custom fields d'un contact GHL.
+ * Met à jour les custom fields d'un contact GHL (et optionnellement son `companyName`).
+ *
+ * IMPORTANT : pour éviter une race condition entre 2 PUT séparés (companyName puis
+ * customFields), on combine les 2 en UN SEUL appel atomique. Sinon, la page funnel
+ * "Demo Opt-In Checker" qui surveille les Custom Fields pouvait rediriger le prospect
+ * AVANT que companyName soit propagé → URL avec `?company=undefined`.
+ *
  * Utilise le PIT (Private Integration Token) pour l'authentification.
- * Format : { id: "internalFieldId", field_value: "valeur" }
+ * Format custom fields : { id: "internalFieldId", field_value: "valeur" }
  */
 export async function updateContactFields(
   contactId: string,
   pitToken: string,
-  fields: Array<{ id: string; field_value: string }>
+  fields: Array<{ id: string; field_value: string }>,
+  companyName?: string,
 ): Promise<boolean> {
   const url = `${GHL_API_BASE}/contacts/${contactId}`
 
   const body: GHLUpdatePayload = { customFields: fields }
+  if (companyName) {
+    body.companyName = companyName
+  }
 
   try {
     const response = await fetch(url, {
@@ -39,7 +50,8 @@ export async function updateContactFields(
       return false
     }
 
-    console.log(`[SmartCrawler] GHL contact ${contactId} updated (${fields.length} fields)`)
+    const cnLog = companyName ? ` + companyName="${companyName}"` : ''
+    console.log(`[SmartCrawler] GHL contact ${contactId} updated (${fields.length} fields${cnLog})`)
     return true
   } catch (error) {
     console.error(`[SmartCrawler] GHL fetch error:`, error)

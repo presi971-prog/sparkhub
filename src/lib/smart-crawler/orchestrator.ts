@@ -109,41 +109,17 @@ export async function crawlAndExtract(payload: WebhookPayload): Promise<void> {
     { id: FIELD_IDS.hasChat, field_value: hasChatValue },
   ]
 
-  // 6a. Écrire le businessName D'ABORD (avant les Custom Fields AI Demo).
-  //     RAISON : la page funnel "Demo Opt-In Checker (Do NOT Touch)" surveille les
-  //     Custom Fields AI Demo. Dès qu'ils sont remplis, elle redirige vers la page
-  //     Chat Demo en figeant l'URL avec ?company={{contact.company_name}}.
-  //     Si on écrivait companyName APRÈS les Custom Fields, la page Checker
-  //     redirigerait avant que le companyName soit en base → URL avec company=undefined.
-  //     En écrivant companyName d'abord, on garantit qu'il est déjà à jour quand la
-  //     page Checker détecte les Custom Fields prêts et déclenche la redirection.
-  if (extracted.businessName) {
-    try {
-      const nameUpdate = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${pit}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ companyName: extracted.businessName }),
-      })
-      if (nameUpdate.ok) {
-        console.log(`[SmartCrawler] companyName écrit AVANT Custom Fields: "${extracted.businessName}"`)
-      } else {
-        console.error(`[SmartCrawler] Échec mise à jour companyName: ${nameUpdate.status} ${await nameUpdate.text().catch(() => '')}`)
-      }
-    } catch (e) {
-      console.error(`[SmartCrawler] Erreur PUT companyName:`, e)
-    }
-  } else {
+  // 6. Écriture ATOMIQUE en UN SEUL PUT : companyName + Custom Fields AI Demo
+  //    en même temps. Avantage : la page funnel "Demo Opt-In Checker (Do NOT Touch)"
+  //    qui surveille les Custom Fields ne pourra jamais voir un état intermédiaire
+  //    où les Custom Fields sont remplis mais companyName est encore vide.
+  //    Avant ce fix, on avait 2 PUT séparés (companyName puis customFields), ce
+  //    qui pouvait produire ?company=undefined dans l'URL de redirection vers
+  //    /chat-demo dans 1-5% des cas selon timing GHL.
+  if (!extracted.businessName) {
     console.warn(`[SmartCrawler] businessName non extrait pour contact ${contactId} — {{company}} restera vide.`)
   }
-
-  // 6b. Écrire les Custom Fields AI Demo APRÈS le companyName.
-  //     La page Checker détecte les Custom Fields prêts et redirige avec
-  //     un companyName déjà à jour (cf. 6a).
-  const success = await updateContactFields(contactId, pit, fields)
+  const success = await updateContactFields(contactId, pit, fields, extracted.businessName)
 
   // 7. Si pas de site web → écrire l'URL du mini-site dans le champ website du contact
   //    pour que la page démo DemoDrop affiche le mini-site au lieu d'une erreur
