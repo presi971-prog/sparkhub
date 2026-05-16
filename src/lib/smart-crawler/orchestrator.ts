@@ -10,17 +10,29 @@ import { generateMiniSiteUrl } from './mini-site-generator'
 import { updateContactFields } from './ghl-client'
 import type { WebhookPayload, CrawlResult } from './types'
 
-// IDs des custom fields GHL — à configurer dans les env vars
-// Ces IDs sont visibles dans GHL > Settings > Custom Fields
-// IDs internes des custom fields GHL (trouvés via l'API contacts)
+// IDs des custom fields GHL — configurables via env vars Vercel
+// (fallback sur les IDs du sub-account DCG AI si non définies).
+//
+// Pour utiliser un autre sub-account / autre client : définir les env vars
+// suivantes dans Vercel pour overrider les fallbacks :
+//   GHL_FIELD_ID_DESCRIPTION
+//   GHL_FIELD_ID_INDUSTRY
+//   GHL_FIELD_ID_SERVICES
+//   GHL_FIELD_ID_SERVICE_AREAS
+//   GHL_FIELD_ID_HOURS
+//   GHL_FIELD_ID_FAQ
+//   GHL_FIELD_ID_HAS_CHAT
+//
+// Les IDs internes des Custom Fields GHL sont visibles via l'API
+// GET /contacts/{id} (champ customFields[].id) ou dans Settings → Custom Fields.
 const FIELD_IDS = {
-  description: 'SinwSUnXHLkzYZfeiiAt',
-  industry: 'n8OA1p2bKpGPoR0LLBVa',
-  services: 'fa2a2U0TfblbWHBhUD1D',
-  serviceAreas: 'wPG567tRa4nL6NhXUgSb',
-  hours: '8FTympBEanG4WErZgJSO',
-  faq: 'eyTCI2cknifRwOKELlxs',
-  hasChat: 'CRYCGS8LJIq6qfsp6Scd',
+  description: process.env.GHL_FIELD_ID_DESCRIPTION || 'SinwSUnXHLkzYZfeiiAt',
+  industry: process.env.GHL_FIELD_ID_INDUSTRY || 'n8OA1p2bKpGPoR0LLBVa',
+  services: process.env.GHL_FIELD_ID_SERVICES || 'fa2a2U0TfblbWHBhUD1D',
+  serviceAreas: process.env.GHL_FIELD_ID_SERVICE_AREAS || 'wPG567tRa4nL6NhXUgSb',
+  hours: process.env.GHL_FIELD_ID_HOURS || '8FTympBEanG4WErZgJSO',
+  faq: process.env.GHL_FIELD_ID_FAQ || 'eyTCI2cknifRwOKELlxs',
+  hasChat: process.env.GHL_FIELD_ID_HAS_CHAT || 'CRYCGS8LJIq6qfsp6Scd',
 }
 
 /**
