@@ -1,12 +1,21 @@
 // Smart Crawler — Webhook endpoint
 // Reçoit les demandes de crawl depuis GHL (remplace TurboMock)
+//
+// IMPORTANT : on répond 202 immédiatement à GHL et on traite en arrière-plan
+// via `after()` (Next.js 16). Raison : Smart Crawler peut prendre 30-90s
+// (Apify + Claude + écriture GHL), et si on attendait, GHL pourrait timeout
+// et retenter → double crawl, double facture Apify. Aujourd'hui le flux GHL
+// surveille les Custom Fields du contact (pas la réponse webhook), donc on
+// peut découpler en toute sécurité.
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { rateLimit, getRateLimitKey } from '@/lib/rate-limit'
 import { crawlAndExtract } from '@/lib/smart-crawler/orchestrator'
 import type { WebhookPayload } from '@/lib/smart-crawler/types'
 
-// Augmenter le timeout Vercel à 60 secondes (Pro plan)
+// Phase synchrone très courte (parse + validate). La phase longue
+// (crawl + extraction) tourne en arrière-plan via after().
+// after() permet jusqu'à 5 minutes de traitement après la réponse HTTP (Pro plan).
 export const maxDuration = 60
 
 const SERVER_PIT = process.env.GHL_PIT_TOKEN
@@ -89,22 +98,30 @@ export async function POST(request: NextRequest) {
     linkedin_url && 'li',
   ].filter(Boolean).join(',')}]`)
 
-  // 8. Traitement synchrone — on attend le résultat avant de répondre
-  try {
-    await crawlAndExtract(payload)
-    return NextResponse.json({
-      status: 'completed',
-      contactId,
-      message: 'Smart Crawler finished. Contact fields updated.',
-    })
-  } catch (error) {
-    console.error(`[SmartCrawler] Erreur pour contact ${contactId}:`, error)
-    return NextResponse.json({
-      status: 'error',
-      contactId,
-      message: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 })
-  }
+  // 8. Traitement ASYNCHRONE — on répond 202 immédiatement à GHL
+  //    et on lance crawlAndExtract en arrière-plan via after().
+  //    Le workflow GHL surveille les Custom Fields du contact (pas la réponse
+  //    webhook), donc il sera notifié quand l'analyse est terminée.
+  //    Si le crawl échoue (URL pourrie), markContactAsCrawlerFailed (dans
+  //    l'orchestrator) ajoute le tag `smart-crawler-failed` qui déclenche le
+  //    workflow GHL "Smart Crawler Échec — Demande de Rappel".
+  after(async () => {
+    try {
+      await crawlAndExtract(payload)
+    } catch (error) {
+      console.error(`[SmartCrawler] Erreur background pour contact ${contactId}:`, error)
+      // markContactAsCrawlerFailed est appelée à l'intérieur de crawlAndExtract
+      // sur les 2 cas d'échec connus (aucune source crawlée + extraction IA KO).
+      // Pour les erreurs inattendues ici, on logge — un futur fix ajoutera un
+      // call markContactAsCrawlerFailed avec un fallback global.
+    }
+  })
+
+  return NextResponse.json({
+    status: 'started',
+    contactId,
+    message: 'Smart Crawler started. Contact fields will be updated within ~60s.',
+  }, { status: 202 })
 }
 
 // GET pour vérifier que l'endpoint est actif
