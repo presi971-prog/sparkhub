@@ -205,55 +205,74 @@ async function markContactAsCrawlerFailed(
     }
   }
 
-  // 2. Écrire le companyName fallback sur le contact GHL
-  try {
-    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${pit}`,
-        'Version': '2021-07-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ companyName: fallbackName }),
-    })
-    console.log(`[SmartCrawler] companyName fallback écrit: "${fallbackName}"`)
-  } catch (e) {
-    console.error(`[SmartCrawler] Erreur PUT companyName fallback:`, e)
-  }
+  // 2. Lancer en PARALLÈLE :
+  //    - PUT companyName fallback
+  //    - DELETE tag smart-crawler-failed (au cas où il existait déjà, pour forcer
+  //      le re-déclenchement du workflow GHL au POST tag suivant)
+  //    Promise.allSettled pour ne pas qu'un échec bloque l'autre.
+  const headers = {
+    'Authorization': `Bearer ${pit}`,
+    'Version': '2021-07-28',
+    'Content-Type': 'application/json',
+  } as const
 
-  // 3. Supprimer puis ré-ajouter le tag `smart-crawler-failed`
-  //    pour forcer le déclenchement du workflow GHL même si le tag existait déjà
-  //    (sinon GHL n'émet pas l'event Tag Added si le tag est déjà présent).
-  try {
-    await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${pit}`,
-        'Version': '2021-07-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
-    })
-  } catch (_) {
-    // Tag peut ne pas exister, on ignore silencieusement
-  }
-
-  try {
-    const r = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${pit}`,
-        'Version': '2021-07-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
-    })
+  const putCompanyName = fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ companyName: fallbackName }),
+  }).then(async (r) => {
     if (r.ok) {
-      console.log(`[SmartCrawler] Tag 'smart-crawler-failed' ajouté au contact ${contactId}`)
+      console.log(`[SmartCrawler] companyName fallback écrit: "${fallbackName}"`)
     } else {
-      console.error(`[SmartCrawler] Erreur ajout tag: ${r.status} ${await r.text().catch(() => '')}`)
+      const text = await r.text().catch(() => '')
+      console.error(`[SmartCrawler] FAILED companyName fallback: HTTP ${r.status} ${text}`)
     }
-  } catch (e) {
-    console.error(`[SmartCrawler] Erreur ajout tag smart-crawler-failed:`, e)
+  }).catch((e: unknown) => {
+    console.error(`[SmartCrawler] FAILED companyName fallback (network error):`, e)
+  })
+
+  const deleteTag = fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+    method: 'DELETE',
+    headers,
+    body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+  }).then(async (r) => {
+    // 404 = tag n'existait pas, c'est OK. Toute autre erreur → on logge.
+    if (!r.ok && r.status !== 404) {
+      const text = await r.text().catch(() => '')
+      console.warn(`[SmartCrawler] DELETE tag returned HTTP ${r.status} (non-blocking): ${text}`)
+    }
+  }).catch((e: unknown) => {
+    console.warn(`[SmartCrawler] DELETE tag network error (non-blocking):`, e)
+  })
+
+  // On attend les 2 actions parallèles avant le POST tag (qui DOIT venir après
+  // le DELETE pour que GHL re-déclenche l'event Tag Added).
+  await Promise.allSettled([putCompanyName, deleteTag])
+
+  // 3. POST tag avec retry 1 fois — action CRITIQUE : sans ce tag, le workflow GHL
+  //    'Smart Crawler Échec — Demande de Rappel' ne se déclenche pas, et le prospect
+  //    serait perdu silencieusement (pas de WhatsApp, pas d'email, pas de notif).
+  const MAX_ATTEMPTS = 2
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const r = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/tags`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ tags: ['smart-crawler-failed'] }),
+      })
+      if (r.ok) {
+        console.log(`[SmartCrawler] Tag 'smart-crawler-failed' ajouté au contact ${contactId} (attempt ${attempt}/${MAX_ATTEMPTS})`)
+        return
+      }
+      const text = await r.text().catch(() => '')
+      console.error(`[SmartCrawler] POST tag attempt ${attempt}/${MAX_ATTEMPTS} failed: HTTP ${r.status} ${text}`)
+    } catch (e: unknown) {
+      console.error(`[SmartCrawler] POST tag attempt ${attempt}/${MAX_ATTEMPTS} network error:`, e)
+    }
+    // Attendre 1 seconde avant le retry (sauf si dernier essai)
+    if (attempt < MAX_ATTEMPTS) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000))
+    }
   }
+  console.error(`[SmartCrawler] 🚨 CRITICAL: POST tag failed after ${MAX_ATTEMPTS} attempts for contact ${contactId} — manual callback workflow will NOT trigger. Check logs above for HTTP errors.`)
 }
