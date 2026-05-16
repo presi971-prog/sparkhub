@@ -131,6 +131,57 @@ async function downloadImageAsBase64(imageUrl: string): Promise<{ base64: string
 }
 
 /**
+ * Wrapper fetch pour l'API Claude avec retry sur 429/5xx + erreurs réseau.
+ * Backoff exponentiel : 1s, 2s, 4s...
+ *
+ * - Succès (2xx) ou 4xx (sauf 429) → retour immédiat
+ * - 429 (rate-limit) ou 5xx (transient) → retry jusqu'à maxAttempts
+ * - Erreur réseau → retry jusqu'à maxAttempts
+ *
+ * RAISON : Claude renvoie souvent 529 ("overloaded") aux pics d'usage. Sans retry,
+ * on jette le contact (markContactAsCrawlerFailed) pour rien — alors qu'un retry
+ * 1-2 secondes plus tard aurait réussi.
+ */
+async function fetchClaudeWithRetry(
+  url: string,
+  init: RequestInit,
+  maxAttempts = 2,
+): Promise<Response> {
+  let lastNetworkError: unknown
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, init)
+      // 2xx OK, ou 4xx autre que 429 (vraie erreur de notre côté, retry inutile)
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        if (attempt > 1) {
+          console.log(`[SmartCrawler] Claude API OK après ${attempt} tentatives`)
+        }
+        return response
+      }
+      // 429 ou 5xx → transient, on retry si on a encore des tentatives
+      const bodySnippet = await response.text().catch(() => '')
+      console.warn(`[SmartCrawler] Claude API attempt ${attempt}/${maxAttempts}: HTTP ${response.status} ${bodySnippet.slice(0, 200)}`)
+      if (attempt === maxAttempts) {
+        // Plus de tentatives → on retourne la response telle quelle pour que l'appelant
+        // gère l'erreur normalement (via response.ok === false).
+        return new Response(bodySnippet, { status: response.status, statusText: response.statusText })
+      }
+    } catch (e) {
+      lastNetworkError = e
+      console.warn(`[SmartCrawler] Claude API attempt ${attempt}/${maxAttempts} network error:`, e)
+      if (attempt === maxAttempts) {
+        throw e
+      }
+    }
+    // Backoff exponentiel : 1s, 2s, 4s...
+    const delayMs = 1000 * Math.pow(2, attempt - 1)
+    await new Promise<void>((resolve) => setTimeout(resolve, delayMs))
+  }
+  // Théoriquement inatteignable (la boucle return ou throw avant) — garde-fou TS
+  throw lastNetworkError || new Error('[SmartCrawler] Claude API: unreachable')
+}
+
+/**
  * Analyse les couleurs dominantes d'une image via Claude Vision.
  * Télécharge l'image d'abord (Facebook bloque Claude via robots.txt).
  */
@@ -149,7 +200,10 @@ async function analyzeImageColors(imageUrl: string): Promise<BrandColors | null>
   }
 
   try {
-    const response = await fetch(ANTHROPIC_API_URL, {
+    // Analyse couleurs : aussi via retry helper (cas 529 fréquents).
+    // Si toujours en échec après retries → on retourne null, le mini-site utilise
+    // sa palette de fallback (pas critique).
+    const response = await fetchClaudeWithRetry(ANTHROPIC_API_URL, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -171,7 +225,7 @@ async function analyzeImageColors(imageUrl: string): Promise<BrandColors | null>
     })
 
     if (!response.ok) {
-      console.warn(`[SmartCrawler] Analyse couleurs échouée: ${response.status}`)
+      console.warn(`[SmartCrawler] Analyse couleurs échouée après retries: ${response.status}`)
       return null
     }
 
@@ -229,8 +283,8 @@ export async function extractBusinessData(
   const userPrompt = buildUserPrompt(successfulResults, companyName)
 
   const [textResponse, brandColors] = await Promise.all([
-    // Extraction texte
-    fetch(ANTHROPIC_API_URL, {
+    // Extraction texte (avec retry 2x sur 429/5xx via fetchClaudeWithRetry)
+    fetchClaudeWithRetry(ANTHROPIC_API_URL, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
