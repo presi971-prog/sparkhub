@@ -401,7 +401,7 @@ export async function extractBusinessData(
       imageUrls: imageUrls.slice(1),
     }
   } catch {
-    console.error('[SmartCrawler] JSON invalide:', jsonMatch[0])
+    console.error('[SmartCrawler] JSON invalide:', jsonStr)
     throw new Error('[SmartCrawler] Extraction IA: JSON malformé')
   }
 }
