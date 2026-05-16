@@ -205,11 +205,38 @@ async function markContactAsCrawlerFailed(
     'gmail', 'hotmail', 'yahoo', 'outlook', 'free', 'sfr', 'orange',
     'wanadoo', 'laposte', 'live', 'msn', 'icloud', 'me', 'protonmail',
   ]
+  // Sous-domaines techniques courants (à sauter pour trouver le vrai nom de marque).
+  // Ex: thierry@mail.entreprise.fr → "entreprise" (pas "mail")
+  const SUBDOMAIN_PREFIXES = [
+    'mail', 'smtp', 'pop', 'imap', 'webmail', 'www', 'm',
+    'blog', 'shop', 'store', 'app', 'api', 'admin', 'portal',
+    'support', 'help', 'contact', 'info',
+  ]
   let fallbackName = 'À rappeler'
   if (email) {
-    const domain = email.split('@')[1]?.split('.')[0]
-    if (domain && !GENERIC_DOMAINS.includes(domain.toLowerCase())) {
-      fallbackName = domain
+    // Découper le domaine en segments : "mail.entreprise.fr" → ["mail", "entreprise", "fr"]
+    const fullDomain = email.split('@')[1]?.toLowerCase() || ''
+    const segments = fullDomain.split('.')
+
+    // Trouver le segment "nom de marque" : on saute les sous-domaines techniques
+    // au début ET le TLD à la fin (.fr, .com, etc.).
+    // - 2 segments (ex: "boulangerie.com") → "boulangerie"
+    // - 3+ segments avec préfixe technique (ex: "mail.entreprise.fr") → "entreprise"
+    // - 3+ segments sans préfixe technique (ex: "ma.boulangerie.fr") → on garde le 1er ("ma")
+    //   pour être conservateur (cas rare)
+    let brandSegment = ''
+    if (segments.length >= 2) {
+      const firstSegment = segments[0]
+      if (segments.length >= 3 && SUBDOMAIN_PREFIXES.includes(firstSegment)) {
+        // Sous-domaine technique en tête → prendre le suivant
+        brandSegment = segments[1]
+      } else {
+        brandSegment = firstSegment
+      }
+    }
+
+    if (brandSegment && !GENERIC_DOMAINS.includes(brandSegment)) {
+      fallbackName = brandSegment
         .replace(/[-_]/g, ' ')
         .split(' ')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())

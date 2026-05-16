@@ -94,7 +94,9 @@ export function extractImageUrls(crawlResults: CrawlResult[]): string[] {
     if (!result.success) continue
 
     // Chercher les URLs d'images dans le markdown
-    const imgRegex = /https?:\/\/[^\s)"\]]+\.(?:jpg|jpeg|png|webp)[^\s)"\]]*/gi
+    // Inclut SVG (logos modernes), GIF (logos animés) et AVIF (format récent).
+    // Avant : seulement jpg/jpeg/png/webp → logos SVG manqués → palette couleurs ratée.
+    const imgRegex = /https?:\/\/[^\s)"\]]+\.(?:jpg|jpeg|png|webp|svg|gif|avif)[^\s)"\]]*/gi
     const scontentRegex = /https?:\/\/scontent[^\s)"\]]+/gi
 
     const matches = [
