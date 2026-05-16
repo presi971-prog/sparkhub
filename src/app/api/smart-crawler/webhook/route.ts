@@ -21,7 +21,22 @@ export const maxDuration = 60
 const SERVER_PIT = process.env.GHL_PIT_TOKEN
 
 export async function POST(request: NextRequest) {
-  // 1. Rate limit : 20 req/min par IP (protection anti-spam)
+  // 0. Vérification du secret partagé X-Webhook-Secret (R0 sécurité)
+  //    GHL doit envoyer ce header avec la valeur de SMART_CRAWLER_WEBHOOK_SECRET.
+  //    Sans ce header, on rejette : un attaquant ne doit pas pouvoir vider notre
+  //    crédit Apify ou modifier un contact GHL en falsifiant le contactId.
+  const expectedSecret = process.env.SMART_CRAWLER_WEBHOOK_SECRET
+  if (!expectedSecret) {
+    console.error('[SmartCrawler] SMART_CRAWLER_WEBHOOK_SECRET non défini côté serveur — webhook indisponible')
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
+  const receivedSecret = request.headers.get('x-webhook-secret')
+  if (receivedSecret !== expectedSecret) {
+    console.warn('[SmartCrawler] Webhook rejeté : X-Webhook-Secret manquant ou invalide')
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 1. Rate limit : 20 req/min par IP (protection anti-spam additionnelle)
   const rl = rateLimit(getRateLimitKey(request), 20, 60_000)
   if (!rl.success) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
