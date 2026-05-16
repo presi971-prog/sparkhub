@@ -107,14 +107,59 @@ export function isSocialUrl(url: string): boolean {
 
 /**
  * Détecte si le contenu retourné par Jina est en réalité une page de login
- * Facebook (et donc l'extraction a échoué silencieusement).
+ * (donc l'extraction n'a rien de réel sur l'entreprise).
+ *
+ * 3 patterns, du plus précis au plus général :
+ *
+ * 1. Slogan spécifique d'un grand réseau social (très peu de faux positifs).
+ * 2. Phrase explicite d'invitation à se connecter (typique des walls de login).
+ * 3. Contenu TRÈS court qui COMMENCE par "log in"/"sign in" ET contient
+ *    un mot-clé typique de formulaire (password / mot de passe).
+ *
+ * Avant ce fix, on déclenchait sur tout contenu < 1500 chars contenant
+ * "log into" — ce qui matchait des sites légitimes courts (petite boulangerie
+ * avec un footer "log into your account" → faux positif).
  */
 export function isLoginPageContent(content: string): boolean {
-  const lower = content.toLowerCase()
-  return (
+  const lower = content.toLowerCase().trim()
+
+  // Pattern 1 : slogans spécifiques des réseaux sociaux (très précis)
+  if (
     lower.includes('log into facebook') ||
+    lower.includes('log in to facebook') ||
     lower.includes('log in to instagram') ||
     lower.includes('sign in to linkedin') ||
-    (lower.includes('log into') && lower.length < 1500)
-  )
+    lower.includes('log in to twitter') ||
+    lower.includes('sign in to x')
+  ) {
+    return true
+  }
+
+  // Pattern 2 : phrases explicites d'invitation à se connecter
+  //             (peu probable dans le contenu d'un vrai site vitrine)
+  if (
+    /you must (log|sign) in to (continue|view|see|access)/.test(lower) ||
+    /please (log|sign) in to (continue|view|see|access)/.test(lower) ||
+    /vous devez vous connecter pour/.test(lower)
+  ) {
+    return true
+  }
+
+  // Pattern 3 : contenu TRÈS court qui COMMENCE par "log in" / "sign in"
+  //             ET contient un mot-clé typique de formulaire de login
+  if (lower.length < 800) {
+    const startsWithLogin =
+      lower.startsWith('log in') ||
+      lower.startsWith('sign in') ||
+      lower.startsWith('login') ||
+      lower.startsWith('connexion')
+    const hasPasswordIndicator =
+      lower.includes('password') ||
+      lower.includes('mot de passe')
+    if (startsWithLogin && hasPasswordIndicator) {
+      return true
+    }
+  }
+
+  return false
 }
