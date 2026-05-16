@@ -39,7 +39,14 @@ Réponds UNIQUEMENT avec du JSON valide suivant ce schéma exact :
   "hours": "Horaires d'ouverture",
   "faq": "Q: question ?\\nR: réponse\\n\\nQ: question ?\\nR: réponse",
   "hasChat": false
-}`
+}
+
+IMPORTANT — FORMAT DE SORTIE STRICT :
+- Ta réponse DOIT commencer par "{" et finir par "}".
+- AUCUN texte avant le "{" (pas de "Voici le résultat", pas de "Bien sûr").
+- AUCUN texte après le "}" (pas de "J'espère que ça aide", pas de "N'hésitez pas").
+- AUCUN bloc de code Markdown autour (pas de \`\`\`json).
+- Juste le JSON brut. Rien d'autre.`
 
 const COLOR_ANALYSIS_PROMPT = `Analyse cette image (logo, photo de profil ou cover d'une entreprise).
 
@@ -128,6 +135,59 @@ async function downloadImageAsBase64(imageUrl: string): Promise<{ base64: string
   } catch {
     return null
   }
+}
+
+/**
+ * Extrait le premier objet JSON équilibré d'un texte (du premier `{` jusqu'au
+ * `}` qui referme l'objet, en respectant les strings et les caractères échappés).
+ *
+ * Plus robuste que `text.match(/\{[\s\S]*\}/)` qui est glouton et capture
+ * du premier `{` au DERNIER `}` du texte — ce qui plante si Claude ajoute
+ * du texte avec accolades après le JSON (ex: "j'espère que { ça aide }").
+ *
+ * @returns la chaîne JSON brute, ou null si pas d'objet équilibré trouvé.
+ */
+function extractFirstJsonObject(text: string): string | null {
+  const start = text.indexOf('{')
+  if (start === -1) return null
+
+  let depth = 0
+  let inString = false
+  let escapeNext = false
+
+  for (let i = start; i < text.length; i++) {
+    const c = text[i]
+
+    if (escapeNext) {
+      escapeNext = false
+      continue
+    }
+
+    if (inString) {
+      if (c === '\\') {
+        escapeNext = true
+      } else if (c === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (c === '"') {
+      inString = true
+      continue
+    }
+
+    if (c === '{') {
+      depth++
+    } else if (c === '}') {
+      depth--
+      if (depth === 0) {
+        return text.slice(start, i + 1)
+      }
+    }
+  }
+
+  return null
 }
 
 /**
@@ -231,10 +291,10 @@ async function analyzeImageColors(imageUrl: string): Promise<BrandColors | null>
 
     const data = await response.json()
     const text = data.content?.[0]?.text || ''
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return null
+    const jsonStr = extractFirstJsonObject(text)
+    if (!jsonStr) return null
 
-    const raw = JSON.parse(jsonMatch[0])
+    const raw = JSON.parse(jsonStr)
     const colors: BrandColors = {
       primary:    isValidHex(raw.primary)    ? raw.primary.trim()    : '',
       secondary:  isValidHex(raw.secondary)  ? raw.secondary.trim()  : '',
@@ -311,15 +371,16 @@ export async function extractBusinessData(
   const data = await textResponse.json()
   const content = data.content?.[0]?.text || ''
 
-  // Parser le JSON
-  const jsonMatch = content.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
+  // Parser le JSON avec un parser robuste (s'arrête au premier objet équilibré,
+  // résiste aux accolades dans des phrases qui suivraient le JSON).
+  const jsonStr = extractFirstJsonObject(content)
+  if (!jsonStr) {
     console.error('[SmartCrawler] Claude n\'a pas retourné de JSON:', content)
     throw new Error('[SmartCrawler] Extraction IA: pas de JSON valide')
   }
 
   try {
-    const parsed = JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(jsonStr)
     console.log(`[SmartCrawler] Couleurs marque: ${brandColors ? 'détectées' : 'non détectées'}`)
     return {
       businessName: parsed.businessName || '',
