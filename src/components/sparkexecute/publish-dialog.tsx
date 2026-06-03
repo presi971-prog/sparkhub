@@ -21,7 +21,7 @@
  * compte LinkedIn dans GHL", "Erreur — réessaie".
  */
 
-import { CheckCircle2, ExternalLink, Loader2, Send, XCircle } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Info, Loader2, Send, XCircle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -68,6 +68,8 @@ interface PublicationApiResult {
   external_id?: string | null
   external_url?: string | null
   error?: string
+  /** true = republication bloquée car déjà publié (anti-doublon). */
+  skipped?: boolean
 }
 
 interface PlatformConfig {
@@ -267,14 +269,17 @@ export function PublishDialog({
       setResults(data.publications)
 
       const okCount = data.publications.filter(
-        (r) => r.status === 'published' || r.status === 'scheduled',
+        (r) => !r.skipped && (r.status === 'published' || r.status === 'scheduled'),
       ).length
       const failCount = data.publications.filter((r) => r.status === 'failed').length
+      const skipCount = data.publications.filter((r) => r.skipped).length
 
       if (okCount > 0 && failCount === 0) {
         toast.success(`Publié sur ${okCount} plateforme(s).`)
       } else if (okCount > 0 && failCount > 0) {
         toast.warning(`${okCount} OK, ${failCount} en erreur.`)
+      } else if (okCount === 0 && failCount === 0 && skipCount > 0) {
+        toast.info('Déjà publié — republication bloquée pour éviter un doublon.')
       } else {
         toast.error('Aucune publication n\'a réussi. Vérifie le détail.')
       }
@@ -412,13 +417,17 @@ export function PublishDialog({
                 className="flex items-start justify-between gap-2 text-sm"
               >
                 <div className="flex items-center gap-2">
-                  {r.status === 'published' || r.status === 'scheduled' ? (
+                  {r.skipped ? (
+                    <Info className="h-4 w-4 text-[#B7791F]" />
+                  ) : r.status === 'published' || r.status === 'scheduled' ? (
                     <CheckCircle2 className="h-4 w-4 text-[#10B981]" />
                   ) : (
                     <XCircle className="h-4 w-4 text-[#A1432D]" />
                   )}
                   <span className="font-medium text-[#0F1115]">{platformLabel(r.platform)}</span>
-                  {r.status === 'scheduled' ? (
+                  {r.skipped ? (
+                    <span className="text-xs text-[#B7791F]">(déjà publié)</span>
+                  ) : r.status === 'scheduled' ? (
                     <span className="text-xs text-[#5E626C]">(programmé)</span>
                   ) : null}
                 </div>
@@ -434,7 +443,9 @@ export function PublishDialog({
                     </a>
                   ) : null}
                   {r.error ? (
-                    <p className="text-xs text-[#A1432D]">{r.error}</p>
+                    <p className={`text-xs ${r.skipped ? 'text-[#B7791F]' : 'text-[#A1432D]'}`}>
+                      {r.error}
+                    </p>
                   ) : null}
                 </div>
               </div>

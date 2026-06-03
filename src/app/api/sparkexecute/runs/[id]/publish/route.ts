@@ -159,10 +159,41 @@ export async function POST(req: Request, context: RouteContext) {
   const admin = createSparkExecuteAdmin()
   const results: PublicationApiResult[] = []
 
+  // === GARDE ANTI-DOUBLON (fix 03/06/2026) ===
+  // Bug du 01/06 : re-cliquer "Publier" sur un run déjà publié recréait un
+  // NOUVEL article GHL à chaque clic (4 articles "dentiste" en double sur le
+  // blog DCG AI). On bloque donc la republication vers une plateforme où ce
+  // run a DÉJÀ une publication vivante (published ou scheduled). Publier vers
+  // une NOUVELLE plateforme reste possible.
+  const { data: livePubs } = await admin
+    .from('sparkexecute_publications')
+    .select('platform, external_url')
+    .eq('run_id', id)
+    .in('status', ['published', 'scheduled'])
+  const alreadyLive = new Map<string, string | null>()
+  for (const p of (livePubs ?? []) as Array<{
+    platform: PublishPlatform
+    external_url: string | null
+  }>) {
+    alreadyLive.set(p.platform, p.external_url ?? null)
+  }
+
   // Pré-insertion des publications en 'pending' (1 par plateforme).
   // On garde l'ID pour mettre à jour après l'appel.
   const pendingRows: Array<{ id: string; platform: PublishPlatform }> = []
   for (const platform of platforms) {
+    // Déjà publié sur cette plateforme → on NE republie PAS (anti-doublon).
+    if (alreadyLive.has(platform)) {
+      results.push({
+        platform,
+        status: 'published',
+        skipped: true,
+        external_url: alreadyLive.get(platform) ?? null,
+        error:
+          'Déjà publié sur cette plateforme. Republication bloquée pour éviter un doublon.',
+      })
+      continue
+    }
     const { data: inserted, error: insertError } = await admin
       .from('sparkexecute_publications')
       .insert({
@@ -316,7 +347,7 @@ export async function POST(req: Request, context: RouteContext) {
   // Si au moins une publication a réussi → on bascule le run en 'published'.
   // (Sur cette branche, run.status est déjà narrow à 'draft' | 'validated'.)
   const hasAnySuccess = results.some(
-    (r) => r.status === 'published' || r.status === 'scheduled',
+    (r) => !r.skipped && (r.status === 'published' || r.status === 'scheduled'),
   )
   if (hasAnySuccess) {
     const now = new Date().toISOString()
@@ -352,6 +383,8 @@ interface PublicationApiResult {
   external_id?: string | null
   external_url?: string | null
   error?: string
+  /** true = republication bloquée car déjà publié (anti-doublon). */
+  skipped?: boolean
 }
 
 /**
