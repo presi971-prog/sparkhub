@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 
+import { HubBar } from '@/components/sparkgrowth/hub-bar'
 import { SparkPilotChat } from '@/components/sparkpilot/chat/spark-pilot-chat'
 import { SparkPilotHeader } from '@/components/sparkpilot/header'
 import { HelpButton } from '@/components/sparkpilot/tour/help-button'
@@ -75,6 +76,8 @@ export default async function SparkPilotLayout({
             'radial-gradient(60% 40% at 12% -10%, rgba(79,70,229,0.10), transparent 70%), radial-gradient(50% 35% at 92% -5%, rgba(224,99,58,0.08), transparent 70%)',
         }}
       />
+
+      <HubBar />
 
       <SparkPilotHeader
         userInitials={initials}

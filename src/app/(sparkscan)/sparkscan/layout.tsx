@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Instrument_Serif, Geist, Geist_Mono } from 'next/font/google'
 
+import { HubBar } from '@/components/sparkgrowth/hub-bar'
+
 const instrumentSerif = Instrument_Serif({
   weight: '400',
   subsets: ['latin'],
@@ -71,6 +73,11 @@ export default function SparkScanLayout({
               'radial-gradient(ellipse 60% 40% at 80% 20%, rgba(244, 114, 182, 0.12), transparent 70%)',
           }}
         />
+      </div>
+
+      {/* Menu commun SparkGrowth — masqué à l'impression PDF des rapports. */}
+      <div className="no-print">
+        <HubBar />
       </div>
 
       {/* Header */}

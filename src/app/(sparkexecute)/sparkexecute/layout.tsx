@@ -12,6 +12,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { HubBar } from '@/components/sparkgrowth/hub-bar'
 import { SparkExecuteHeader } from '@/components/sparkexecute/header'
 import { createClient } from '@/lib/supabase/server'
 
@@ -72,6 +73,8 @@ export default async function SparkExecuteLayout({
             'radial-gradient(60% 40% at 12% -10%, rgba(16,185,129,0.10), transparent 70%), radial-gradient(50% 35% at 92% -5%, rgba(15,17,21,0.04), transparent 70%)',
         }}
       />
+
+      <HubBar />
 
       <SparkExecuteHeader
         userInitials={initials}
