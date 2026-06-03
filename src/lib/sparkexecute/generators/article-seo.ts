@@ -29,6 +29,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
+import { PUBLISH_BRAND_NAME, PUBLISH_BRAND_DOMAIN } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -156,6 +157,9 @@ function buildPrompt(
   const ton = brief.ton?.trim() || 'professionnel mais accessible (tutoiement)'
   const motsCles = (brief.mots_cles ?? []).filter((m) => m && m.trim()).slice(0, 12)
   const variant = describeVariant(brief.variant)
+  // Date du jour réelle (côté serveur) injectée dans le Schema — évite que le
+  // modèle invente une date erronée depuis sa date de connaissance.
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   const taskContext = task
     ? `[CONTEXTE DE LA TÂCHE PARENTE SPARKPILOT]
@@ -171,12 +175,31 @@ Garde ce contexte en tête pour rédiger un article qui colle au plan d'action d
     : ''
 
   return `[RÔLE]
-Tu es le rédacteur SEO senior de SparkExecute, l'atelier de production de
-contenus marketing pour les TPE/PME en Guadeloupe. Tu rédiges un article
-optimisé pour ranker sur Google ET tu fournis le prompt d'une image hero
-éditoriale qui accompagne l'article sur le blog.
+Tu es le rédacteur SEO senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}
+(${PUBLISH_BRAND_DOMAIN}), une marque qui accompagne les TPE/PME en Guadeloupe.
+Tu rédiges un article optimisé pour ranker sur Google ET tu fournis le prompt
+d'une image hero éditoriale qui accompagne l'article sur le blog.
+
+⚠️ "SparkExecute", "SparkScan", "SparkPilot" et "SparkHub" sont des noms
+d'OUTILS INTERNES. Ils ne doivent JAMAIS apparaître dans l'article ni dans le
+Schema. La SEULE marque visible par le lecteur est ${PUBLISH_BRAND_NAME}.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
+
+R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE, PRIME SUR TOUTES LES AUTRES)
+- INTERDIT d'inventer des témoignages, citations clients, avis, ou noms de
+  clients / d'entreprises présentés comme réels. Aucune fausse citation entre
+  guillemets attribuée à un "patron de restaurant à Saint-François" ou autre.
+- INTERDIT d'inventer des statistiques OU des sources ("BPI France 2023",
+  "une étude montre que 73 %…"). Si tu n'as pas de chiffre fiable et certain,
+  reste qualitatif ("beaucoup de temps", "plusieurs heures par semaine") sans
+  inventer de pourcentage ni de source.
+- Tu PEUX décrire un scénario générique explicitement hypothétique ("imaginons
+  un restaurateur au Gosier qui…") tant que tu ne le présentes pas comme un
+  fait réel ni un témoignage authentique.
+- Le CTA final invite à contacter ${PUBLISH_BRAND_NAME} (jamais "SparkExecute").
+  N'invente pas d'URL : si aucun lien n'est fourni, fais un appel à l'action
+  simple sans fausse adresse.
 
 R0 #1 — ANCRAGE GUADELOUPE (PRIORITÉ ABSOLUE)
 - Tous les exemples, références, comparaisons doivent ancrer le contenu en
@@ -194,7 +217,8 @@ R0 #2 — STRUCTURE SEO STRICTE
 - H3 sous certains H2 si la section a plusieurs sous-points.
 - Paragraphes COURTS : 2 à 4 lignes maximum (lisibilité mobile + SEO).
 - Listes à puces (-) ou numérotées (1.) dès qu'il y a 3+ items.
-- 1 ou 2 citations possibles en blockquote (> ...) pour rythmer la lecture.
+- 1 ou 2 mises en exergue en blockquote (> ...) pour rythmer la lecture : une
+  idée forte ou un conseil clé — JAMAIS un faux témoignage client (cf. R0 #0).
 - INTERDIT ABSOLU : NE JAMAIS insérer une balise <img> ni un Markdown image
   ![...](...) au DÉBUT de l'article. L'image hero est gérée séparément par
   le système de publication, l'insérer dans le markdown créerait un doublon
@@ -217,9 +241,9 @@ Ajoute en TOUT DERNIER, après le contenu, un bloc Schema.org JSON-LD :
   "@type": "Article",
   "headline": "<titre exact>",
   "description": "<résumé 2 phrases>",
-  "author": { "@type": "Organization", "name": "DCG AI" },
-  "publisher": { "@type": "Organization", "name": "DCG AI", "url": "https://dcg-ai.com" },
-  "datePublished": "<date du jour ISO>",
+  "author": { "@type": "Organization", "name": "${PUBLISH_BRAND_NAME}" },
+  "publisher": { "@type": "Organization", "name": "${PUBLISH_BRAND_NAME}", "url": "${PUBLISH_BRAND_DOMAIN}" },
+  "datePublished": "${todayIso}",
   "inLanguage": "fr-FR",
   "areaServed": { "@type": "Place", "name": "Guadeloupe" }
 }
@@ -307,19 +331,21 @@ sujets adjacents qu'on traitera dans des articles "cluster" liés.`
   }
   if (fw.includes('skyscraper')) {
     return `Skyscraper = on dépasse en profondeur tout ce qui existe déjà sur Google
-sur ce sujet. Donne plus d'exemples, plus de chiffres concrets, plus de
-sous-sections. Va au-delà du best-of pour devenir LA référence.`
+sur ce sujet. Donne plus d'exemples concrets, plus d'angles, plus de
+sous-sections. Va au-delà du best-of pour devenir LA référence. (Ne JAMAIS
+inventer de chiffres ou de sources pour "faire sérieux" — cf. R0 #0.)`
   }
   if (fw.includes('geo')) {
     return `GEO (Generative Engine Optimization) = rédige pour être cité par ChatGPT,
-Perplexity, Gemini. Phrases courtes, faits vérifiables, sources explicites,
-exemples nommés (vraies entreprises GP si possible), questions-réponses
-intégrées dans le texte.`
+Perplexity, Gemini. Phrases courtes, faits vérifiables uniquement, pas de
+source inventée, questions-réponses intégrées dans le texte. N'invente JAMAIS
+de nom d'entreprise réel ni de statistique (cf. R0 #0).`
   }
   if (fw.includes('e-e-a-t') || fw.includes('eeat')) {
-    return `E-E-A-T = Experience, Expertise, Authoritativeness, Trust. Mentionne au
-moins un retour d'expérience concret, cite des chiffres précis, montre que
-l'auteur sait de quoi il parle (vocabulaire métier maîtrisé).`
+    return `E-E-A-T = Experience, Expertise, Authoritativeness, Trust. Montre que
+l'auteur maîtrise le sujet (vocabulaire métier juste, conseils actionnables).
+Appuie-toi sur des faits vérifiables uniquement — sans inventer de témoignage
+ni de statistique (cf. R0 #0).`
   }
   if (fw.includes('topical')) {
     return `Topical Authority = montre que tu maîtrises TOUT le champ sémantique du

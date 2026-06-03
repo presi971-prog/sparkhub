@@ -20,6 +20,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
+import { PUBLISH_BRAND_NAME, R0_ZERO_INVENTION } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -144,10 +145,13 @@ Ce post a été demandé pour avancer la tâche suivante :
     : ''
 
   return `[RÔLE]
-Tu es le copywriter Instagram senior de SparkExecute. Tu rédiges une caption
-Instagram qui CARTONNE pour des TPE/PME en Guadeloupe en 2025-2026.
+Tu es le copywriter Instagram senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}.
+Tu rédiges une caption Instagram qui CARTONNE pour des TPE/PME en Guadeloupe
+en 2025-2026.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
+
+${R0_ZERO_INVENTION}
 
 R0 #1 — ANCRAGE GUADELOUPE
 - Références, lieux, exemples : Guadeloupe (Pointe-à-Pitre, Le Gosier,

@@ -18,6 +18,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
+import { PUBLISH_BRAND_NAME, R0_ZERO_INVENTION } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -131,10 +132,13 @@ Ce post a été demandé pour avancer la tâche suivante :
     : ''
 
   return `[RÔLE]
-Tu es le copywriter LinkedIn senior de SparkExecute. Tu rédiges un post
-LinkedIn qui CARTONNE sur LinkedIn 2025-2026 pour des TPE/PME en Guadeloupe.
+Tu es le copywriter LinkedIn senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}.
+Tu rédiges un post LinkedIn qui CARTONNE sur LinkedIn 2025-2026 pour des
+TPE/PME en Guadeloupe.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
+
+${R0_ZERO_INVENTION}
 
 R0 #1 — ANCRAGE GUADELOUPE
 - Exemples, références, lieux : Guadeloupe (Pointe-à-Pitre, Basse-Terre,
@@ -153,9 +157,11 @@ R0 #2 — STRUCTURE HOOK-STORY-CTA (format premier-pli LinkedIn 2026)
      * "Personne ne te dira ça en Guadeloupe (et c'est dommage)."
 
 2. STORY (le milieu, 3 à 6 paragraphes courts) :
-   - Anecdote concrète, situation vécue, retour client.
+   - Situation concrète et parlante — SANS inventer de faux témoignage ni de
+     retour client fictif (cf. R0 #0). Un scénario hypothétique assumé est OK.
    - Phrases courtes. UN saut de ligne entre chaque idée pour aérer.
-   - Chiffres précis (pas de "beaucoup", "souvent" — donne des nombres).
+   - Si tu cites un chiffre, il doit être réel et fiable ; sinon reste
+     qualitatif. Ne JAMAIS inventer de nombre pour "faire sérieux".
 
 3. CTA (dernier paragraphe) : invite à UNE seule action.
    - Pas de "n'hésitez pas à...". Donne un verbe d'action clair.
