@@ -29,7 +29,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
-import { PUBLISH_BRAND_NAME, PUBLISH_BRAND_DOMAIN } from '../brand'
+import { PUBLISH_BRAND_NAME, PUBLISH_BRAND_DOMAIN, PUBLISH_BRAND_CTA_URL } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -197,9 +197,10 @@ R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE, PRIME SUR TOUTES LES AUTRES)
 - Tu PEUX décrire un scénario générique explicitement hypothétique ("imaginons
   un restaurateur au Gosier qui…") tant que tu ne le présentes pas comme un
   fait réel ni un témoignage authentique.
-- Le CTA final invite à contacter ${PUBLISH_BRAND_NAME} (jamais "SparkExecute").
-  N'invente pas d'URL : si aucun lien n'est fourni, fais un appel à l'action
-  simple sans fausse adresse.
+- Le CTA final invite à RÉSERVER un audit/RDV via ce lien réel (le SEUL
+  autorisé), formaté en lien Markdown cliquable — par ex. :
+  "👉 [Réserve ton audit gratuit de 30 minutes](${PUBLISH_BRAND_CTA_URL})".
+  N'invente JAMAIS d'autre URL ni de "#". Jamais "SparkExecute" dans le CTA.
 
 R0 #1 — ANCRAGE GUADELOUPE (PRIORITÉ ABSOLUE)
 - Tous les exemples, références, comparaisons doivent ancrer le contenu en

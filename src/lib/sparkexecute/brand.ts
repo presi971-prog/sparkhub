@@ -12,6 +12,14 @@
 export const PUBLISH_BRAND_NAME = 'DCG AI'
 export const PUBLISH_BRAND_DOMAIN = 'https://digital-code-growth.com'
 
+/**
+ * Lien RÉEL de prise de rendez-vous / audit gratuit (widget booking GHL DCG AI).
+ * C'est le SEUL lien autorisé dans un CTA. Source : page offre-pro + GHL.
+ * TODO multi-client : à terme, lire ce lien depuis le profil de l'utilisateur.
+ */
+export const PUBLISH_BRAND_CTA_URL =
+  'https://api.digital-code-growth.com/widget/booking/LRaECnfnDuuZ7d22mo7'
+
 /** Phrase R0 anti-invention réutilisée dans les prompts des générateurs. */
 export const R0_ZERO_INVENTION = `R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE)
 - INTERDIT d'inventer des témoignages, citations clients, avis, ou noms de
@@ -20,4 +28,6 @@ export const R0_ZERO_INVENTION = `R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE)
   certain, reste qualitatif (ex. "plusieurs heures par semaine") sans inventer
   de pourcentage ni de source.
 - "SparkExecute"/"SparkScan"/"SparkPilot"/"SparkHub" = outils internes : ne
-  JAMAIS les nommer. La seule marque visible est ${PUBLISH_BRAND_NAME}.`
+  JAMAIS les nommer. La seule marque visible est ${PUBLISH_BRAND_NAME}.
+- CTA / prise de RDV : utilise UNIQUEMENT ce lien réel (jamais une autre URL,
+  jamais "#") → ${PUBLISH_BRAND_CTA_URL}`
