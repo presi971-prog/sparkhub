@@ -17,6 +17,7 @@ import {
   File,
   FileText,
   Image as ImageIcon,
+  Images,
   Instagram,
   LayoutTemplate,
   Linkedin,
@@ -84,6 +85,13 @@ const TYPE_CARDS: TypeCard[] = [
     description: 'Caption Instagram + hashtags + brief visuel d\'accompagnement.',
     icon: Instagram,
     estimatedSeconds: 15,
+  },
+  {
+    type: 'carousel',
+    label: 'Carrousel',
+    description: '5 slides image-avec-texte (Hook → valeur → CTA) pour Instagram / LinkedIn.',
+    icon: Images,
+    estimatedSeconds: 50,
   },
   {
     type: 'hooks_pub',
