@@ -16,10 +16,12 @@
 
 import { callClaudeText } from '../claude-text'
 import {
-  generateTextImageToBucket,
+  generateImageBuffer,
+  uploadPngToBucket,
   ratioToGptSize,
   GPT_IMAGE_USD_PER_IMAGE,
 } from './openai-image'
+import { composeCarouselSlide } from './slide-composer'
 import type { RunInputBrief, RunOutput } from '../types'
 import type { SparkpilotTask } from '@/lib/sparkpilot/types'
 
@@ -59,16 +61,26 @@ export async function generateCarousel(
   }
 
   // 2) Génère TOUTES les slides en PARALLÈLE (tient dans le budget de 120 s).
-  //    Si une slide échoue, on la laisse sans image plutôt que de tout perdre.
+  //    Flux par slide : décor SANS TEXTE (gpt-image-1) → on écrit le texte
+  //    par-dessus (sharp, accents garantis) → upload. Si une slide échoue, on
+  //    la laisse sans image plutôt que de tout perdre.
   const size = ratioToGptSize('1:1')
   const withImages = await Promise.all(
     slides.map(async (slide) => {
       try {
-        const url = await generateTextImageToBucket(
-          buildSlideImagePrompt(slide, slides.length),
+        const background = await generateImageBuffer(
+          buildBackgroundPrompt(slide.index),
           size,
           'medium',
         )
+        const composed = await composeCarouselSlide({
+          background,
+          headline: slide.headline,
+          subtext: slide.subtext,
+          index: slide.index,
+          total: slides.length,
+        })
+        const url = await uploadPngToBucket(composed)
         return { ...slide, image_url: url }
       } catch {
         return slide // sans image — signalé via image_error global
@@ -155,21 +167,20 @@ ${taskContext}
 // Prompt image d'une slide (gpt-image-1)
 // ============================================================
 
-function buildSlideImagePrompt(slide: Slide, total: number): string {
-  return `Instagram carousel slide ${slide.index} of ${total}, square 1:1 format.
-Design: minimalist editorial social-media poster. Warm beige/cream background
-blending into deep emerald green on one side, subtle tropical palm-leaf
-silhouettes, Guadeloupe Caribbean mood. No people, no logo, no watermark, no UI.
+function buildBackgroundPrompt(index: number): string {
+  // DÉCOR SEUL, SANS TEXTE : le texte est ajouté après par sharp (accents sûrs).
+  // On varie légèrement la composition des palmes selon la slide.
+  const corner =
+    index % 2 === 0 ? 'top-right and bottom-left' : 'top-left and bottom-right'
+  return `Minimalist editorial social-media background, square 1:1 format.
+ABSOLUTELY NO TEXT, no words, no letters, no numbers, no logo, no watermark,
+no people, no UI elements.
 
-Render the following FRENCH text EXACTLY as written, perfectly spelled WITH
-CORRECT FRENCH ACCENTS (é è ê à â î ô û ç). Large bold dark-emerald serif
-headline, centered, highly readable:
-"${slide.headline}"
-
-Smaller subtitle below, same dark emerald, regular weight:
-"${slide.subtext}"
-
-Generous spacing, clean professional typography, high contrast for readability.`
+Warm cream/beige background softly blending into deep emerald green, elegant
+tropical palm-leaf silhouettes in the ${corner} corners only. Keep a large,
+calm, UNCLUTTERED empty area in the CENTER (space reserved for a text overlay).
+Soft high-key lighting, premium brand aesthetic, subtle paper grain, Guadeloupe
+Caribbean mood. Flat, clean, elegant.`
 }
 
 // ============================================================
