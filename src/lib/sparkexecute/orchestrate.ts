@@ -19,6 +19,7 @@ import * as Sentry from '@sentry/nextjs'
 
 import { createSparkExecuteAdmin } from './supabase-admin'
 import { generateArticleSeo } from './generators/article-seo'
+import { generateCarousel } from './generators/carousel'
 import { generatePostInstagram } from './generators/post-instagram'
 import { generatePostLinkedIn } from './generators/post-linkedin'
 import { generateVisual } from './generators/visual'
@@ -167,6 +168,8 @@ async function dispatchGeneration(
       return generatePostInstagram(brief, task)
     case 'visual':
       return generateVisual(brief, task)
+    case 'carousel':
+      return generateCarousel(brief, task)
     default:
       throw new Error(`Générateur manquant pour le type "${type}"`)
   }
@@ -177,7 +180,9 @@ async function dispatchGeneration(
  * Pour les autres types, il faut du content non vide.
  */
 function isOutputUsable(type: RunType, output: RunOutput): boolean {
-  if (type === 'visual') {
+  if (type === 'visual' || type === 'carousel') {
+    // visual = l'image EST le livrable ; carousel = il faut au moins la slide
+    // de couverture (image_url) pour que le carrousel ait du sens.
     return typeof output.image_url === 'string' && output.image_url.length > 0
   }
   return typeof output.content === 'string' && output.content.trim().length > 0

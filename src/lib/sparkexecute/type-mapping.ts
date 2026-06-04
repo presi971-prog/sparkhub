@@ -70,6 +70,12 @@ export function deduceTypeFromFramework(
     return 'faq'
   }
 
+  // Heuristique forte : titre qui parle de carrousel (plusieurs slides) →
+  // prime sur Instagram/LinkedIn car un carrousel a son propre générateur.
+  if (/carr?ous?el/i.test(title)) {
+    return 'carousel'
+  }
+
   // Heuristique forte : titre qui parle clairement d'une plateforme sociale.
   // LinkedIn d'abord (très spécifique), puis Instagram, puis Reel.
   if (/\blinkedin\b/i.test(title)) {
@@ -133,6 +139,7 @@ export const RUN_TYPE_LABEL: Record<RunType, string> = {
   post_instagram: 'Post Instagram',
   hooks_pub: 'Accroches pub',
   visual: 'Visuel',
+  carousel: 'Carrousel',
   page_accueil: "Page d'accueil",
   schema_markup: 'Schema markup',
 }
@@ -148,6 +155,7 @@ export const RUN_TYPE_ORDER: RunType[] = [
   'faq',
   'post_linkedin',
   'post_instagram',
+  'carousel',
   'hooks_pub',
   'visual',
   'page_accueil',
@@ -167,6 +175,7 @@ export const RUN_TYPE_AVAILABLE_V1: Record<RunType, boolean> = {
   post_instagram: true,
   hooks_pub: false,
   visual: true,
+  carousel: true,
   page_accueil: false,
   schema_markup: false,
 }

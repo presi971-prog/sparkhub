@@ -8,6 +8,7 @@ import {
   File,
   FileText,
   Image as ImageIcon,
+  Images,
   Instagram,
   LayoutTemplate,
   Linkedin,
@@ -32,6 +33,7 @@ const ICONS: Record<RunType, LucideIcon> = {
   post_instagram: Instagram,
   hooks_pub: Megaphone,
   visual: ImageIcon,
+  carousel: Images,
   page_accueil: LayoutTemplate,
   schema_markup: Code,
 }

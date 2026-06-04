@@ -73,6 +73,7 @@ export const TYPE_LABEL: Record<RunType, string> = {
   post_instagram: 'Post Instagram',
   hooks_pub: 'Accroches pub',
   visual: 'Visuel',
+  carousel: 'Carrousel',
   page_accueil: "Page d'accueil",
   schema_markup: 'Schema markup',
 }
@@ -90,6 +91,7 @@ export const TYPE_ICON_NAME: Record<RunType, string> = {
   post_instagram: 'Instagram',
   hooks_pub: 'Megaphone',
   visual: 'Image',
+  carousel: 'Images',
   page_accueil: 'LayoutTemplate',
   schema_markup: 'Code',
 }
