@@ -191,21 +191,27 @@ ${
 [BRIEF]
 - Sujet du post : ${brief.sujet}
 
-${taskContext}[FORMAT DE RÉPONSE]
-Réponds AVEC EXACTEMENT 3 BLOCS séparés par "---" sur leur propre ligne :
+${taskContext}[FORMAT DE RÉPONSE — RESPECTE-LE À LA LETTRE]
+1) D'abord, écris le post LinkedIn (texte plat, prêt à coller), et RIEN d'autre.
+2) Puis, APRÈS le post, ajoute ces DEUX blocs, chacun encadré par ses balises
+   EXACTES sur leur propre ligne. N'écris JAMAIS "BLOC 1/2/3", n'omets JAMAIS
+   les balises :
 
-BLOC 1 — le post LinkedIn (texte plat, prêt à coller)
----
-BLOC 2 — HASHTAGS : 3 à 5 hashtags pertinents séparés par des espaces (sans le #)
----
-BLOC 3 — PROMPT IMAGE : un prompt DÉTAILLÉ en ANGLAIS pour Nano Banana qui
-décrit l'image éditoriale carrée 1:1 qui doit accompagner le post.
-Contraintes : ancrage Guadeloupe (palmiers, façades colorées de l'architecture locale, lumière chaude),
-JAMAIS de pull/col roulé, JAMAIS de rue grise européenne, JAMAIS de texte
-incrusté. Format : 3-6 lignes en anglais, style "Professional editorial
-photograph, hyperrealistic. Subject: ... Setting: ... Light: ...".
+---IMAGE_PROMPT---
+(prompt DÉTAILLÉ en ANGLAIS pour Nano Banana décrivant l'image éditoriale
+CARRÉE 1:1 qui accompagne le post. Ancrage Guadeloupe : palmiers, façades
+colorées de l'architecture locale, lumière chaude. JAMAIS de pull/col roulé,
+de rue grise européenne, ni de texte/logo incrusté. 3 à 6 lignes, style
+"Professional editorial photograph, hyperrealistic. Subject: ... Setting: ...
+Light: ...".)
+---END_IMAGE_PROMPT---
 
-Pas d'introduction, pas de conclusion meta. Juste les 3 blocs.`
+---HASHTAGS---
+(3 à 5 hashtags pertinents séparés par des espaces, sans le #)
+---END_HASHTAGS---
+
+⚠️ Le bloc ---IMAGE_PROMPT--- est OBLIGATOIRE : sans lui, le post n'a pas
+d'image. Pas d'introduction ni de conclusion meta.`
 }
 
 function frameworkGuidance(framework: string): string {
@@ -249,33 +255,34 @@ function splitTrailingBlocks(text: string): {
   imagePrompt: string | null
   hashtags: string[]
 } {
-  const blocks = text.split(/^\s*-{3,}\s*$/m).map((b) => b.trim()).filter(Boolean)
+  // Parsing ROBUSTE par balises explicites (même approche que article-seo, qui
+  // marche de façon fiable). On ne dépend plus du fait que le modèle "labellise"
+  // bien chaque bloc — on cherche des délimiteurs exacts.
+  const imgMatch = text.match(
+    /---IMAGE_PROMPT---\s*([\s\S]*?)\s*---END_IMAGE_PROMPT---/i,
+  )
+  const tagMatch = text.match(
+    /---HASHTAGS---\s*([\s\S]*?)\s*---END_HASHTAGS---/i,
+  )
 
-  const mainText = blocks[0] ?? text
-  let imagePrompt: string | null = null
-  const hashtags: string[] = []
-
-  for (const block of blocks.slice(1)) {
-    const lower = block.toLowerCase()
-    if (lower.startsWith('hashtags') || lower.startsWith('# hashtags')) {
-      // Récupère tous les mots après le label
-      const cleaned = block.replace(/^hashtags\s*:?\s*/i, '').trim()
-      const words = cleaned
+  const imagePrompt = imgMatch ? imgMatch[1].trim() || null : null
+  const hashtags = tagMatch
+    ? tagMatch[1]
         .split(/\s+|,/)
         .map((w) => w.replace(/^#+/, '').trim())
         .filter((w) => w.length > 0)
-      hashtags.push(...words.slice(0, 5))
-    } else if (
-      lower.startsWith('prompt image') ||
-      lower.startsWith('image prompt') ||
-      lower.startsWith('brief image') ||
-      lower.startsWith('image')
-    ) {
-      imagePrompt = block
-        .replace(/^(prompt image|image prompt|brief image|image)\s*:?\s*/i, '')
-        .trim()
-    }
-  }
+        .slice(0, 5)
+    : []
+
+  // Le texte du post = tout ce qui précède le 1er bloc balisé.
+  let mainText = text
+  const firstDelim = text.search(/---(?:IMAGE_PROMPT|HASHTAGS)---/i)
+  if (firstDelim > 0) mainText = text.slice(0, firstDelim)
+  // Filet de sécurité : si le modèle a oublié les balises de fin, on retire
+  // toute balise résiduelle qui traînerait dans le texte.
+  mainText = mainText
+    .replace(/---(?:IMAGE_PROMPT|END_IMAGE_PROMPT|HASHTAGS|END_HASHTAGS)---/gi, '')
+    .trim()
 
   return { mainText, imagePrompt, hashtags }
 }

@@ -202,26 +202,29 @@ ${
 [BRIEF]
 - Sujet du post : ${brief.sujet}
 
-${taskContext}[FORMAT DE RÉPONSE]
-Réponds AVEC EXACTEMENT 3 BLOCS séparés par "---" sur leur propre ligne :
+${taskContext}[FORMAT DE RÉPONSE — RESPECTE-LE À LA LETTRE]
+1) D'abord, écris la caption Instagram (texte plat, prêt à coller), RIEN d'autre.
+2) Puis, APRÈS la caption, ajoute ces DEUX blocs, chacun encadré par ses balises
+   EXACTES sur leur propre ligne. N'écris JAMAIS "BLOC 1/2/3", n'omets JAMAIS
+   les balises :
 
-BLOC 1 — la caption Instagram (texte plat, prêt à coller)
----
-BLOC 2 — HASHTAGS : 10 à 15 hashtags pertinents séparés par des espaces (sans
-le #). Mélange hashtags larges et niches (ex : #guadeloupe #971 #restoguadeloupe
-#tpegp #patronsgp).
----
-BLOC 3 — PROMPT IMAGE : un prompt DÉTAILLÉ en ANGLAIS pour Nano Banana qui
-décrit l'image éditoriale qui doit accompagner la caption.
+---IMAGE_PROMPT---
+(prompt DÉTAILLÉ en ANGLAIS pour Nano Banana décrivant l'image éditoriale.
 FORMAT IMAGE OBLIGATOIRE : ${imageFormatLine}
-Focus aesthetics Instagram : couleurs vibrantes mais naturelles, lumière chaude,
-cadrage Instagrammable. Ancrage Guadeloupe (palmiers, façades colorées de
-l'architecture locale, lumière dorée). JAMAIS de pull/col roulé, JAMAIS de rue grise européenne,
-JAMAIS de texte incrusté.
-Format : 3-6 lignes en anglais, style "Professional editorial photograph,
-hyperrealistic, ${aspectRatio === '4:5' ? 'vertical portrait 4:5 format' : 'square 1:1 format'}. Subject: ... Setting: ... Light: ...".
+Esthétique Instagram : couleurs vibrantes mais naturelles, lumière chaude,
+cadrage Instagrammable. Ancrage Guadeloupe : palmiers, façades colorées de
+l'architecture locale, lumière dorée. JAMAIS de pull/col roulé, de rue grise
+européenne, ni de texte/logo incrusté. 3 à 6 lignes, style "Professional
+editorial photograph, hyperrealistic, ${aspectRatio === '4:5' ? 'vertical portrait 4:5 format' : 'square 1:1 format'}. Subject: ... Setting: ... Light: ...".)
+---END_IMAGE_PROMPT---
 
-Pas d'introduction, pas de conclusion meta. Juste les 3 blocs.`
+---HASHTAGS---
+(10 à 15 hashtags pertinents séparés par des espaces, sans le #. Mélange larges
+et niches, ex : #guadeloupe #971 #restoguadeloupe #tpegp #patronsgp)
+---END_HASHTAGS---
+
+⚠️ Le bloc ---IMAGE_PROMPT--- est OBLIGATOIRE : sans lui, le post n'a pas
+d'image. Pas d'introduction ni de conclusion meta.`
 }
 
 function frameworkGuidance(framework: string): string {
@@ -265,32 +268,29 @@ function splitTrailingBlocks(text: string): {
   imagePrompt: string | null
   hashtags: string[]
 } {
-  const blocks = text.split(/^\s*-{3,}\s*$/m).map((b) => b.trim()).filter(Boolean)
+  // Parsing ROBUSTE par balises explicites (même approche fiable que article-seo).
+  const imgMatch = text.match(
+    /---IMAGE_PROMPT---\s*([\s\S]*?)\s*---END_IMAGE_PROMPT---/i,
+  )
+  const tagMatch = text.match(
+    /---HASHTAGS---\s*([\s\S]*?)\s*---END_HASHTAGS---/i,
+  )
 
-  const mainText = blocks[0] ?? text
-  let imagePrompt: string | null = null
-  const hashtags: string[] = []
-
-  for (const block of blocks.slice(1)) {
-    const lower = block.toLowerCase()
-    if (lower.startsWith('hashtags') || lower.startsWith('# hashtags')) {
-      const cleaned = block.replace(/^hashtags\s*:?\s*/i, '').trim()
-      const words = cleaned
+  const imagePrompt = imgMatch ? imgMatch[1].trim() || null : null
+  const hashtags = tagMatch
+    ? tagMatch[1]
         .split(/\s+|,/)
         .map((w) => w.replace(/^#+/, '').trim())
         .filter((w) => w.length > 0)
-      hashtags.push(...words.slice(0, 15))
-    } else if (
-      lower.startsWith('prompt image') ||
-      lower.startsWith('image prompt') ||
-      lower.startsWith('brief image') ||
-      lower.startsWith('image')
-    ) {
-      imagePrompt = block
-        .replace(/^(prompt image|image prompt|brief image|image)\s*:?\s*/i, '')
-        .trim()
-    }
-  }
+        .slice(0, 15)
+    : []
+
+  let mainText = text
+  const firstDelim = text.search(/---(?:IMAGE_PROMPT|HASHTAGS)---/i)
+  if (firstDelim > 0) mainText = text.slice(0, firstDelim)
+  mainText = mainText
+    .replace(/---(?:IMAGE_PROMPT|END_IMAGE_PROMPT|HASHTAGS|END_HASHTAGS)---/gi, '')
+    .trim()
 
   return { mainText, imagePrompt, hashtags }
 }
