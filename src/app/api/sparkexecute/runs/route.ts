@@ -19,8 +19,9 @@ import type {
 } from '@/lib/sparkexecute/types'
 import type { SparkpilotTask } from '@/lib/sparkpilot/types'
 
-// Marge confortable pour Claude (article 2000 mots = ~30 s) + upload visuel.
-export const maxDuration = 120
+// Marge confortable : Claude/images ~30-50 s, mais la VIDÉO (Veo) peut prendre
+// jusqu'à 2-3 min → 300 s (max plan Vercel Pro). En dev local, aucune limite.
+export const maxDuration = 300
 
 const VALID_TYPES: RunType[] = [
   'article_seo',

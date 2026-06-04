@@ -53,9 +53,10 @@ export async function generateVeoVideoToBucket(
     throw new Error(`Veo n'a pas démarré : ${createJson.msg ?? 'erreur inconnue'}`)
   }
 
-  // 2) Polling /veo/record-info (cap ~110 s, sous le maxDuration 120 s de la route).
+  // 2) Polling /veo/record-info. Veo est VARIABLE (parfois 20 s, parfois 2-3 min)
+  //    → on attend jusqu'à 280 s (le maxDuration de la route est passé à 300 s).
   const start = Date.now()
-  while (Date.now() - start < 110_000) {
+  while (Date.now() - start < 280_000) {
     await sleep(5000)
     const recRes = await fetch(`${VEO_RECORD}?taskId=${taskId}`, {
       headers: { Authorization: `Bearer ${key}` },
