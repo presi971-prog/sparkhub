@@ -31,6 +31,7 @@ const VALID_TYPES: RunType[] = [
   'post_instagram',
   'hooks_pub',
   'visual',
+  'carousel',
   'page_accueil',
   'schema_markup',
 ]
