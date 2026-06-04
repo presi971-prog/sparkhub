@@ -326,6 +326,12 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
     run.status === 'draft' || run.status === 'validated' || run.status === 'failed'
   const isPostPack = run.type === 'post_linkedin' || run.type === 'post_instagram'
   const isInstagramPack = run.type === 'post_instagram'
+  const isCarousel = run.type === 'carousel'
+  // Slides d'un carrousel (stockées dans output.metadata.slides).
+  const carouselSlides =
+    (run.output?.metadata?.slides as
+      | Array<{ index: number; headline: string; subtext: string; image_url?: string }>
+      | undefined) ?? []
   const canAddLegend =
     run.type === 'visual' &&
     !!run.output?.image_url &&
@@ -706,6 +712,69 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                       </button>
                     </>
                   )}
+                </div>
+              </div>
+            ) : isCarousel ? (
+              <div className="space-y-5">
+                {/* Galerie des slides */}
+                {carouselSlides.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {carouselSlides.map((s) => (
+                      <figure
+                        key={s.index}
+                        className="overflow-hidden rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]"
+                      >
+                        {s.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={s.image_url}
+                            alt={s.headline}
+                            className="aspect-square w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex aspect-square items-center justify-center bg-[#FFF6EA] p-2 text-center text-[11px] text-[#A37312]">
+                            Slide {s.index} — image non générée
+                          </div>
+                        )}
+                        <figcaption className="px-2 py-1.5 text-[11px] leading-tight text-[#5E626C]">
+                          <span className="font-mono uppercase tracking-[0.14em] text-[#10B981]">
+                            {s.index}.
+                          </span>{' '}
+                          {s.headline}
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#5E626C]">Aucune slide générée.</p>
+                )}
+                <p className="text-xs text-[#5E626C]">
+                  {carouselSlides.length} slide(s). Click-droit sur une image pour la
+                  télécharger, puis publie-les dans l&apos;ordre.
+                </p>
+
+                {/* Légende du carrousel (éditable) */}
+                <div>
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
+                    Légende
+                  </p>
+                  {isEditable ? (
+                    <textarea
+                      value={draftContent}
+                      onChange={(e) => setDraftContent(e.target.value)}
+                      className="block min-h-[140px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                      placeholder="La légende du carrousel apparaîtra ici…"
+                    />
+                  ) : (
+                    <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[#0F1115]">
+                      {run.output?.content ?? 'Aucune légende.'}
+                    </pre>
+                  )}
+                  {run.output.hashtags && run.output.hashtags.length > 0 ? (
+                    <p className="mt-2 font-mono text-xs text-[#10B981]">
+                      {run.output.hashtags.map((h) => `#${h.replace(/^#/, '')}`).join(' ')}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             ) : run.type === 'visual' ? (
