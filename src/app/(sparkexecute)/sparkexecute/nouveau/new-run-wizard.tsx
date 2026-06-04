@@ -20,6 +20,7 @@ import {
   Images,
   Instagram,
   LayoutTemplate,
+  Video,
   Linkedin,
   Loader2,
   Megaphone,
@@ -92,6 +93,13 @@ const TYPE_CARDS: TypeCard[] = [
     description: '5 slides image-avec-texte (Hook → valeur → CTA) pour Instagram / LinkedIn.',
     icon: Images,
     estimatedSeconds: 50,
+  },
+  {
+    type: 'video',
+    label: 'Vidéo (Reel)',
+    description: 'Clip vertical ~8 s généré par IA (Veo), prêt pour Reels / TikTok.',
+    icon: Video,
+    estimatedSeconds: 40,
   },
   {
     type: 'hooks_pub',

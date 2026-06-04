@@ -76,6 +76,12 @@ export function deduceTypeFromFramework(
     return 'carousel'
   }
 
+  // Heuristique forte : titre qui parle de vidéo / reel → générateur vidéo
+  // (prime sur "visual" qui attrape aussi "reel").
+  if (/\bvid[ée]os?\b|\breels?\b|\bshorts?\b/i.test(title)) {
+    return 'video'
+  }
+
   // Heuristique forte : titre qui parle clairement d'une plateforme sociale.
   // LinkedIn d'abord (très spécifique), puis Instagram, puis Reel.
   if (/\blinkedin\b/i.test(title)) {
@@ -140,6 +146,7 @@ export const RUN_TYPE_LABEL: Record<RunType, string> = {
   hooks_pub: 'Accroches pub',
   visual: 'Visuel',
   carousel: 'Carrousel',
+  video: 'Vidéo',
   page_accueil: "Page d'accueil",
   schema_markup: 'Schema markup',
 }
@@ -156,6 +163,7 @@ export const RUN_TYPE_ORDER: RunType[] = [
   'post_linkedin',
   'post_instagram',
   'carousel',
+  'video',
   'hooks_pub',
   'visual',
   'page_accueil',
@@ -176,6 +184,7 @@ export const RUN_TYPE_AVAILABLE_V1: Record<RunType, boolean> = {
   hooks_pub: false,
   visual: true,
   carousel: true,
+  video: true,
   page_accueil: false,
   schema_markup: false,
 }

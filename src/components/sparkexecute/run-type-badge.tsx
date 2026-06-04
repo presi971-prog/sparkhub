@@ -14,6 +14,7 @@ import {
   Linkedin,
   Megaphone,
   MessageCircleQuestion,
+  Video,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -34,6 +35,7 @@ const ICONS: Record<RunType, LucideIcon> = {
   hooks_pub: Megaphone,
   visual: ImageIcon,
   carousel: Images,
+  video: Video,
   page_accueil: LayoutTemplate,
   schema_markup: Code,
 }

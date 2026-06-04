@@ -22,6 +22,7 @@ import { generateArticleSeo } from './generators/article-seo'
 import { generateCarousel } from './generators/carousel'
 import { generatePostInstagram } from './generators/post-instagram'
 import { generatePostLinkedIn } from './generators/post-linkedin'
+import { generateVideo } from './generators/video'
 import { generateVisual } from './generators/visual'
 import { RUN_TYPE_AVAILABLE_V1 } from './type-mapping'
 import type {
@@ -170,6 +171,8 @@ async function dispatchGeneration(
       return generateVisual(brief, task)
     case 'carousel':
       return generateCarousel(brief, task)
+    case 'video':
+      return generateVideo(brief, task)
     default:
       throw new Error(`Générateur manquant pour le type "${type}"`)
   }
@@ -184,6 +187,9 @@ function isOutputUsable(type: RunType, output: RunOutput): boolean {
     // visual = l'image EST le livrable ; carousel = il faut au moins la slide
     // de couverture (image_url) pour que le carrousel ait du sens.
     return typeof output.image_url === 'string' && output.image_url.length > 0
+  }
+  if (type === 'video') {
+    return typeof output.video_url === 'string' && output.video_url.length > 0
   }
   return typeof output.content === 'string' && output.content.trim().length > 0
 }

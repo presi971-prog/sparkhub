@@ -327,6 +327,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
   const isPostPack = run.type === 'post_linkedin' || run.type === 'post_instagram'
   const isInstagramPack = run.type === 'post_instagram'
   const isCarousel = run.type === 'carousel'
+  const isVideo = run.type === 'video'
   // Slides d'un carrousel (stockées dans output.metadata.slides).
   const carouselSlides =
     (run.output?.metadata?.slides as
@@ -712,6 +713,46 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                       </button>
                     </>
                   )}
+                </div>
+              </div>
+            ) : isVideo ? (
+              <div className="space-y-4">
+                {run.output.video_url ? (
+                  <video
+                    src={run.output.video_url}
+                    controls
+                    playsInline
+                    className="w-full max-w-[360px] rounded-lg border border-[#E4E7E2] bg-black"
+                  />
+                ) : (
+                  <p className="text-sm text-[#A37312]">
+                    {run.output.image_error ?? 'Vidéo non disponible.'}
+                  </p>
+                )}
+                <p className="text-xs text-[#5E626C]">
+                  Clip vertical ~8 s. Click-droit sur la vidéo pour la télécharger.
+                </p>
+                <div>
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
+                    Légende
+                  </p>
+                  {isEditable ? (
+                    <textarea
+                      value={draftContent}
+                      onChange={(e) => setDraftContent(e.target.value)}
+                      className="block min-h-[120px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                      placeholder="La légende de la vidéo…"
+                    />
+                  ) : (
+                    <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[#0F1115]">
+                      {run.output?.content ?? 'Aucune légende.'}
+                    </pre>
+                  )}
+                  {run.output.hashtags && run.output.hashtags.length > 0 ? (
+                    <p className="mt-2 font-mono text-xs text-[#10B981]">
+                      {run.output.hashtags.map((h) => `#${h.replace(/^#/, '')}`).join(' ')}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             ) : isCarousel ? (

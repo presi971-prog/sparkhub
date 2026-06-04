@@ -32,6 +32,7 @@ const VALID_TYPES: RunType[] = [
   'hooks_pub',
   'visual',
   'carousel',
+  'video',
   'page_accueil',
   'schema_markup',
 ]

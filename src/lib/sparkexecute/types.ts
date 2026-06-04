@@ -27,6 +27,7 @@ export type RunType =
   | 'hooks_pub'
   | 'visual'
   | 'carousel'
+  | 'video'
   | 'page_accueil'
   | 'schema_markup'
 
@@ -134,6 +135,9 @@ export interface RunOutput {
 
   /** URL publique de l'image générée (visual, image d'accompagnement post…). */
   image_url?: string
+
+  /** URL publique de la vidéo générée (.mp4 ré-hébergée), pour le type 'video'. */
+  video_url?: string
 
   /** Texte alternatif accessibilité pour l'image. */
   alt_text?: string

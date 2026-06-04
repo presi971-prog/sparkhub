@@ -74,6 +74,7 @@ export const TYPE_LABEL: Record<RunType, string> = {
   hooks_pub: 'Accroches pub',
   visual: 'Visuel',
   carousel: 'Carrousel',
+  video: 'Vidéo',
   page_accueil: "Page d'accueil",
   schema_markup: 'Schema markup',
 }
@@ -92,6 +93,7 @@ export const TYPE_ICON_NAME: Record<RunType, string> = {
   hooks_pub: 'Megaphone',
   visual: 'Image',
   carousel: 'Images',
+  video: 'Video',
   page_accueil: 'LayoutTemplate',
   schema_markup: 'Code',
 }
