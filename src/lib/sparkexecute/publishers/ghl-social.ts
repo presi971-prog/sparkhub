@@ -187,6 +187,15 @@ async function publishOnePlatform(
   // on publie MAINTENANT (scheduleDate = l'instant présent).
   body.scheduleDate = scheduledAt ?? new Date().toISOString()
 
+  // PROGRAMMATION : sans `status`, GHL publie IMMÉDIATEMENT même avec une date
+  // future. Pour vraiment programmer, il faut `status: "scheduled"` (vérifié en
+  // réel : 201 + post réellement en attente, pas publié).
+  const isFutureSchedule =
+    !!scheduledAt && new Date(scheduledAt).getTime() > Date.now() + 30_000
+  if (isFutureSchedule) {
+    body.status = 'scheduled'
+  }
+
   // Certains champs sont spécifiques à certaines plateformes (ex : Google
   // Business demande un actionType ; Instagram demande mediaType=REELS pour
   // les vidéos). En V1.1, on s'en tient au cas standard "image + texte".
