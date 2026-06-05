@@ -189,6 +189,9 @@ export function PublishDialog({
   const [publishing, setPublishing] = useState<boolean>(false)
   const [results, setResults] = useState<PublicationApiResult[] | null>(null)
 
+  // Programmation : '' = publier maintenant ; sinon datetime-local (heure locale).
+  const [scheduledAt, setScheduledAt] = useState<string>('')
+
   // Init cocher les "primary" quand on ouvre le modal.
   useEffect(() => {
     if (!open) return
@@ -198,6 +201,7 @@ export function PublishDialog({
     }
     setSelected(initial)
     setResults(null)
+    setScheduledAt('')
   }, [open, availablePlatforms])
 
   // Fetch des comptes connectés.
@@ -281,6 +285,10 @@ export function PublishDialog({
           platforms: Array.from(selected),
           options: {
             accountIds,
+            // datetime-local => ISO (UTC). Vide = publier maintenant.
+            ...(scheduledAt
+              ? { scheduledAt: new Date(scheduledAt).toISOString() }
+              : {}),
           },
         }),
       })
@@ -428,6 +436,38 @@ export function PublishDialog({
           </div>
         ) : null}
 
+        {/* Programmation : choisir une date/heure, ou laisser vide = maintenant */}
+        {!results ? (
+          <div className="rounded-md border border-[#E4E7E2] bg-white p-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
+              Quand publier ?
+            </span>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                min={new Date().toISOString().slice(0, 16)}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className="rounded-md border border-[#E4E7E2] bg-[#F5F6F4]/30 px-2.5 py-1.5 text-sm text-[#0F1115] focus:border-[#10B981] focus:outline-none"
+              />
+              {scheduledAt ? (
+                <button
+                  type="button"
+                  onClick={() => setScheduledAt('')}
+                  className="text-xs text-[#5E626C] underline transition hover:text-[#0F1115]"
+                >
+                  Publier maintenant
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-1.5 text-xs text-[#5E626C]">
+              {scheduledAt
+                ? 'Programmé : la publication partira à cette date.'
+                : 'Vide = publier tout de suite. Choisis une date pour programmer (ex : demain 7h30).'}
+            </p>
+          </div>
+        ) : null}
+
         {/* Résultats de publication (si on vient d'en faire une) */}
         {results && results.length > 0 ? (
           <div className="space-y-2 rounded-md border border-[#E4E7E2] bg-[#F5F6F4]/50 p-3">
@@ -501,7 +541,7 @@ export function PublishDialog({
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              Publier maintenant
+              {scheduledAt ? 'Programmer' : 'Publier maintenant'}
             </button>
           ) : null}
         </div>
