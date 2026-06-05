@@ -125,6 +125,16 @@ export async function publishToSocialPlanner(
   return results
 }
 
+/** Déduit le type MIME d'un média depuis l'extension de son URL (requis par GHL). */
+function mimeFromUrl(url: string): string {
+  const u = url.toLowerCase().split('?')[0]
+  if (u.endsWith('.mp4')) return 'video/mp4'
+  if (u.endsWith('.mov')) return 'video/quicktime'
+  if (u.endsWith('.jpg') || u.endsWith('.jpeg')) return 'image/jpeg'
+  if (u.endsWith('.webp')) return 'image/webp'
+  return 'image/png'
+}
+
 /** Identifiant utilisateur GHL — requis par l'API Social Planner pour publier. */
 function getGhlUserId(): string {
   const id = process.env.GHL_USER_ID
@@ -158,7 +168,10 @@ async function publishOnePlatform(
   }
 
   if (mediaUrl) {
-    body.media = [{ url: mediaUrl }]
+    // GHL EXIGE le format MIME du média pour publier (sans lui, GHL plante en
+    // interne : "Cannot read properties of undefined (reading 'includes')").
+    // "image" est refusé → on envoie le vrai type ("image/png", "video/mp4"…).
+    body.media = [{ url: mediaUrl, type: mimeFromUrl(mediaUrl) }]
   }
 
   // GHL EXIGE une date de publication, sinon HTTP 400. Pas de date fournie =
