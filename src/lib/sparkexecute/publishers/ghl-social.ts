@@ -275,21 +275,25 @@ export type SocialAccountsByPlatform = Partial<Record<SocialPlatform, SocialAcco
 export async function listConnectedSocialAccounts(): Promise<SocialAccountsByPlatform> {
   let response: GhlSocialAccountsResponse
   try {
+    // Endpoint correct (testé : renvoie les comptes sous `results.accounts`).
     response = await ghlFetch<GhlSocialAccountsResponse>(
-      `/social-media-posting/oauth/${GHL_DCGAI_LOCATION_ID}/accounts`,
+      `/social-media-posting/${GHL_DCGAI_LOCATION_ID}/accounts`,
     )
   } catch (err) {
     if (err instanceof GhlApiError && err.status === 404) {
-      // Fallback : path alternatif si la 1ère version a changé.
+      // Fallback legacy : ancien path /oauth/.
       response = await ghlFetch<GhlSocialAccountsResponse>(
-        `/social-media-posting/${GHL_DCGAI_LOCATION_ID}/accounts`,
+        `/social-media-posting/oauth/${GHL_DCGAI_LOCATION_ID}/accounts`,
       )
     } else {
       throw err
     }
   }
 
-  const accounts = response?.accounts ?? response?.data ?? []
+  // ⚠️ La réponse range les comptes sous `results.accounts` (pas `accounts`
+  // ni `data` au 1er niveau) — c'est ce qui faisait croire "compte non connecté".
+  const accounts =
+    response?.results?.accounts ?? response?.accounts ?? response?.data ?? []
   const grouped: SocialAccountsByPlatform = {}
 
   for (const account of accounts) {
@@ -312,6 +316,7 @@ export async function listConnectedSocialAccounts(): Promise<SocialAccountsByPla
 }
 
 interface GhlSocialAccountsResponse {
+  results?: { accounts?: GhlSocialAccountRaw[] }
   accounts?: GhlSocialAccountRaw[]
   data?: GhlSocialAccountRaw[]
 }
