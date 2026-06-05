@@ -125,6 +125,17 @@ export async function publishToSocialPlanner(
   return results
 }
 
+/** Identifiant utilisateur GHL — requis par l'API Social Planner pour publier. */
+function getGhlUserId(): string {
+  const id = process.env.GHL_USER_ID
+  if (!id) {
+    throw new Error(
+      'Variable GHL_USER_ID manquante côté serveur — requise par GHL pour publier sur les réseaux.',
+    )
+  }
+  return id
+}
+
 /** Publie sur 1 plateforme (1 appel POST par plateforme). */
 async function publishOnePlatform(
   run: SparkexecuteRun,
@@ -133,30 +144,25 @@ async function publishOnePlatform(
   scheduledAt?: string,
 ): Promise<PublishSocialItemResult> {
   const summary = adaptContentForPlatform(run, platform)
-  const mediaUrl = run.output?.image_url
+  // Vidéo si le run en a une, sinon image. GHL infère le type depuis l'URL.
+  const mediaUrl = run.output?.video_url ?? run.output?.image_url
 
-  // Doc GHL Social Planner — POST /social-media-posting/{locationId}/posts
-  // TODO V1.1.1: vérifier le format exact du body avec un test en réel.
-  // La doc indique grosso modo :
-  //   { type: "post", accountIds: [...], summary: "...", media: [{ type, url }], scheduledAt? }
+  // POST /social-media-posting/{locationId}/posts — format VÉRIFIÉ en réel le
+  // 05/06 (avant : 422). GHL EXIGE `userId`, REFUSE `media[].alt` et le
+  // `media[].type:"image"` → on envoie juste { url } (GHL déduit le type).
   const body: Record<string, unknown> = {
     type: 'post',
     accountIds,
+    userId: getGhlUserId(),
     summary,
   }
 
   if (mediaUrl) {
-    body.media = [
-      {
-        type: 'image',
-        url: mediaUrl,
-        alt: run.output?.alt_text ?? '',
-      },
-    ]
+    body.media = [{ url: mediaUrl }]
   }
 
   if (scheduledAt) {
-    body.scheduledAt = scheduledAt
+    body.scheduleDate = scheduledAt
   }
 
   // Certains champs sont spécifiques à certaines plateformes (ex : Google
