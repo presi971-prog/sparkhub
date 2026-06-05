@@ -55,6 +55,25 @@ interface SocialAccount {
 
 type AccountsByPlatform = Partial<Record<SocialPlatform, SocialAccount[]>>
 
+/** Compte DCG AI à privilégier par plateforme (plusieurs comptes connectés,
+ * dont des comptes Cobeone — il NE faut PAS publier dessus). */
+const DCG_AI_PREFERRED_NAMES: Partial<Record<SocialPlatform, string>> = {
+  linkedin: 'Digital Code Growth',
+  facebook: 'DCG AI',
+  instagram: 'dcg.ai',
+  google_business: 'Digital Code Growth',
+}
+
+/** Choisit LE compte utilisé : le compte DCG AI dédié (par nom), sinon le 1er.
+ * Utilisé À LA FOIS pour l'affichage et la publication → ce qu'on voit = ce qui part. */
+function pickPreferredAccount(
+  platform: SocialPlatform,
+  list: SocialAccount[],
+): SocialAccount | undefined {
+  const name = DCG_AI_PREFERRED_NAMES[platform]
+  return (name ? list.find((a) => a.name === name) : undefined) ?? list[0]
+}
+
 interface AccountsApiResponse {
   pit_configured: boolean
   accounts: AccountsByPlatform
@@ -229,25 +248,14 @@ export function PublishDialog({
     setPublishing(true)
     setResults(null)
 
-    // Construit accountIds mapping. Préfère le compte DCG AI dédié (filtré par nom).
-    // Fallback : 1er compte connecté de la plateforme.
-    const DCG_AI_PREFERRED_NAMES: Partial<Record<SocialPlatform, string>> = {
-      linkedin: 'Digital Code Growth',
-      facebook: 'DCG AI',
-      instagram: 'dcg.ai',
-      google_business: 'Digital Code Growth',
-    }
+    // Construit accountIds mapping via pickPreferredAccount (même logique que
+    // l'affichage) → on publie sur le compte DCG AI, jamais Cobeone par erreur.
     const accountIds: Partial<Record<SocialPlatform, string[]>> = {}
     for (const p of selected) {
       if (p === 'ghl_blog') continue
       const list = accounts[p as SocialPlatform] ?? []
-      if (list.length === 0) continue
-      const preferredName = DCG_AI_PREFERRED_NAMES[p as SocialPlatform]
-      const preferred = preferredName
-        ? list.find((a) => a.name === preferredName)
-        : undefined
-      const chosen = preferred ?? list[0]
-      accountIds[p as SocialPlatform] = [chosen.id]
+      const chosen = pickPreferredAccount(p as SocialPlatform, list)
+      if (chosen) accountIds[p as SocialPlatform] = [chosen.id]
     }
 
     try {
@@ -335,7 +343,7 @@ export function PublishDialog({
             const isSelected = selected.has(cfg.platform)
             const isBlog = cfg.platform === 'ghl_blog'
             const connectedAccount = cfg.socialAccount
-              ? (accounts[cfg.socialAccount] ?? [])[0]
+              ? pickPreferredAccount(cfg.socialAccount, accounts[cfg.socialAccount] ?? [])
               : null
 
             return (
