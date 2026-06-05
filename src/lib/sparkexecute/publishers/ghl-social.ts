@@ -161,9 +161,9 @@ async function publishOnePlatform(
     body.media = [{ url: mediaUrl }]
   }
 
-  if (scheduledAt) {
-    body.scheduleDate = scheduledAt
-  }
+  // GHL EXIGE une date de publication, sinon HTTP 400. Pas de date fournie =
+  // on publie MAINTENANT (scheduleDate = l'instant présent).
+  body.scheduleDate = scheduledAt ?? new Date().toISOString()
 
   // Certains champs sont spécifiques à certaines plateformes (ex : Google
   // Business demande un actionType ; Instagram demande mediaType=REELS pour
