@@ -167,10 +167,19 @@ async function publishOnePlatform(
     summary,
   }
 
-  if (mediaUrl) {
-    // GHL EXIGE le format MIME du média pour publier (sans lui, GHL plante en
-    // interne : "Cannot read properties of undefined (reading 'includes')").
-    // "image" est refusé → on envoie le vrai type ("image/png", "video/mp4"…).
+  // CARROUSEL : on envoie TOUTES les slides (GHL accepte plusieurs médias dans
+  // un post — testé OK). Sinon : 1 seul média (image ou vidéo).
+  // ⚠️ GHL EXIGE le format MIME (sans lui, GHL plante : "Cannot read properties
+  // of undefined (reading 'includes')"). "image" est refusé → vrai type.
+  const carouselUrls = (
+    (run.output?.metadata?.slides as Array<{ image_url?: string }> | undefined) ?? []
+  )
+    .map((s) => s.image_url)
+    .filter((u): u is string => typeof u === 'string' && u.length > 0)
+
+  if (carouselUrls.length > 1) {
+    body.media = carouselUrls.map((u) => ({ url: u, type: mimeFromUrl(u) }))
+  } else if (mediaUrl) {
     body.media = [{ url: mediaUrl, type: mimeFromUrl(mediaUrl) }]
   }
 

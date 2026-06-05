@@ -145,6 +145,21 @@ function getAvailablePlatforms(runType: RunType): PlatformConfig[] {
         },
       ]
 
+    case 'carousel':
+      return [
+        { platform: 'instagram', label: 'Instagram', primary: true, socialAccount: 'instagram' },
+        { platform: 'linkedin', label: 'LinkedIn', primary: false, socialAccount: 'linkedin' },
+        { platform: 'facebook', label: 'Facebook', primary: false, socialAccount: 'facebook' },
+      ]
+
+    case 'video':
+      return [
+        { platform: 'instagram', label: 'Instagram (Reel)', primary: true, socialAccount: 'instagram' },
+        { platform: 'facebook', label: 'Facebook', primary: false, socialAccount: 'facebook' },
+        { platform: 'tiktok', label: 'TikTok', primary: false, socialAccount: 'tiktok' },
+        { platform: 'youtube', label: 'YouTube', primary: false, socialAccount: 'youtube' },
+      ]
+
     case 'hooks_pub':
     case 'visual':
     case 'page_accueil':
