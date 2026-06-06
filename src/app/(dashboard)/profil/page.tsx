@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ChangePasswordCard } from '@/components/profil/change-password-card'
 
 export const metadata: Metadata = {
   title: 'Mon Profil',
@@ -230,6 +231,9 @@ export default async function ProfilPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Changer son mot de passe (utilisateur connecté) */}
+      <ChangePasswordCard />
     </div>
   )
 }
