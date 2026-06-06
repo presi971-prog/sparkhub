@@ -14,10 +14,15 @@
 
 import sharp from 'sharp'
 
+import { NOTO_SANS_B64 } from '../fonts/noto-sans-base64'
+
 const SIZE = 1024
 const EMERALD = '#14533B'
 const CREAM = '#F4ECD8'
-const FONT_STACK = "Georgia, 'Times New Roman', 'DejaVu Serif', serif"
+// Police EMBARQUÉE (base64) → rendu identique en local ET en ligne (Linux/Vercel),
+// sans dépendre des polices système (qui n'existent pas sur le serveur).
+const FONT_FAMILY = 'SparkSerif'
+const FONT_FACE = `<defs><style>@font-face{font-family:'${FONT_FAMILY}';src:url(data:font/ttf;base64,${NOTO_SANS_B64}) format('truetype');}</style></defs>`
 
 interface ComposeArgs {
   background: Buffer
@@ -64,14 +69,18 @@ export async function composeCarouselSlide(args: ComposeArgs): Promise<Buffer> {
   const panelY = y - HEAD_SIZE - panelPad / 2
   const panelH = totalH + panelPad
 
+  // Le titre est "gras" simulé par un léger contour (on n'embarque que le
+  // Regular pour rester léger) → rendu fiable et net partout.
   const svg = `<svg width="${SIZE}" height="${SIZE}" xmlns="http://www.w3.org/2000/svg">
+    ${FONT_FACE}
     <rect x="60" y="${panelY}" width="${SIZE - 120}" height="${panelH}" rx="28"
           fill="${CREAM}" fill-opacity="0.62"/>
-    <text font-family="${FONT_STACK}" font-size="${HEAD_SIZE}" font-weight="bold"
-          fill="${EMERALD}" text-anchor="middle" y="${y}">${headTspans}</text>
-    <text font-family="${FONT_STACK}" font-size="${SUB_SIZE}" font-weight="normal"
+    <text font-family="${FONT_FAMILY}" font-size="${HEAD_SIZE}"
+          fill="${EMERALD}" stroke="${EMERALD}" stroke-width="1.1"
+          text-anchor="middle" y="${y}">${headTspans}</text>
+    <text font-family="${FONT_FAMILY}" font-size="${SUB_SIZE}"
           fill="${EMERALD}" text-anchor="middle" y="${y}">${subTspans}</text>
-    <text font-family="${FONT_STACK}" font-size="22" fill="${EMERALD}" fill-opacity="0.75"
+    <text font-family="${FONT_FAMILY}" font-size="22" fill="${EMERALD}" fill-opacity="0.75"
           text-anchor="end" x="${SIZE - 40}" y="${SIZE - 36}">${args.index}/${args.total}</text>
   </svg>`
 
