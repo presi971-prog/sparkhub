@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Inter, Outfit } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const geistSans = Geist({
@@ -108,6 +109,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-right" />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
