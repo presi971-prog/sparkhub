@@ -33,6 +33,7 @@ interface SiteData {
   firstName: string
   brandColors: BrandColors | null
   logoUrl: string
+  heroImageUrl: string
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wytvwfgamfaoqmvoqzps.supabase.co'
@@ -42,6 +43,7 @@ interface MappingResult {
   contactId: string
   brandColors: BrandColors | null
   logoUrl: string
+  heroImageUrl: string
 }
 
 async function resolveContact(slug: string): Promise<MappingResult | null> {
@@ -54,9 +56,10 @@ async function resolveContact(slug: string): Promise<MappingResult | null> {
     cache: 'no-store',
   })
   if (directResponse.ok) {
-    // ID direct OK, chercher quand même les couleurs dans Supabase
+    // ID direct OK, chercher quand même les assets visuels dans Supabase
     let brandColors: BrandColors | null = null
     let logoUrl = ''
+    let heroImageUrl = ''
     if (SUPABASE_KEY) {
       const mapResponse = await fetch(
         `${SUPABASE_URL}/rest/v1/demo_site_mapping?slug=eq.${encodeURIComponent(slug.toLowerCase())}&limit=1`,
@@ -70,10 +73,11 @@ async function resolveContact(slug: string): Promise<MappingResult | null> {
         if (rows.length > 0) {
           brandColors = rows[0].brand_colors || null
           logoUrl = rows[0].logo_url || ''
+          heroImageUrl = rows[0].hero_image_url || ''
         }
       }
     }
-    return { contactId: slug, brandColors, logoUrl }
+    return { contactId: slug, brandColors, logoUrl, heroImageUrl }
   }
 
   // Sinon chercher dans la table de mapping Supabase
@@ -92,6 +96,7 @@ async function resolveContact(slug: string): Promise<MappingResult | null> {
     contactId: rows[0].contact_id,
     brandColors: rows[0].brand_colors || null,
     logoUrl: rows[0].logo_url || '',
+    heroImageUrl: rows[0].hero_image_url || '',
   }
 }
 
@@ -124,6 +129,7 @@ async function fetchContactData(slug: string): Promise<SiteData | null> {
       hours: fields.hours || '',
       brandColors: mapping.brandColors,
       logoUrl: mapping.logoUrl,
+      heroImageUrl: mapping.heroImageUrl,
     }
   } catch { return null }
 }
@@ -186,6 +192,27 @@ function MiniSite({ data }: { data: SiteData }) {
             background: ${c.primary};
             transform: rotate(45deg);
             flex-shrink: 0;
+          }
+
+          /* ═══ Hero Banner (photo prospect) ═══
+             background-size: contain → l'image est entière (pas de crop moche
+             pour les logos carrés). Fond gradient marque visible sur les bords
+             quand l'image n'est pas en format paysage parfait. */
+          .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: ${c.secondary};
+          }
+          .hero-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 70%, ${c.background}FF 100%);
+            pointer-events: none;
           }
 
           /* ═══ Hero ═══ */
@@ -441,6 +468,9 @@ function MiniSite({ data }: { data: SiteData }) {
         `}} />
       </head>
       <body>
+        {data.heroImageUrl && (
+          <div className="hero-banner" style={{ backgroundImage: `url(${data.heroImageUrl})` }} />
+        )}
         <div className="hero">
           <div className="logo-wrap">
             {data.logoUrl ? <img src={data.logoUrl} alt={data.company} /> : initials}
