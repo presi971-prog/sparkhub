@@ -1,0 +1,161 @@
+/**
+ * Driver.js — overrides charte SparkPilot.
+ *
+ * Cible la classe officielle `.driver-popover` (et ses enfants) pour aligner
+ * le tour guidé sur la palette "papier crème" de SparkPilot :
+ *   - fond blanc + bordure beige clair
+ *   - accent indigo sur les boutons
+ *   - typography : Geist pour le corps, Instrument Serif pour le titre
+ *   - backdrop semi-transparent indigo
+ *
+ * Importé une seule fois dans /src/components/sparkpilot/tour/spark-pilot-tour.tsx.
+ */
+
+/* Overlay derrière le spotlight */
+.driver-overlay {
+  background-color: rgba(79, 70, 229, 0.08) !important;
+}
+
+/* Popover principal */
+.driver-popover {
+  background-color: #ffffff !important;
+  color: #0f1115 !important;
+  border: 1px solid #e9e5d9 !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 10px 30px -12px rgba(15, 17, 21, 0.18),
+    0 2px 6px rgba(15, 17, 21, 0.06) !important;
+  font-family: var(--font-geist), system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+  max-width: 360px !important;
+  padding: 20px 22px !important;
+}
+
+/* Titre du popover */
+.driver-popover-title {
+  font-family: var(--font-instrument-serif), Georgia, serif !important;
+  font-weight: 400 !important;
+  font-size: 22px !important;
+  line-height: 1.15 !important;
+  color: #0f1115 !important;
+  margin-bottom: 10px !important;
+  padding-right: 28px !important;
+}
+
+/* Description */
+.driver-popover-description {
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  color: #22252c !important;
+  margin-bottom: 16px !important;
+}
+
+/* Conteneur des boutons */
+.driver-popover-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+
+/* Progression "x sur y" */
+.driver-popover-progress-text {
+  font-family: var(--font-geist-mono), ui-monospace, 'SF Mono', monospace !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #5e626c !important;
+}
+
+/* Tous les boutons */
+.driver-popover-prev-btn,
+.driver-popover-next-btn,
+.driver-popover-close-btn {
+  font-family: var(--font-geist), system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 7px 14px !important;
+  text-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  border: 1px solid transparent !important;
+  background-image: none !important;
+}
+
+/* Bouton "Suivant" — accent indigo */
+.driver-popover-next-btn {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  border-color: #4f46e5 !important;
+}
+.driver-popover-next-btn:hover {
+  background-color: #2e2a78 !important;
+  border-color: #2e2a78 !important;
+}
+
+/* Bouton "Précédent" — secondaire crème */
+.driver-popover-prev-btn {
+  background-color: #f7f5ef !important;
+  color: #22252c !important;
+  border-color: #e9e5d9 !important;
+}
+.driver-popover-prev-btn:hover {
+  background-color: #ece8dc !important;
+  color: #0f1115 !important;
+}
+/* Premier pas : prev désactivé */
+.driver-popover-prev-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+/* Croix de fermeture en haut à droite */
+.driver-popover-close-btn {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  color: #5e626c !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.driver-popover-close-btn:hover {
+  color: #0f1115 !important;
+  background-color: #f7f5ef !important;
+}
+
+/* Flèche du popover — couleur cohérente avec le fond blanc */
+.driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #ffffff !important;
+}
+.driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #ffffff !important;
+}
+.driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #ffffff !important;
+}
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #ffffff !important;
+}
+
+/* Mobile : on resserre le padding et la largeur */
+@media (max-width: 480px) {
+  .driver-popover {
+    max-width: calc(100vw - 32px) !important;
+    padding: 16px 18px !important;
+  }
+  .driver-popover-title {
+    font-size: 19px !important;
+  }
+  .driver-popover-description {
+    font-size: 13.5px !important;
+  }
+}
