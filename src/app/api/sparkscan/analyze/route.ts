@@ -4,10 +4,11 @@ import { startScanInBackground, type NiveauZone } from '@/lib/sparkscan/competit
 import { getSparkScanAdminClient } from '@/lib/sparkscan/supabase-admin'
 import type { ClientContext } from '@/lib/sparkscan/qualifier'
 
-// Le pipeline complet (méthode B + Apify Maps + Apify RS + Claude × N) peut
-// dépasser le maxDuration par défaut. Vercel Pro autorise jusqu'à 800s ; en
-// dev local Next ignore cette directive mais on la met pour la cohérence prod.
-export const maxDuration = 800
+// Le pipeline complet (méthode B + Apify Maps + Apify RS + Claude × N) est long.
+// ⚠️ Forfait Vercel HOBBY = max 300s par fonction (800 faisait échouer le déploiement).
+// Capé à 300. Si l'analyse profonde dépasse 5 min en prod → passer le projet en
+// Vercel Pro (jusqu'à 800s) OU exécuter le pipeline en arrière-plan (webhook).
+export const maxDuration = 300
 
 interface AnalyzePayload {
   url?: string
