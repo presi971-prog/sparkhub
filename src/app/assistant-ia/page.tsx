@@ -164,7 +164,7 @@ export default function AssistantIaPage() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               className="font-heading text-[1.85rem] font-bold leading-tight sm:text-4xl md:text-[2.6rem]"
             >
-              Ton téléphone sonne. Tu es sur un chantier.{' '}
+              Ton téléphone sonne. Tu ne peux pas répondre.{' '}
               <span className="bg-gradient-to-r from-[#DE7CFA] to-[#F5C6FF] bg-clip-text text-transparent">
                 Cette fois, quelqu&apos;un répond.
               </span>
