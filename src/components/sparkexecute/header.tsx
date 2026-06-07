@@ -39,7 +39,7 @@ export function SparkExecuteHeader({
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#E4E7E2] bg-[#F5F6F4]/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[#E4E7E2] bg-[#F7F5EF]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <Link
           href="/sparkexecute"
@@ -157,7 +157,7 @@ export function SparkExecuteHeader({
                 className={
                   isActive
                     ? 'block rounded-md bg-[#ECFDF5]/70 px-3 py-2.5 text-[14px] text-[#064E3B]'
-                    : 'block rounded-md px-3 py-2.5 text-[14px] text-[#22252C] hover:bg-[#F5F6F4]'
+                    : 'block rounded-md px-3 py-2.5 text-[14px] text-[#22252C] hover:bg-[#F7F5EF]'
                 }
               >
                 {link.label}

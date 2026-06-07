@@ -445,7 +445,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
               type="button"
               onClick={handleArchive}
               disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-md border border-[#E4E7E2] bg-white px-4 py-2 text-sm font-medium text-[#5E626C] transition hover:bg-[#F5F6F4] disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md border border-[#E4E7E2] bg-white px-4 py-2 text-sm font-medium text-[#5E626C] transition hover:bg-[#F7F5EF] disabled:opacity-60"
             >
               <Archive className="h-4 w-4" /> Supprimer
             </button>
@@ -632,7 +632,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                     <textarea
                       value={draftContent}
                       onChange={(e) => setDraftContent(e.target.value)}
-                      className="block min-h-[320px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                      className="block min-h-[320px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
                       placeholder="Le texte du post apparaîtra ici dès que l'atelier l'aura fabriqué…"
                     />
                   ) : (
@@ -651,7 +651,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                         <button
                           type="button"
                           onClick={() => handleCopyText(captionWithoutHashtags, 'Caption')}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F5F6F4]"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F7F5EF]"
                         >
                           <Copy className="h-3.5 w-3.5" /> Copier la caption
                         </button>
@@ -659,7 +659,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                           <button
                             type="button"
                             onClick={() => handleCopyText(hashtagsLine, 'Hashtags')}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F5F6F4]"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F7F5EF]"
                           >
                             <Hash className="h-3.5 w-3.5" /> Copier les hashtags
                           </button>
@@ -667,7 +667,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                       </div>
 
                       {run.output.hashtags && run.output.hashtags.length > 0 ? (
-                        <div className="mt-2 rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-3">
+                        <div className="mt-2 rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]/30 p-3">
                           <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
                             Hashtags (premier commentaire conseillé)
                           </p>
@@ -707,7 +707,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                       <button
                         type="button"
                         onClick={() => handleCopyText(buildPostCopyText(run), 'Post')}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F5F6F4]"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F7F5EF]"
                       >
                         <Copy className="h-3.5 w-3.5" /> Copier le post
                       </button>
@@ -740,7 +740,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                     <textarea
                       value={draftContent}
                       onChange={(e) => setDraftContent(e.target.value)}
-                      className="block min-h-[120px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                      className="block min-h-[120px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
                       placeholder="La légende de la vidéo…"
                     />
                   ) : (
@@ -763,7 +763,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                     {carouselSlides.map((s) => (
                       <figure
                         key={s.index}
-                        className="overflow-hidden rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]"
+                        className="overflow-hidden rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]"
                       >
                         {s.image_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -803,7 +803,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
                     <textarea
                       value={draftContent}
                       onChange={(e) => setDraftContent(e.target.value)}
-                      className="block min-h-[140px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                      className="block min-h-[140px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
                       placeholder="La légende du carrousel apparaîtra ici…"
                     />
                   ) : (
@@ -917,7 +917,7 @@ export function RunDetailView({ initialRun }: RunDetailViewProps) {
               <textarea
                 value={draftContent}
                 onChange={(e) => setDraftContent(e.target.value)}
-                className="block min-h-[480px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F5F6F4]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+                className="block min-h-[480px] w-full resize-y rounded-lg border border-[#E4E7E2] bg-[#F7F5EF]/30 p-4 font-mono text-sm leading-relaxed text-[#0F1115] focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
                 placeholder="Le contenu apparaîtra ici dès que l'atelier l'aura fabriqué…"
               />
             ) : (

@@ -120,7 +120,7 @@ interface SparkScanFormProps {
 const labelClass =
   'block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500'
 const inputClass =
-  'h-12 w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 text-slate-900 placeholder:text-slate-400 transition focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-violet-500/10 disabled:cursor-not-allowed disabled:opacity-60'
+  'h-12 w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 text-slate-900 placeholder:text-slate-400 transition focus:border-pink-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-500/10 disabled:cursor-not-allowed disabled:opacity-60'
 const selectChevron =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E\")"
 const selectClass = `${inputClass} appearance-none bg-[length:1em] bg-[right_0.85rem_center] bg-no-repeat pr-10`
@@ -358,7 +358,7 @@ export function SparkScanForm({
           <button
             type="button"
             onClick={handleFillExample}
-            className="group flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-violet-300 bg-violet-50/40 px-4 py-2.5 text-xs font-medium text-violet-700 transition hover:border-violet-500 hover:bg-violet-50"
+            className="group flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-pink-300 bg-pink-50/40 px-4 py-2.5 text-xs font-medium text-pink-700 transition hover:border-pink-500 hover:bg-pink-50"
           >
             <Sparkles className="h-3 w-3" />
             <span>Pas envie de remplir ? Tester avec un exemple (fnac.com)</span>
@@ -475,7 +475,7 @@ export function SparkScanForm({
               className={labelClass}
               style={{ fontFamily: 'var(--font-geist-mono)' }}
             >
-              <Target className="mr-1.5 inline h-3 w-3 text-violet-600" />
+              <Target className="mr-1.5 inline h-3 w-3 text-pink-600" />
               Ton objectif principal
             </label>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -487,7 +487,7 @@ export function SparkScanForm({
                   onClick={() => setObjective(o.value)}
                   className={`flex flex-col items-start gap-0.5 rounded-lg border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
                     objective === o.value
-                      ? 'border-violet-500 bg-violet-50/60 shadow-sm ring-2 ring-violet-500/15'
+                      ? 'border-pink-500 bg-pink-50/60 shadow-sm ring-2 ring-pink-500/15'
                       : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'
                   }`}
                 >
@@ -508,7 +508,7 @@ export function SparkScanForm({
                 className={labelClass}
                 style={{ fontFamily: 'var(--font-geist-mono)' }}
               >
-                <Users className="mr-1.5 inline h-3 w-3 text-violet-600" />
+                <Users className="mr-1.5 inline h-3 w-3 text-pink-600" />
                 Ton équipe
               </label>
               <select
@@ -532,7 +532,7 @@ export function SparkScanForm({
                 className={labelClass}
                 style={{ fontFamily: 'var(--font-geist-mono)' }}
               >
-                <Wallet className="mr-1.5 inline h-3 w-3 text-violet-600" />
+                <Wallet className="mr-1.5 inline h-3 w-3 text-pink-600" />
                 Ton budget marketing mensuel
               </label>
               <select
@@ -561,7 +561,7 @@ export function SparkScanForm({
               className={labelClass}
               style={{ fontFamily: 'var(--font-geist-mono)' }}
             >
-              <Clock className="mr-1.5 inline h-3 w-3 text-violet-600" />
+              <Clock className="mr-1.5 inline h-3 w-3 text-pink-600" />
               Horizon visé pour voir les résultats
             </label>
             <select
@@ -638,7 +638,7 @@ function SectionTitle({
   return (
     <div className="flex items-start gap-3">
       <span
-        className="mt-0.5 text-xs font-semibold text-violet-700"
+        className="mt-0.5 text-xs font-semibold text-pink-700"
         style={{ fontFamily: 'var(--font-geist-mono)' }}
       >
         {index}

@@ -405,7 +405,7 @@ function ImportableTaskRow({
 
   return (
     <div
-      className={`flex flex-col gap-3 px-5 py-4 transition hover:bg-[#F5F6F4]/40 sm:flex-row sm:items-center sm:gap-4 ${
+      className={`flex flex-col gap-3 px-5 py-4 transition hover:bg-[#F7F5EF]/40 sm:flex-row sm:items-center sm:gap-4 ${
         isLast ? '' : 'border-b border-[#E4E7E2]'
       }`}
     >

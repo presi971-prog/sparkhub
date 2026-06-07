@@ -267,7 +267,7 @@ export function NewRunWizard() {
                   className={`relative flex flex-col items-start rounded-xl border p-5 text-left transition ${
                     isAvailable
                       ? 'border-[#E4E7E2] bg-white shadow-[0_1px_0_rgba(15,17,21,0.04),0_1px_2px_rgba(15,17,21,0.05)] hover:-translate-y-0.5 hover:border-[#10B981]/40 hover:shadow-[0_12px_32px_-14px_rgba(15,17,21,0.22)]'
-                      : 'cursor-not-allowed border-[#E4E7E2] bg-[#F5F6F4] opacity-70'
+                      : 'cursor-not-allowed border-[#E4E7E2] bg-[#F7F5EF] opacity-70'
                   }`}
                 >
                   {!isAvailable ? (
@@ -454,7 +454,7 @@ export function NewRunWizard() {
                           } ${
                             isSelected
                               ? 'bg-[#10B981]/30 border-[#10B981]'
-                              : 'bg-[#F5F6F4]'
+                              : 'bg-[#F7F5EF]'
                           }`}
                           aria-hidden="true"
                         />

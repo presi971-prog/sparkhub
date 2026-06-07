@@ -63,7 +63,7 @@ export function RunCard({ run, sourceLabel }: RunCardProps) {
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[#E4E7E2] bg-[#F5F6F4]/40 px-5 py-3">
+      <div className="flex items-center justify-between border-t border-[#E4E7E2] bg-[#F7F5EF]/40 px-5 py-3">
         <div className="flex items-center gap-2">
           <RunStatusPill status={run.status} />
           {sourceLabel ? (

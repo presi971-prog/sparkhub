@@ -46,7 +46,7 @@ export default async function HistoriquePage() {
     <div className="container mx-auto max-w-5xl px-6 py-12 sm:py-16">
       <Link
         href="/sparkscan"
-        className="inline-flex items-center gap-1.5 text-sm text-violet-700 hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm text-pink-700 hover:underline"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Retour au scan
@@ -58,7 +58,7 @@ export default async function HistoriquePage() {
             className="text-balance text-4xl font-normal leading-tight tracking-[-0.02em] text-slate-900 sm:text-5xl"
             style={{ fontFamily: 'var(--font-instrument-serif)' }}
           >
-            Tes scans <em className="italic text-violet-700">SparkScan</em>
+            Tes scans <em className="italic text-pink-700">SparkScan</em>
           </h1>
           <p
             className="mt-2 text-[10px] uppercase tracking-[0.22em] text-slate-400"
@@ -92,7 +92,7 @@ export default async function HistoriquePage() {
           </p>
           <Link
             href="/sparkscan"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-pink-700"
           >
             Commencer
             <ArrowRight className="h-4 w-4" />
@@ -172,7 +172,7 @@ export default async function HistoriquePage() {
                   )}
                   <Link
                     href={`/sparkscan?scan_id=${s.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:text-violet-900"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-pink-700 hover:text-pink-900"
                   >
                     Voir
                     <ArrowRight className="h-3 w-3" />
@@ -189,7 +189,7 @@ export default async function HistoriquePage() {
         style={{ fontFamily: 'var(--font-geist-mono)' }}
       >
         Tes scans sont conservés 12 mois puis supprimés automatiquement (voir{' '}
-        <a href="/sparkscan/cgu" className="hover:text-violet-700 hover:underline">
+        <a href="/sparkscan/cgu" className="hover:text-pink-700 hover:underline">
           conditions
         </a>
         )

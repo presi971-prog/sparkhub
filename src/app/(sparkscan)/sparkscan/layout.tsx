@@ -39,7 +39,7 @@ export default function SparkScanLayout({
 }) {
   return (
     <div
-      className={`${instrumentSerif.variable} ${geist.variable} ${geistMono.variable} relative min-h-screen overflow-x-hidden bg-[#FAFAF7] text-slate-900 antialiased`}
+      className={`${instrumentSerif.variable} ${geist.variable} ${geistMono.variable} relative min-h-screen overflow-x-hidden bg-[#F7F5EF] text-slate-900 antialiased`}
       style={{ fontFamily: 'var(--font-geist), system-ui, sans-serif' }}
     >
       {/* CSS print : cache header/footer, retire l'arrière-plan, optimise pour PDF */}
@@ -81,7 +81,7 @@ export default function SparkScanLayout({
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-[#FAFAF7]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-[#F7F5EF]/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <Link
             href="/sparkscan"

@@ -13,7 +13,7 @@ export default function SparkScanCguPage() {
     <div className="container mx-auto max-w-3xl px-6 py-12 sm:py-16">
       <Link
         href="/sparkscan"
-        className="inline-flex items-center gap-1.5 text-sm text-violet-700 hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm text-pink-700 hover:underline"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Retour à SparkScan
@@ -119,7 +119,7 @@ export default function SparkScanCguPage() {
           7. Contact
         </h2>
         <p className="mt-2 text-slate-700">
-          Pour toute question : <a href="mailto:contact@digital-code-growth.com" className="text-violet-700 hover:underline">contact@digital-code-growth.com</a>
+          Pour toute question : <a href="mailto:contact@digital-code-growth.com" className="text-pink-700 hover:underline">contact@digital-code-growth.com</a>
         </p>
       </div>
     </div>

@@ -130,7 +130,7 @@ export function PublicationsList({
                   href={pub.external_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F5F6F4]"
+                  className="inline-flex items-center gap-1 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F7F5EF]"
                 >
                   Voir le post <ExternalLink className="h-3 w-3" />
                 </a>

@@ -448,7 +448,7 @@ export function PublishDialog({
                 value={scheduledAt}
                 min={new Date().toISOString().slice(0, 16)}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                className="rounded-md border border-[#E4E7E2] bg-[#F5F6F4]/30 px-2.5 py-1.5 text-sm text-[#0F1115] focus:border-[#10B981] focus:outline-none"
+                className="rounded-md border border-[#E4E7E2] bg-[#F7F5EF]/30 px-2.5 py-1.5 text-sm text-[#0F1115] focus:border-[#10B981] focus:outline-none"
               />
               {scheduledAt ? (
                 <button
@@ -470,7 +470,7 @@ export function PublishDialog({
 
         {/* Résultats de publication (si on vient d'en faire une) */}
         {results && results.length > 0 ? (
-          <div className="space-y-2 rounded-md border border-[#E4E7E2] bg-[#F5F6F4]/50 p-3">
+          <div className="space-y-2 rounded-md border border-[#E4E7E2] bg-[#F7F5EF]/50 p-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
               Résultat
             </p>
@@ -522,7 +522,7 @@ export function PublishDialog({
             type="button"
             onClick={() => onOpenChange(false)}
             disabled={publishing}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-[#E4E7E2] bg-white px-4 text-sm font-medium text-[#5E626C] transition hover:bg-[#F5F6F4] disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-[#E4E7E2] bg-white px-4 text-sm font-medium text-[#5E626C] transition hover:bg-[#F7F5EF] disabled:opacity-60"
           >
             {results ? 'Fermer' : 'Annuler'}
           </button>

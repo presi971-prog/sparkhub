@@ -106,7 +106,7 @@ export default async function MesCreationsPage({ searchParams }: PageProps) {
               className={
                 isActive
                   ? 'rounded-md border border-[#D1FAE5] bg-[#ECFDF5] px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#064E3B]'
-                  : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F5F6F4]'
+                  : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F7F5EF]'
               }
             >
               {f.label}
@@ -124,7 +124,7 @@ export default async function MesCreationsPage({ searchParams }: PageProps) {
           className={
             !type
               ? 'rounded-md border border-[#D1FAE5] bg-[#ECFDF5] px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#064E3B]'
-              : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F5F6F4]'
+              : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F7F5EF]'
           }
         >
           Tous
@@ -138,7 +138,7 @@ export default async function MesCreationsPage({ searchParams }: PageProps) {
               className={
                 isActive
                   ? 'rounded-md border border-[#D1FAE5] bg-[#ECFDF5] px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#064E3B]'
-                  : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F5F6F4]'
+                  : 'rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E626C] transition hover:bg-[#F7F5EF]'
               }
             >
               {RUN_TYPE_LABEL[t]}

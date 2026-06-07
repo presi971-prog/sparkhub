@@ -66,7 +66,7 @@ const MOCK_COMPETITORS = [
 ]
 
 const TAG_STYLES: Record<string, string> = {
-  Direct: 'bg-violet-50 text-violet-700 border-violet-100',
+  Direct: 'bg-pink-50 text-pink-700 border-pink-100',
   Indirect: 'bg-blue-50 text-blue-700 border-blue-100',
   Local: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 }
@@ -239,17 +239,17 @@ function LoadingPanel({
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_40px_-8px_rgba(15,23,42,0.12)]"
     >
-      <div className="border-b border-slate-100 bg-gradient-to-r from-violet-50/70 via-white to-pink-50/40 px-6 py-4">
+      <div className="border-b border-slate-100 bg-gradient-to-r from-pink-50/70 via-white to-pink-50/40 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Loader2 className="h-4 w-4 animate-spin text-violet-700" />
+            <Loader2 className="h-4 w-4 animate-spin text-pink-700" />
             <h3 className="text-base font-semibold text-slate-900">
               Construction de ton rapport
             </h3>
           </div>
           {progress && (
             <span
-              className="text-[10px] uppercase tracking-[0.18em] text-violet-700"
+              className="text-[10px] uppercase tracking-[0.18em] text-pink-700"
               style={{ fontFamily: 'var(--font-geist-mono)' }}
             >
               {percent}%
@@ -259,7 +259,7 @@ function LoadingPanel({
         {/* Barre de progression réelle (Phase C étape 2) */}
         <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
+            className="h-full rounded-full bg-gradient-to-r from-pink-500 to-pink-500"
             initial={{ width: 0 }}
             animate={{ width: `${Math.max(2, percent)}%` }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -284,8 +284,8 @@ function LoadingPanel({
             className="flex items-center gap-3"
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-600" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-pink-600" />
             </span>
             <span className="text-sm font-medium text-slate-700">
               {displayLabel}
@@ -387,7 +387,7 @@ function ResultsPanel({
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p
-            className="text-[10px] uppercase tracking-[0.22em] text-violet-700"
+            className="text-[10px] uppercase tracking-[0.22em] text-pink-700"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
           >
             Rapport SparkScan
@@ -572,7 +572,7 @@ function CTASection({
     >
       <div className="flex flex-col gap-1">
         <span
-          className="text-[10px] uppercase tracking-[0.22em] text-violet-700"
+          className="text-[10px] uppercase tracking-[0.22em] text-pink-700"
           style={{ fontFamily: 'var(--font-geist-mono)' }}
         >
           La suite — passer à l&apos;action
@@ -642,18 +642,18 @@ function CTAButton({
       onClick={onClick}
       className={`group flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition ${
         accent
-          ? 'border-violet-200 bg-gradient-to-br from-violet-50 to-pink-50/40 text-violet-900 hover:border-violet-300 hover:from-violet-100 hover:to-pink-100/40'
+          ? 'border-pink-200 bg-gradient-to-br from-pink-50 to-pink-50/40 text-pink-900 hover:border-pink-300 hover:from-pink-100 hover:to-pink-100/40'
           : 'border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 hover:bg-white'
       }`}
     >
       <div className="flex items-center gap-2">
         <Icon
-          className={`h-4 w-4 ${accent ? 'text-violet-700' : 'text-slate-500'}`}
+          className={`h-4 w-4 ${accent ? 'text-pink-700' : 'text-slate-500'}`}
         />
         <span className="text-sm font-medium">{label}</span>
       </div>
       <span
-        className={`text-[10px] uppercase tracking-[0.15em] ${accent ? 'text-violet-600/70' : 'text-slate-400'}`}
+        className={`text-[10px] uppercase tracking-[0.15em] ${accent ? 'text-pink-600/70' : 'text-slate-400'}`}
         style={{ fontFamily: 'var(--font-geist-mono)' }}
       >
         {hint}
@@ -710,16 +710,16 @@ function SynthesisCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-      className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-white to-pink-50/40 p-7 shadow-[0_8px_40px_-12px_rgba(109,40,217,0.15)]"
+      className="relative overflow-hidden rounded-2xl border border-pink-200/70 bg-gradient-to-br from-pink-50 via-white to-pink-50/40 p-7 shadow-[0_8px_40px_-12px_rgba(109,40,217,0.15)]"
     >
-      <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-violet-200/40 blur-3xl" />
+      <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-pink-200/40 blur-3xl" />
       <div className="absolute -bottom-16 -left-12 h-56 w-56 rounded-full bg-pink-200/30 blur-3xl" />
 
       <div className="relative">
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-violet-700" />
+          <Target className="h-4 w-4 text-pink-700" />
           <span
-            className="text-[10px] uppercase tracking-[0.22em] text-violet-700"
+            className="text-[10px] uppercase tracking-[0.22em] text-pink-700"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
           >
             Plan d&apos;attaque · 30 prochains jours
@@ -781,7 +781,7 @@ function PriorityCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-baseline gap-2">
           <span
-            className="text-xl font-semibold text-violet-700"
+            className="text-xl font-semibold text-pink-700"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
           >
             {String(i + 1).padStart(2, '0')}
@@ -1580,7 +1580,7 @@ function CompetitorCard({ c, index }: { c: EnrichedCompetitor; index: number }) 
                 {c.qualification === 'direct' ? 'Direct' : 'Indirect'}
               </span>
               {c.kind === 'seo' ? (
-                <span className="hidden rounded-full border border-violet-100 bg-violet-50 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-violet-700 sm:inline">
+                <span className="hidden rounded-full border border-pink-100 bg-pink-50 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-pink-700 sm:inline">
                   <Globe className="mr-0.5 inline h-2.5 w-2.5" />
                   SEO
                 </span>
@@ -1719,17 +1719,17 @@ function CompetitorCard({ c, index }: { c: EnrichedCompetitor; index: number }) 
               </div>
 
               {e?.tactical_action && (
-                <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-pink-50/60 p-4">
+                <div className="rounded-lg border border-pink-200 bg-gradient-to-br from-pink-50 to-pink-50/60 p-4">
                   <div className="flex items-center gap-1.5">
-                    <Zap className="h-3.5 w-3.5 text-violet-700" />
+                    <Zap className="h-3.5 w-3.5 text-pink-700" />
                     <p
-                      className="text-[10px] uppercase tracking-[0.2em] text-violet-700"
+                      className="text-[10px] uppercase tracking-[0.2em] text-pink-700"
                       style={{ fontFamily: 'var(--font-geist-mono)' }}
                     >
                       Action concrète cette semaine
                     </p>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-violet-950">
+                  <p className="mt-2 text-sm leading-relaxed text-pink-950">
                     {e.tactical_action}
                   </p>
                 </div>
@@ -1816,7 +1816,7 @@ function RawData({ c }: { c: EnrichedCompetitor }) {
             href={r.website.startsWith('http') ? r.website : `https://${r.website}`}
             target="_blank"
             rel="noreferrer"
-            className="text-violet-700 hover:underline"
+            className="text-pink-700 hover:underline"
           >
             {r.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}
           </a>
@@ -1830,7 +1830,7 @@ function RawData({ c }: { c: EnrichedCompetitor }) {
 function RankBadge({ rank }: { rank: number }) {
   return (
     <div
-      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xs font-semibold text-violet-800"
+      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-100 to-pink-100 text-xs font-semibold text-pink-800"
       style={{ fontFamily: 'var(--font-geist-mono)' }}
     >
       {String(rank).padStart(2, '0')}

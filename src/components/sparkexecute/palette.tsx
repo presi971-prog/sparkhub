@@ -16,7 +16,7 @@ import type { RunStatus, RunType } from '@/lib/sparkexecute/types'
 // ============================================================
 export const COLORS = {
   // Fond atelier — neutre froid légèrement teinté vert
-  shop: '#F5F6F4',
+  shop: '#F7F5EF',
   card: '#FFFFFF',
   line: '#E4E7E2',
 

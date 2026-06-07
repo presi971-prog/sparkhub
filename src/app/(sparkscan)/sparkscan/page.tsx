@@ -33,10 +33,10 @@ export default async function SparkScanPage({
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
           <span
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-violet-700"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-pink-700"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
           >
-            <span className="h-1 w-1 rounded-full bg-violet-600" />
+            <span className="h-1 w-1 rounded-full bg-pink-600" />
             Plateforme d&apos;intelligence concurrentielle
           </span>
         </div>
@@ -63,7 +63,7 @@ export default async function SparkScanPage({
             className="mt-6 text-center text-[10px] uppercase tracking-[0.2em] text-slate-400"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
           >
-            <a href="/sparkscan/cgu" className="hover:text-violet-700 hover:underline">
+            <a href="/sparkscan/cgu" className="hover:text-pink-700 hover:underline">
               Conditions d&apos;utilisation
             </a>
             <span className="mx-3 text-slate-300">·</span>

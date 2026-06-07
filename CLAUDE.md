@@ -67,7 +67,16 @@ Ce fichier donne à Claude tout le contexte et l'expertise nécessaires pour tra
 
 ## 3. Expertise Design & UX
 
-### Style visuel SparkHub
+> ⚠️ **DEUX chartes coexistent dans ce repo — ne pas les confondre (note ajoutée 07/06/2026 suite audit) :**
+> 1. **SparkHub / pages marketing publiques** → charte « sombre/néon » décrite ci-dessous (fonds sombres, gradients, glassmorphism).
+> 2. **Triade SparkGrowth** (`(sparkscan)`, `(sparkpilot)`, `(sparkexecute)`, `(sparkgrowth)`) → charte « atelier » CLAIRE et SOBRE, qui est la réalité du produit :
+>    - Fond crème unique **`#F7F5EF`** (ne pas réintroduire d'autres nuances type #FAFAF7 / #F5F6F4).
+>    - Titres en serif **Instrument Serif** ; libellés/mono en **Geist Mono**.
+>    - Une couleur par outil : **SparkScan = rose `#DB2777`** (classes Tailwind `pink-*`), **SparkPilot = indigo `#4F46E5`**, **SparkExecute = émeraude `#10B981`**. La couleur de l'outil doit matcher sa « porte » dans le hub (`hub-bar.tsx`).
+>    - Barre commune `HubBar` qui matérialise le parcours Analyser → Planifier → Fabriquer.
+> Pour toute UI de la triade, suivre la charte « atelier », PAS la charte sombre ci-dessous.
+
+### Style visuel SparkHub (pages marketing publiques uniquement)
 
 **Moderne, premium, énergique** :
 - Fonds sombres avec accents néon/électriques
@@ -406,4 +415,22 @@ npx lighthouse https://sparkhub.pro --view  # Audit performance
 
 ---
 
-*Dernière mise à jour : 30 janvier 2026*
+---
+
+## 9. Leçons techniques (critiques — NE PAS IGNORER)
+
+- **Piège Vercel `NEXT_PUBLIC_`** : baked au build. Changer = redeploy SANS cache
+- **Leçon UX** : ne pas inventer de changements sans les soumettre à Thierry
+- **Nano Banana 2 > Pro** : 2x plus rapide, -50% coût, meilleur photorealisme. Payload = `aspect_ratio` + `resolution` (pas `image_size`)
+- **Kling v3 standard INSTABLE** : artefacts (6 doigts, incohérence scènes). Rester sur v1.6
+- **Prompts produit** : "Refer to the image provided" + "the product" (jamais décrire le produit)
+
+## 10. Règle R0 — NE PAS CASSER LE CODE ACTÉ
+
+- Ne JAMAIS modifier du code qui fonctionne et est validé par Thierry sans consigne explicite
+- Ne JAMAIS "améliorer" ou "refactorer" du code existant sauf demande explicite
+- Si quelque chose semble mal fait mais fonctionne → le signaler, ne PAS le changer
+
+---
+
+*Dernière mise à jour : 03 avril 2026*

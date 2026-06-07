@@ -62,7 +62,7 @@ export default async function SparkExecuteLayout({
 
   return (
     <div
-      className={`${instrumentSerif.variable} ${geist.variable} ${geistMono.variable} relative min-h-screen overflow-x-hidden bg-[#F5F6F4] text-[#0F1115] antialiased`}
+      className={`${instrumentSerif.variable} ${geist.variable} ${geistMono.variable} relative min-h-screen overflow-x-hidden bg-[#F7F5EF] text-[#0F1115] antialiased`}
       style={{ fontFamily: 'var(--font-geist), system-ui, sans-serif' }}
     >
       {/* Halo émeraude top — signature visuelle atelier */}
@@ -84,7 +84,7 @@ export default async function SparkExecuteLayout({
 
       <main className="relative">{children}</main>
 
-      <footer className="border-t border-[#E4E7E2] bg-[#F5F6F4]/60">
+      <footer className="border-t border-[#E4E7E2] bg-[#F7F5EF]/60">
         <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-3 px-4 py-8 text-[#5E626C] sm:flex-row sm:px-6 lg:px-10">
           <div className="flex items-center gap-2.5">
             <span

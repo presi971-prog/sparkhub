@@ -328,7 +328,7 @@ export function SparkScanContainer({
               style={{ fontFamily: 'var(--font-instrument-serif)' }}
             >
               Découvre tes concurrents,{' '}
-              <em className="italic text-violet-700">dépasse-les</em>.
+              <em className="italic text-pink-700">dépasse-les</em>.
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-slate-600">
               Colle l&apos;URL de n&apos;importe quel site. SparkScan trouve
@@ -355,7 +355,7 @@ export function SparkScanContainer({
             className="text-balance text-3xl font-normal leading-tight tracking-[-0.02em] text-slate-900 sm:text-4xl"
             style={{ fontFamily: 'var(--font-instrument-serif)' }}
           >
-            Ton rapport <em className="italic text-violet-700">SparkScan</em>
+            Ton rapport <em className="italic text-pink-700">SparkScan</em>
           </h2>
           <button
             type="button"

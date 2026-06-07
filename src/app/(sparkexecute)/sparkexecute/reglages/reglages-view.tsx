@@ -121,7 +121,7 @@ export function ReglagesView() {
             href="https://app.gohighlevel.com/v2/marketing/social-planner"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F5F6F4]"
+            className="inline-flex items-center gap-1 rounded-md border border-[#E4E7E2] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1115] transition hover:bg-[#F7F5EF]"
           >
             Connecter un compte <ExternalLink className="h-3 w-3" />
           </a>
@@ -172,7 +172,7 @@ export function ReglagesView() {
       </section>
 
       {/* Doc rapide */}
-      <section className="rounded-xl border border-[#E4E7E2] bg-[#F5F6F4]/40 p-5">
+      <section className="rounded-xl border border-[#E4E7E2] bg-[#F7F5EF]/40 p-5">
         <h2 className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5E626C]">
           Comment connecter un compte
         </h2>
