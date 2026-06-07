@@ -108,6 +108,25 @@ export interface PriorityMetadata {
   reason: string
   /** Catégorie du playbook retenue par Claude (ex : "Contenu de fond"). */
   playbook_category?: string
+  // --- Données stratégiques RÉELLES héritées de SparkScan (synthesizer) ---
+  // Avant elles étaient jetées, d'où des "orientations" génériques identiques
+  // pour tous. On les snapshot ici pour les afficher telles que calculées.
+  /** Concurrent visé par cette priorité (ex : "Beeliz"). */
+  competitor_label?: string
+  /** Levier stratégique : attaquer / copier / eviter / partenariat. */
+  lever?: string
+  /** Pourquoi ce levier précis (spécifique au client, pas générique). */
+  lever_reason?: string
+  /** Action concrète à mener, calculée pour ce client. */
+  tactical_action?: string
+  /** Gain attendu (€ si possible, sinon petit/moyen/gros). */
+  estimated_gain?: string
+  /** Coût estimé (€ + heures). */
+  estimated_cost?: string
+  /** Indicateur mesurable pour valider sous 30 jours. */
+  kpi_30j?: string
+  /** Qui fait : toi seul / toi + agence / délégation. */
+  who_does_it?: string
 }
 
 /**

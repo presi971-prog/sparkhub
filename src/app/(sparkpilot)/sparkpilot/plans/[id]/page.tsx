@@ -70,6 +70,7 @@ export default async function SparkPilotPlanDetailPage({ params }: PageProps) {
   const priorityLabels = buildPriorityLabels(planRow.metadata)
   const priorityReasons = buildPriorityReasons(planRow.metadata)
   const priorityCategories = buildPriorityCategories(planRow.metadata)
+  const priorityDetails = buildPriorityDetails(planRow.metadata)
 
   // Regroupe les tâches par semaine pour la liste.
   const grouped = groupTasksByWeek(tasks)
@@ -136,7 +137,7 @@ export default async function SparkPilotPlanDetailPage({ params }: PageProps) {
               <span className="text-[#A8ACB5]">·</span>
               <span className="inline-flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
-                Toi seul
+                {priorityDetails[1]?.who_does_it ?? 'Toi seul'}
               </span>
             </div>
           </div>
@@ -238,40 +239,82 @@ export default async function SparkPilotPlanDetailPage({ params }: PageProps) {
                   </p>
                 ) : null}
 
-                {/* Bloc pédagogique "Stratégie globale" — toujours visible.
-                    Dérivé de playbook_category via priority-pedagogy.ts.
-                    R0 30/05/2026 : SparkPilot doit expliquer le pourquoi du comment.
-                    Le premier bloc porte data-tour="plan-strategy" pour l'ancre tour. */}
+                {/* Plan d'attaque CONCRET — données réelles calculées par
+                    SparkScan POUR CE CLIENT (concurrent visé, qui fait, coût,
+                    gain, action). On n'affiche que ce qui existe (pas d'invention). */}
+                {(() => {
+                  const d = priorityDetails[p.index]
+                  if (!d) return null
+                  const facts = (
+                    [
+                      d.who_does_it ? { k: 'Qui', v: d.who_does_it } : null,
+                      d.estimated_cost ? { k: 'Coût', v: d.estimated_cost } : null,
+                      d.estimated_gain ? { k: 'Gain', v: d.estimated_gain } : null,
+                    ].filter(Boolean) as { k: string; v: string }[]
+                  )
+                  if (!d.tactical_action && !d.competitor_label && facts.length === 0)
+                    return null
+                  return (
+                    <div className="mt-4 rounded-lg border border-[#E9E5D9] bg-[#FBFAF6] px-3 py-2.5">
+                      <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-[#5E626C]">
+                        Plan d&apos;attaque concret
+                        {d.competitor_label ? ` · cible : ${d.competitor_label}` : ''}
+                      </div>
+                      {d.tactical_action ? (
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#22252C]">
+                          {d.tactical_action}
+                        </p>
+                      ) : null}
+                      {facts.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10.5px] text-[#5E626C]">
+                          {facts.map((f) => (
+                            <span key={f.k}>
+                              <span className="uppercase tracking-[0.12em]">
+                                {f.k} :
+                              </span>{' '}
+                              <span className="text-[#0F1115]">{f.v}</span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })()}
+
+                {/* "Stratégie globale" : la VRAIE raison du levier calculée pour
+                    ce client (lever_reason) si dispo, sinon repli pédagogique
+                    générique par catégorie. R0 30/05/2026 + audit 07/06/2026. */}
                 <div
                   {...(p.index === priorityProgress[0]?.index
                     ? { 'data-tour': 'plan-strategy' }
                     : {})}
-                  className="mt-4 rounded-lg border-l-2 border-indigo-300 bg-indigo-50/40 px-3 py-2.5"
+                  className="mt-3 rounded-lg border-l-2 border-indigo-300 bg-indigo-50/40 px-3 py-2.5"
                 >
                   <div className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-[#4F46E5]">
                     <TrendingUp className="h-3 w-3" />
                     Stratégie globale
                   </div>
                   <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#22252C]">
-                    {getStrategyForCategory(priorityCategories[p.index])}
+                    {priorityDetails[p.index]?.lever_reason ??
+                      getStrategyForCategory(priorityCategories[p.index])}
                   </p>
                 </div>
 
-                {/* Bloc pédagogique "Indicateurs de succès" — dépliable.
-                    On utilise <details>/<summary> natifs pour rester
-                    Server Component pur (pas de state client). */}
+                {/* "Indicateur de succès" : le VRAI KPI 30j calculé pour ce
+                    client si dispo, sinon repli générique par catégorie. */}
                 <details className="group mt-2 rounded-lg border border-[#E9E5D9] bg-white">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-[#5E626C] transition hover:text-[#0F1115]">
                     <span className="inline-flex items-center gap-1.5">
                       <Target className="h-3 w-3" />
-                      Indicateurs de succès
+                      Indicateur de succès (30 jours)
                     </span>
                     <span className="text-[10px] text-[#A8ACB5] transition group-open:rotate-90">
                       ▸
                     </span>
                   </summary>
                   <p className="border-t border-[#E9E5D9]/60 px-3 py-2.5 text-[12.5px] leading-relaxed text-[#22252C]">
-                    {getSuccessSignalsForCategory(priorityCategories[p.index])}
+                    {priorityDetails[p.index]?.kpi_30j ??
+                      getSuccessSignalsForCategory(priorityCategories[p.index])}
                   </p>
                 </details>
 
@@ -458,6 +501,26 @@ function buildPriorityCategories(
       if (p.playbook_category) {
         out[p.index] = p.playbook_category
       }
+    }
+  }
+  return out
+}
+
+/**
+ * Sort la priorité COMPLÈTE (avec les vraies données stratégiques héritées de
+ * SparkScan : qui fait, coût €, gain €, indicateur 30j, levier, action,
+ * concurrent). Permet d'afficher du concret personnalisé au lieu de textes
+ * génériques figés par catégorie.
+ */
+function buildPriorityDetails(
+  metadata: Record<string, unknown> | null,
+): Partial<Record<PriorityIndex, PriorityMetadata>> {
+  const out: Partial<Record<PriorityIndex, PriorityMetadata>> = {}
+  const priorities =
+    (metadata?.priorities as PriorityMetadata[] | undefined) ?? []
+  for (const p of priorities) {
+    if (p.index === 1 || p.index === 2 || p.index === 3) {
+      out[p.index] = p
     }
   }
   return out

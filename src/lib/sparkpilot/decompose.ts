@@ -179,12 +179,30 @@ export async function decomposeReportToTasks(
 
   // 4. Insère le plan
   const title = buildPlanTitle(scanData)
-  const prioritiesMetadata: PriorityMetadata[] = priorities.map((p) => ({
-    index: p.index,
-    title: p.title,
-    reason: p.reason,
-    playbook_category: p.playbook_category,
-  }))
+  // On ré-attache à chaque priorité ses données stratégiques RÉELLES calculées
+  // par SparkScan (qui fait, coût €, gain €, indicateur 30j, levier, action,
+  // concurrent visé). top3 est ordonné par priorité → on matche par index.
+  const prioritiesMetadata: PriorityMetadata[] = priorities.map((p) => {
+    const scanP = top3[p.index - 1] ?? {}
+    const clean = (v: unknown) => {
+      const s = typeof v === 'string' ? v.trim() : ''
+      return s.length > 0 ? s.slice(0, 280) : undefined
+    }
+    return {
+      index: p.index,
+      title: p.title,
+      reason: p.reason,
+      playbook_category: p.playbook_category,
+      competitor_label: clean(scanP.competitor_label),
+      lever: clean(scanP.lever),
+      lever_reason: clean(scanP.lever_reason),
+      tactical_action: clean(scanP.tactical_action),
+      estimated_gain: clean(scanP.estimated_gain),
+      estimated_cost: clean(scanP.estimated_cost),
+      kpi_30j: clean(scanP.kpi_30j),
+      who_does_it: clean(scanP.who_does_it),
+    }
+  })
 
   const { data: insertedPlan, error: planInsertError } = await supabase
     .from('sparkpilot_plans')
