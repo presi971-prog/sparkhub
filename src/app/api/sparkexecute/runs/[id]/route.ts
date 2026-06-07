@@ -55,6 +55,24 @@ export async function GET(_req: Request, context: RouteContext) {
     return NextResponse.json({ error: 'Run introuvable' }, { status: 404 })
   }
 
+  // Auto-réparation : une génération (même une vidéo Veo) aboutit bien avant
+  // 10 min. Si un run est encore 'generating' au-delà, c'est que le process de
+  // fond a été tué par l'hébergeur. On le bascule en 'failed' pour que l'écran
+  // arrête de tourner dans le vide et que le user puisse relancer.
+  const STUCK_AFTER_MS = 10 * 60 * 1000
+  if (
+    data.status === 'generating' &&
+    Date.now() - new Date(data.created_at).getTime() > STUCK_AFTER_MS
+  ) {
+    const message = 'Génération interrompue (trop longue). Réessaie.'
+    await supabase
+      .from('sparkexecute_runs')
+      .update({ status: 'failed', error_message: message })
+      .eq('id', id)
+      .eq('status', 'generating')
+    return NextResponse.json({ ...data, status: 'failed', error_message: message })
+  }
+
   return NextResponse.json(data)
 }
 

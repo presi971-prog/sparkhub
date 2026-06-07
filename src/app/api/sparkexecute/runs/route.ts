@@ -5,7 +5,7 @@
  *   GET  /api/sparkexecute/runs → liste les runs de l'utilisateur (filtres possibles)
  */
 
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 
 import { createClient } from '@/lib/supabase/server'
@@ -194,14 +194,19 @@ export async function POST(req: Request) {
 
   const runId = inserted.id
 
-  // Lance l'exécution en arrière-plan (fire-and-forget).
-  // Le client poll /api/sparkexecute/runs/[id] pour suivre le statut.
-  void executeRun(runId).catch((err) => {
-    Sentry.captureException(err, {
-      tags: { feature: 'sparkexecute', step: 'run-execute-bg' },
-      extra: { runId },
+  // Lance l'exécution en arrière-plan via after() : le travail continue APRÈS
+  // l'envoi de la réponse, dans la durée de vie de la fonction (jusqu'à
+  // maxDuration), au lieu d'être coupé immédiatement par l'hébergeur.
+  // Le client poll /api/sparkexecute/runs/[id] pour suivre le statut ; si le
+  // run reste bloqué en 'generating' trop longtemps, le GET l'auto-répare.
+  after(() => {
+    return executeRun(runId).catch((err) => {
+      Sentry.captureException(err, {
+        tags: { feature: 'sparkexecute', step: 'run-execute-bg' },
+        extra: { runId },
+      })
+      console.error(`[SparkExecute] background execute failed for ${runId}:`, err)
     })
-    console.error(`[SparkExecute] background execute failed for ${runId}:`, err)
   })
 
   return NextResponse.json(

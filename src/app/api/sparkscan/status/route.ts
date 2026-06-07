@@ -39,5 +39,25 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Scan introuvable' }, { status: 404 })
   }
 
+  // Auto-réparation : un scan dure ~6-7 min. S'il est encore 'running' au-delà
+  // de 15 min, c'est que le process de fond a été tué (Vercel coupe les
+  // fonctions après la réponse). On le bascule en 'error' au lieu de le laisser
+  // tourner dans le vide à l'infini (et de bloquer le quota coût du user).
+  const STUCK_AFTER_MS = 15 * 60 * 1000
+  if (
+    data.status === 'running' &&
+    Date.now() - new Date(data.created_at).getTime() > STUCK_AFTER_MS
+  ) {
+    const message =
+      'Analyse interrompue (elle a dépassé le temps maximum). Relance-la.'
+    await supabase
+      .from('sparkscan_scans')
+      .update({ status: 'error', error_message: message })
+      .eq('id', scanId)
+      .eq('user_id', user.id)
+      .eq('status', 'running')
+    return NextResponse.json({ ...data, status: 'error', error_message: message })
+  }
+
   return NextResponse.json(data)
 }

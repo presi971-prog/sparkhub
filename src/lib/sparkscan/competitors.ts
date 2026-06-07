@@ -14,6 +14,7 @@
  * Voir cadrage : memory/r0-projet-outil-concurrent.md
  */
 
+import { after } from 'next/server'
 import {
   extractDomain,
   countRankedKeywordsTop20,
@@ -444,13 +445,17 @@ export async function startScanInBackground(input: AnalyzeInput): Promise<{
   }
   if (!scanId) throw new Error('startScanInBackground: scan_id manquant après insert')
 
-  // Lance le pipeline en background. Les erreurs sont capturées + loguées + le
-  // scan passe en status='error' dans la base (le catch interne s'en occupe),
-  // donc le client polling verra l'erreur via GET /status.
-  runScanPipelineInternal(scanId, input).catch((err) => {
-    console.error(
-      `[SparkScan] background pipeline crashed scan_id=${scanId}: ${err instanceof Error ? err.message : err}`,
-    )
+  // Lance le pipeline en background via after() : le travail continue APRÈS
+  // l'envoi de la réponse, dans la durée de vie de la fonction (au lieu d'être
+  // coupé immédiatement par l'hébergeur). Les erreurs sont capturées + loguées
+  // + le scan passe en status='error' (le catch interne s'en occupe). Si le
+  // pipeline dépasse la durée max et est tué, le GET /status l'auto-répare.
+  after(() => {
+    return runScanPipelineInternal(scanId, input).catch((err) => {
+      console.error(
+        `[SparkScan] background pipeline crashed scan_id=${scanId}: ${err instanceof Error ? err.message : err}`,
+      )
+    })
   })
 
   return { scanId, cachedOutput: null }
