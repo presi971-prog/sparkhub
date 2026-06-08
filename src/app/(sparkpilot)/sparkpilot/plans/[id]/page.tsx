@@ -281,6 +281,50 @@ export default async function SparkPilotPlanDetailPage({ params }: PageProps) {
                   )
                 })()}
 
+                {/* AVIS DE L'EXPERT (garde-fou) : SparkPilot a confronté cette
+                    priorité à un référentiel de stratégies PROUVÉES. R0 anti-
+                    invention : 'non vérifié' si le référentiel ne couvre pas. */}
+                {(() => {
+                  const r = priorityDetails[p.index]?.expert_review
+                  if (!r) return null
+                  const STYLE: Record<
+                    string,
+                    { label: string; color: string; bg: string; border: string }
+                  > = {
+                    valide: { label: '✅ Validé par l’expert', color: '#0E7A53', bg: '#E7F9F1', border: '#0E9F6E' },
+                    a_ajuster: { label: '⚠️ À ajuster', color: '#B45309', bg: '#FEF4E5', border: '#E0A23A' },
+                    a_demonter: { label: '❌ À revoir', color: '#B42318', bg: '#FEECEB', border: '#E0633A' },
+                    non_verifiable: { label: '❓ Non vérifié (pas de preuve)', color: '#5E626C', bg: '#F2F1EC', border: '#C8C7BE' },
+                  }
+                  const s = STYLE[r.verdict] ?? STYLE.non_verifiable
+                  return (
+                    <div
+                      className="mt-3 rounded-lg border-l-2 px-3 py-2.5"
+                      style={{ background: s.bg, borderColor: s.border }}
+                    >
+                      <div
+                        className="font-mono text-[9.5px] uppercase tracking-[0.18em]"
+                        style={{ color: s.color }}
+                      >
+                        🛡️ Avis de l&apos;expert SparkPilot · {s.label}
+                      </div>
+                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#22252C]">
+                        {r.analyse}
+                      </p>
+                      {r.recommandation ? (
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#22252C]">
+                          👉 {r.recommandation}
+                        </p>
+                      ) : null}
+                      {r.source ? (
+                        <p className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[#8A8E97]">
+                          Source : {r.source}
+                        </p>
+                      ) : null}
+                    </div>
+                  )
+                })()}
+
                 {/* "Stratégie globale" : la VRAIE raison du levier calculée pour
                     ce client (lever_reason) si dispo, sinon repli pédagogique
                     générique par catégorie. R0 30/05/2026 + audit 07/06/2026. */}

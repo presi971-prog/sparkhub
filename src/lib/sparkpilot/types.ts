@@ -127,6 +127,31 @@ export interface PriorityMetadata {
   kpi_30j?: string
   /** Qui fait : toi seul / toi + agence / délégation. */
   who_does_it?: string
+  /** Avis de l'expert SparkPilot (garde-fou) sur cette priorité, voir [[ExpertReview]]. */
+  expert_review?: ExpertReview
+}
+
+/**
+ * Avis du "garde-fou expert" de SparkPilot sur une priorité de SparkScan.
+ *
+ * R0 ANTI-INVENTION : ce verdict est produit UNIQUEMENT à partir du référentiel
+ * de stratégies prouvées (referentiel-prouve-2026.md). Si le référentiel ne
+ * couvre pas le sujet → verdict 'non_verifiable' (jamais d'invention).
+ */
+export interface ExpertReview {
+  /**
+   * valide        = s'appuie sur une tactique prouvée
+   * a_ajuster     = améliorable par une tactique prouvée du référentiel
+   * a_demonter    = correspond à un anti-pattern prouvé (rare)
+   * non_verifiable = non couvert par le référentiel → on ne se prononce pas
+   */
+  verdict: 'valide' | 'a_ajuster' | 'a_demonter' | 'non_verifiable'
+  /** Analyse courte, ancrée dans le référentiel (pourquoi ce verdict). */
+  analyse: string
+  /** Si à ajuster : la version prouvée recommandée (sinon absent). */
+  recommandation?: string
+  /** Le principe/source du référentiel invoqué (ex : "Régularité > volume — Buffer"). */
+  source?: string
 }
 
 /**

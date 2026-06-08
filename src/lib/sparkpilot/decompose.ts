@@ -16,6 +16,7 @@ import * as Sentry from '@sentry/nextjs'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { callClaudeJson } from '@/lib/sparkscan/claude'
+import { reviewPriorities } from './expert-review'
 import {
   loadPlaybook,
   PLAYBOOK_CATEGORIES,
@@ -203,6 +204,29 @@ export async function decomposeReportToTasks(
       who_does_it: clean(scanP.who_does_it),
     }
   })
+
+  // GARDE-FOU EXPERT : on confronte chaque priorité au référentiel de stratégies
+  // PROUVÉES (R0 anti-invention : si non couvert → 'non_verifiable', jamais
+  // d'invention). Purement additif : en cas d'échec, le plan se génère quand même.
+  try {
+    const reviews = await reviewPriorities(
+      prioritiesMetadata.map((p) => ({
+        index: p.index,
+        title: p.title,
+        reason: p.reason,
+        lever: p.lever,
+        tactical_action: p.tactical_action,
+        playbook_category: p.playbook_category,
+      })),
+    )
+    for (const pm of prioritiesMetadata) {
+      if (reviews[pm.index]) pm.expert_review = reviews[pm.index]
+    }
+  } catch (err) {
+    console.warn(
+      `[SparkPilot] garde-fou expert ignoré : ${err instanceof Error ? err.message : err}`,
+    )
+  }
 
   const { data: insertedPlan, error: planInsertError } = await supabase
     .from('sparkpilot_plans')
