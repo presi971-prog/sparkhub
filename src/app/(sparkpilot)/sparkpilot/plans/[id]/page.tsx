@@ -312,9 +312,15 @@ export default async function SparkPilotPlanDetailPage({ params }: PageProps) {
                         {r.analyse}
                       </p>
                       {r.recommandation ? (
-                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#22252C]">
-                          👉 {r.recommandation}
-                        </p>
+                        <div className="mt-2 rounded-md border border-[#E9E5D9] bg-white/70 px-2.5 py-2">
+                          <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#0E7A53]">
+                            ✏️ Version ajustée par l&apos;expert
+                            <span className="text-[#A8ACB5]"> · remplace la proposition ci-dessus</span>
+                          </div>
+                          <p className="mt-1 text-[12.5px] leading-relaxed text-[#22252C]">
+                            {r.recommandation}
+                          </p>
+                        </div>
                       ) : null}
                       {r.source ? (
                         <p className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[#8A8E97]">
