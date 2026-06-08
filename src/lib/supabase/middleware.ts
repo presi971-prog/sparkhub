@@ -63,7 +63,16 @@ export async function updateSession(request: NextRequest) {
 
     if (isAuthPath && user) {
       const url = request.nextUrl.clone()
-      url.pathname = '/tableau-de-bord'
+      // Si un retour est demandé (ex : ?redirectTo=/sparkgrowth), on l'honore
+      // au lieu de renvoyer systématiquement au tableau de bord SparkHub.
+      // On n'accepte qu'un chemin interne (commence par "/" sans "//") pour
+      // éviter une redirection ouverte vers un site externe.
+      const wanted = request.nextUrl.searchParams.get('redirectTo')
+      url.pathname =
+        wanted && wanted.startsWith('/') && !wanted.startsWith('//')
+          ? wanted
+          : '/tableau-de-bord'
+      url.search = ''
       return NextResponse.redirect(url)
     }
   }

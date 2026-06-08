@@ -56,7 +56,7 @@ export default async function SparkGrowthLayout({
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/connexion?redirect=/sparkgrowth')
+    redirect('/connexion?redirectTo=/sparkgrowth')
   }
 
   return (

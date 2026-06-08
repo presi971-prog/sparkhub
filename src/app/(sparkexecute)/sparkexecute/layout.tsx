@@ -55,7 +55,7 @@ export default async function SparkExecuteLayout({
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/connexion?redirect=/sparkexecute')
+    redirect('/connexion?redirectTo=/sparkexecute')
   }
 
   const { initials, fullName, subtitle } = deriveUserDisplay(user)

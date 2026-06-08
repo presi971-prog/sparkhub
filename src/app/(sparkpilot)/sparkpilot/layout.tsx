@@ -58,7 +58,7 @@ export default async function SparkPilotLayout({
 
   if (!user) {
     // SparkPilot est privé : redirige vers la page de connexion si pas connecté.
-    redirect('/connexion?redirect=/sparkpilot')
+    redirect('/connexion?redirectTo=/sparkpilot')
   }
 
   const { initials, fullName, subtitle } = deriveUserDisplay(user)
