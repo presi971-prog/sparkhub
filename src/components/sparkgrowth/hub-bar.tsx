@@ -14,6 +14,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 
 interface Module {
   href: string
@@ -57,7 +58,8 @@ export function HubBar() {
           </span>
         </Link>
 
-        {/* Les 3 modules */}
+        {/* Droite : les 3 modules + bouton se déconnecter */}
+        <div className="flex items-center gap-2 sm:gap-3">
         <nav className="flex items-center gap-1 font-mono text-[9.5px] uppercase tracking-[0.18em] sm:text-[10px]">
           {MODULES.map((m, i) => {
             const isActive = pathname.startsWith(m.href)
@@ -88,6 +90,22 @@ export function HubBar() {
             )
           })}
         </nav>
+
+          {/* Séparateur + bouton se déconnecter (form POST vers /auth/signout,
+              même mécanisme que le header SparkHub). Présent sur les 3 outils
+              via la HubBar partagée → on peut quitter de n'importe où. */}
+          <span className="h-3.5 w-px bg-[#E9E5D9]" aria-hidden="true" />
+          <form action="/auth/signout" method="post" className="flex">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.18em] text-[#5E626C] transition hover:text-[#0F1115] sm:text-[10px]"
+              aria-label="Se déconnecter"
+            >
+              <LogOut className="h-3 w-3" aria-hidden="true" />
+              <span className="hidden sm:inline">Quitter</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
