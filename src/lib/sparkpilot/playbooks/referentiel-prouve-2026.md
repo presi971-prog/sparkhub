@@ -9,7 +9,11 @@
 > académique / étude à grand échantillon). [TENDANCE] = consensus d'experts sans étude
 > massive. [SPÉCULATIF] = circule mais non sourçable → à traiter comme NON fiable.
 >
-> Version v1.0 (08/06/2026). Mise à jour = re-recherche (veille) puis remplacer ce fichier.
+> **VEILLE** — Version v1.0, dernière mise à jour : **08/06/2026**. Prochaine veille conseillée : **~08/09/2026** (trimestriel, car algos/formats évoluent vite).
+> Procédure de veille (à faire AVEC validation humaine, jamais en auto-écrasement) :
+> 1. Relancer les 5 recherches sourcées (blog/SEO, réseaux, GEO, conversion, pub).
+> 2. Comparer aux entrées ci-dessous ; ne remplacer que ce qui a une NOUVELLE source fiable.
+> 3. Mettre à jour la date ci-dessus. Tout ce qui n'est pas re-sourcé reste tel quel ou passe en [SPÉCULATIF].
 
 ---
 
