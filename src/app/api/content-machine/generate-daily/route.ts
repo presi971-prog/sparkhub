@@ -3,6 +3,7 @@ import { createAdminSupabase } from '@/lib/content-machine/supabase-admin'
 import { askClaude } from '@/lib/content-machine/anthropic'
 import { generateKieImage, generateKieVideo } from '@/lib/content-machine/kie-ai'
 import { generateVoiceover, BRAND_VOICES } from '@/lib/content-machine/elevenlabs'
+import { publishDueScheduledBlogPosts } from '@/lib/sparkexecute/publishers/scheduled-blog'
 
 const CRON_SECRET = process.env.CRON_SECRET
 
@@ -104,6 +105,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 
+  // Publication PROGRAMMÉE des articles de blog (SparkExecute) — indépendante du
+  // content-machine. On la lance en premier et on ne laisse jamais une erreur ici
+  // casser la génération de contenu quotidienne.
+  let scheduledBlog: unknown = null
+  try {
+    scheduledBlog = await publishDueScheduledBlogPosts()
+    const published = (scheduledBlog as { publishedNow?: unknown[] }).publishedNow ?? []
+    if (published.length > 0) {
+      console.info(`[scheduled-blog] ${published.length} article(s) publié(s) aujourd'hui`)
+    }
+  } catch (e) {
+    console.error('[scheduled-blog] échec publication programmée:', e)
+    scheduledBlog = { error: e instanceof Error ? e.message : 'Erreur inconnue' }
+  }
+
   const supabase = createAdminSupabase()
   const today = new Date().toISOString().split('T')[0]
   const results: Array<{ calendarId: string; brand: string; status: string; error?: string }> = []
@@ -128,6 +144,7 @@ export async function POST(req: Request) {
         message: 'Aucun contenu planifie pour aujourd\'hui',
         date: today,
         generated: 0,
+        scheduledBlog,
       })
     }
 
@@ -316,6 +333,7 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
       generated: successCount,
       errors: errorCount,
       details: results,
+      scheduledBlog,
     })
   } catch (error) {
     console.error('[content-machine/generate-daily] Erreur globale:', error)
