@@ -145,9 +145,16 @@ export async function publishDueScheduledBlogPosts(
       continue
     }
     try {
+      // publishedAt OBLIGATOIRE : sans lui, le thème du blog affiche
+      // "Publié le NaN/NaN/NaN" (le champ date est vide). On le met au
+      // moment réel de la publication.
       await ghlFetch(`/blogs/posts/${entry.postId}`, {
         method: 'PUT',
-        body: { ...entry.payload, status: 'PUBLISHED' },
+        body: {
+          ...entry.payload,
+          status: 'PUBLISHED',
+          publishedAt: new Date().toISOString(),
+        },
       })
       const item = toItem(entry, 'published')
       summary.publishedNow.push(item)
