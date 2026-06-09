@@ -10,21 +10,23 @@
  * Avantage vs un script local : ça tourne dans le cloud (Vercel cron), donc même
  * si la machine de l'utilisateur est éteinte.
  *
- * Idempotent : on lit la liste des posts déjà publiés (GET /blogs/posts/all ne
- * renvoie QUE les publiés) et on saute ceux qui le sont déjà. Rejouer le cron
- * plusieurs fois ne republie jamais en double.
+ * Idempotence : on vérifie si la PAGE PUBLIQUE de l'article répond déjà (HTTP
+ * 200 = déjà publié, 404 = encore brouillon) et on saute ceux déjà en ligne.
+ * (On n'utilise PAS GET /blogs/posts/all : cet endpoint renvoie 0 sur ce blog,
+ * il est inutilisable pour détecter les publiés.)
  *
  * R0 : pas d'<img> hero dans le rawHTML (l'en-tête passe par imageUrl) — déjà
- * garanti à la génération du payload (cf scheduled-blog.config.ts).
+ * garanti à la génération du payload (cf scheduled-blog.config.ts). Et on envoie
+ * TOUJOURS `publishedAt`, sinon le thème blog affiche "Publié le NaN/NaN/NaN".
  */
 
-import { ghlFetch, GHL_DCGAI_LOCATION_ID } from './ghl-client'
+import { ghlFetch } from './ghl-client'
 import {
   SCHEDULED_BLOG_POSTS,
   type ScheduledBlogEntry,
 } from '../scheduled-blog.config'
 
-const DCGAI_BLOG_ID = 'SBVkGP26oyLg4Mikwe4d'
+const PUBLIC_BASE = 'https://digital-code-growth.com/post/'
 
 export interface ScheduledPublishItem {
   name: string
@@ -46,13 +48,7 @@ export interface ScheduledPublishSummary {
   errors: ScheduledPublishItem[]
 }
 
-interface BlogListResponse {
-  blogs?: Array<{ _id?: string; urlSlug?: string; status?: string }>
-  posts?: Array<{ _id?: string; urlSlug?: string; status?: string }>
-  data?: Array<{ _id?: string; urlSlug?: string; status?: string }>
-}
-
-const publicUrl = (slug: string) => `https://digital-code-growth.com/post/${slug}`
+const publicUrl = (slug: string) => `${PUBLIC_BASE}${slug}`
 
 /** Date du jour au format YYYY-MM-DD en UTC. */
 function todayUtc(reference?: string): string {
@@ -60,17 +56,20 @@ function todayUtc(reference?: string): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-/** Récupère les slugs des posts déjà PUBLISHED (les DRAFT ne sont pas listés). */
-async function fetchPublishedSlugs(): Promise<Set<string>> {
-  const res = await ghlFetch<BlogListResponse>(
-    `/blogs/posts/all?locationId=${GHL_DCGAI_LOCATION_ID}&blogId=${DCGAI_BLOG_ID}&limit=50&offset=0`,
-  )
-  const list = res.blogs ?? res.posts ?? res.data ?? []
-  const slugs = new Set<string>()
-  for (const p of list) {
-    if (p.urlSlug) slugs.add(p.urlSlug)
+/**
+ * Vérifie si un article est DÉJÀ publié en regardant sa page publique.
+ * 200 = en ligne (publié) ; 404 = pas encore (brouillon). Fiable et sans
+ * dépendre de l'API liste GHL (cassée sur ce blog).
+ */
+async function isPublished(slug: string): Promise<boolean> {
+  try {
+    const res = await fetch(publicUrl(slug), { method: 'GET', cache: 'no-store' })
+    return res.status === 200
+  } catch {
+    // En cas de doute réseau, on répond "pas publié" : au pire on re-tente la
+    // publication (idempotent côté GHL), jamais de doublon visible.
+    return false
   }
-  return slugs
 }
 
 /** Notification Telegram best-effort (silencieuse si non configurée). */
@@ -126,17 +125,15 @@ export async function publishDueScheduledBlogPosts(
     errors: [],
   }
 
-  const publishedSlugs = await fetchPublishedSlugs()
-
   for (const entry of SCHEDULED_BLOG_POSTS) {
-    // Déjà en ligne → on saute (idempotence).
-    if (publishedSlugs.has(entry.slug)) {
-      summary.alreadyPublished.push(toItem(entry, 'already_published'))
-      continue
-    }
-    // Date pas encore arrivée → en attente.
+    // Date pas encore arrivée → en attente, rien à vérifier.
     if (entry.date > today) {
       summary.pending.push(toItem(entry, 'pending'))
+      continue
+    }
+    // Date arrivée : déjà en ligne ? (idempotence via page publique)
+    if (await isPublished(entry.slug)) {
+      summary.alreadyPublished.push(toItem(entry, 'already_published'))
       continue
     }
     // Due et pas encore publié.
@@ -145,9 +142,7 @@ export async function publishDueScheduledBlogPosts(
       continue
     }
     try {
-      // publishedAt OBLIGATOIRE : sans lui, le thème du blog affiche
-      // "Publié le NaN/NaN/NaN" (le champ date est vide). On le met au
-      // moment réel de la publication.
+      // publishedAt OBLIGATOIRE : sans lui, le thème affiche "Publié le NaN".
       await ghlFetch(`/blogs/posts/${entry.postId}`, {
         method: 'PUT',
         body: {
