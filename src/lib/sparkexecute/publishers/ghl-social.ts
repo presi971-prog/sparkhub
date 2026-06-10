@@ -28,6 +28,7 @@ import {
   ghlFetch,
 } from './ghl-client'
 import type { SocialPlatform, SparkexecuteRun } from '../types'
+import { PUBLISH_BRAND_CTA_URL } from '../brand'
 
 /** Limites pratiques par plateforme (sources : docs officielles + GHL Social Planner). */
 const PLATFORM_TEXT_LIMITS: Record<SocialPlatform, number> = {
@@ -111,7 +112,7 @@ export async function publishToSocialPlanner(
     } catch (err) {
       const message =
         err instanceof GhlApiError
-          ? err.message
+          ? `${err.message}${err.bodyText ? ` — détail GHL : ${err.bodyText.slice(0, 300)}` : ''}`
           : err instanceof Error
             ? err.message
             : 'Erreur inconnue'
@@ -200,7 +201,13 @@ async function publishOnePlatform(
   // Business demande un actionType ; Instagram demande mediaType=REELS pour
   // les vidéos). En V1.1, on s'en tient au cas standard "image + texte".
   if (platform === 'google_business') {
-    body.gmbActionType = 'CALL'
+    // GHL refuse `gmbActionType` au 1er niveau (HTTP 422). Un post Google Business
+    // attend un objet `gmbDetails` avec un actionType valide + une URL pour le
+    // bouton d'action. On pointe le bouton vers le lien de réservation /rdv.
+    body.gmbDetails = {
+      actionType: 'LEARN_MORE',
+      url: PUBLISH_BRAND_CTA_URL,
+    }
   }
 
   const endpoint = `/social-media-posting/${GHL_DCGAI_LOCATION_ID}/posts`
