@@ -379,6 +379,7 @@ function normalizePlatform(raw: string): SocialPlatform | null {
     case 'facebook':
       return 'facebook'
     case 'gmb':
+    case 'google':
     case 'google_business':
     case 'google-business':
       return 'google_business'
