@@ -23,7 +23,7 @@ import {
 
 // Liens / actions (source de vérité unique pour tous les CTA de la page)
 const BOOKING_URL =
-  'https://api.digital-code-growth.com/widget/booking/LRaECnfnDuuZ7d22mo7'
+  'https://demo.digital-code-growth.com/chat-demo-optin'
 const TEL_HREF = 'tel:+33939243915'
 const TEL_LABEL = '09 39 24 39 15'
 

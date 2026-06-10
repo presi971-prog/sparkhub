@@ -449,7 +449,7 @@ export default function OffreProPage() {
                   ))}
                 </ul>
                 <Link
-                  href="https://api.digital-code-growth.com/widget/booking/LRaECnfnDuuZ7d22mo7"
+                  href="https://demo.digital-code-growth.com/chat-demo-optin"
                   target="_blank"
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
