@@ -28,7 +28,6 @@ import {
   ghlFetch,
 } from './ghl-client'
 import type { SocialPlatform, SparkexecuteRun } from '../types'
-import { PUBLISH_BRAND_CTA_URL } from '../brand'
 
 /** Limites pratiques par plateforme (sources : docs officielles + GHL Social Planner). */
 const PLATFORM_TEXT_LIMITS: Record<SocialPlatform, number> = {
@@ -200,15 +199,10 @@ async function publishOnePlatform(
   // Certains champs sont spécifiques à certaines plateformes (ex : Google
   // Business demande un actionType ; Instagram demande mediaType=REELS pour
   // les vidéos). En V1.1, on s'en tient au cas standard "image + texte".
-  if (platform === 'google_business') {
-    // GHL refuse `gmbActionType` au 1er niveau (HTTP 422). Un post Google Business
-    // attend un objet `gmbDetails` avec un actionType valide + une URL pour le
-    // bouton d'action. On pointe le bouton vers le lien de réservation /rdv.
-    body.gmbDetails = {
-      actionType: 'LEARN_MORE',
-      url: PUBLISH_BRAND_CTA_URL,
-    }
-  }
+  // Google Business : GHL REFUSE les propriétés `gmbActionType` ET `gmbDetails`
+  // (HTTP 422 "property ... should not exist", vérifié en réel le 10/06). Via
+  // cette API, un post Google = texte + image, SANS bouton d'action. Le CTA
+  // (lien /rdv) est déjà dans le texte du post. Donc rien de spécifique à ajouter.
 
   const endpoint = `/social-media-posting/${GHL_DCGAI_LOCATION_ID}/posts`
   const response = await ghlFetch<GhlSocialPostResponse>(endpoint, {
