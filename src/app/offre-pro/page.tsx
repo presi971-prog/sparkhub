@@ -449,7 +449,7 @@ export default function OffreProPage() {
                   ))}
                 </ul>
                 <Link
-                  href="https://demo.digital-code-growth.com/chat-demo-optin"
+                  href="https://digital-code-growth.com/rdv"
                   target="_blank"
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

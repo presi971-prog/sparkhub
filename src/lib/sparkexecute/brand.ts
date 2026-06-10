@@ -18,7 +18,7 @@ export const PUBLISH_BRAND_DOMAIN = 'https://digital-code-growth.com'
  * TODO multi-client : à terme, lire ce lien depuis le profil de l'utilisateur.
  */
 export const PUBLISH_BRAND_CTA_URL =
-  'https://demo.digital-code-growth.com/chat-demo-optin'
+  'https://digital-code-growth.com/rdv'
 
 /** Phrase R0 anti-invention réutilisée dans les prompts des générateurs. */
 export const R0_ZERO_INVENTION = `R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE)

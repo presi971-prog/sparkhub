@@ -23,7 +23,7 @@ import {
 
 // Liens / actions (source de vérité unique pour tous les CTA de la page)
 const BOOKING_URL =
-  'https://demo.digital-code-growth.com/chat-demo-optin'
+  'https://digital-code-growth.com/rdv'
 const TEL_HREF = 'tel:+33939243915'
 const TEL_LABEL = '09 39 24 39 15'
 
@@ -66,7 +66,7 @@ function PrimaryCTA({ className = '' }: { className?: string }) {
       rel="noopener noreferrer"
       className={`inline-flex min-h-[52px] items-center justify-center rounded-full bg-gradient-to-r from-[#AB30E4] to-[#DE7CFA] px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#AB30E4]/30 transition-transform duration-200 hover:scale-[1.03] active:scale-100 ${className}`}
     >
-      Tester ma démo gratuite
+      Réserver ma démo gratuite
     </a>
   )
 }
@@ -192,7 +192,7 @@ export default function AssistantIaPage() {
             </motion.div>
 
             <p className="mt-4 text-sm text-white/70">
-              Gratuit · Immédiat · Sans engagement
+              Gratuit · 15 min · Sans engagement
             </p>
           </div>
 
@@ -556,14 +556,14 @@ export default function AssistantIaPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
               La seule question, c&apos;est : est-ce que quelqu&apos;un sera là pour
-              répondre ? Teste ta démo gratuite, ton assistant répond tout de suite.
+              répondre ? Réserve ta démo gratuite, on te montre tout en 15 minutes.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
               <PrimaryCTA />
               <SecondaryCTA dark />
             </div>
             <p className="mt-4 text-sm text-white/70">
-              Gratuit · Immédiat · Sans engagement
+              Gratuit · 15 min · Sans engagement
             </p>
           </Reveal>
         </div>
@@ -601,7 +601,7 @@ export default function AssistantIaPage() {
           rel="noopener noreferrer"
           className="flex min-h-[52px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#AB30E4] to-[#DE7CFA] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#AB30E4]/30 active:scale-[0.99]"
         >
-          Tester ma démo
+          Réserver ma démo
         </a>
       </div>
 
