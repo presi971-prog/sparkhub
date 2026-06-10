@@ -66,7 +66,7 @@ function PrimaryCTA({ className = '' }: { className?: string }) {
       rel="noopener noreferrer"
       className={`inline-flex min-h-[52px] items-center justify-center rounded-full bg-gradient-to-r from-[#AB30E4] to-[#DE7CFA] px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#AB30E4]/30 transition-transform duration-200 hover:scale-[1.03] active:scale-100 ${className}`}
     >
-      Réserver ma démo gratuite
+      Tester ma démo gratuite
     </a>
   )
 }
@@ -192,7 +192,7 @@ export default function AssistantIaPage() {
             </motion.div>
 
             <p className="mt-4 text-sm text-white/70">
-              Gratuit · 15 min · Sans engagement
+              Gratuit · Immédiat · Sans engagement
             </p>
           </div>
 
@@ -556,14 +556,14 @@ export default function AssistantIaPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
               La seule question, c&apos;est : est-ce que quelqu&apos;un sera là pour
-              répondre ? Réserve ta démo gratuite, on te montre tout en 15 minutes.
+              répondre ? Teste ta démo gratuite, ton assistant répond tout de suite.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
               <PrimaryCTA />
               <SecondaryCTA dark />
             </div>
             <p className="mt-4 text-sm text-white/70">
-              Gratuit · 15 min · Sans engagement
+              Gratuit · Immédiat · Sans engagement
             </p>
           </Reveal>
         </div>
@@ -601,7 +601,7 @@ export default function AssistantIaPage() {
           rel="noopener noreferrer"
           className="flex min-h-[52px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#AB30E4] to-[#DE7CFA] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#AB30E4]/30 active:scale-[0.99]"
         >
-          Réserver ma démo
+          Tester ma démo
         </a>
       </div>
 
