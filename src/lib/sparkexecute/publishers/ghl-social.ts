@@ -262,9 +262,20 @@ function adaptContentForPlatform(
   const reserveForTags = tagLine.length > 0 ? tagLine.length + 2 : 0
 
   let body = baseText
-  // Pour Google Business : on prend la 1ère partie seulement et pas de hashtags.
+  // Pour Google Business : pas de hashtags, ET surtout AUCUN numéro de téléphone.
+  // Google INTERDIT les numéros de téléphone dans les posts (sinon il supprime le
+  // post ET désactive les publications de la fiche — vécu en réel le 10/06/2026).
+  // Règle officielle : support.google.com/business/answer/7213077.
   if (platform === 'google_business') {
-    return truncateNicely(body, limit)
+    const noPhone = body
+      // numéros FR : +33 9 39 24 39 15 / 09 39 24 39 15 (séparateurs espace/point/tiret)
+      .replace(/(?:\+33[\s. -]?|0)[1-9](?:[\s. -]?\d){8}/g, '')
+      // nettoie les amorces orphelines du type "Appelle le  pour…" / "au  ."
+      .replace(/\b([Aa]ppelle[z]?|[Tt]él\.?|[Tt]éléphone)\s+(le|au)?\s*[,.:]?\s*/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\s+([,.;])/g, '$1')
+      .trim()
+    return truncateNicely(noPhone, limit)
   }
 
   // Truncate proprement au mot près si nécessaire.
