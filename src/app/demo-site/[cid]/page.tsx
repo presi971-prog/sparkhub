@@ -522,8 +522,8 @@ function MiniSite({ data }: { data: SiteData }) {
             <p className="cta-desc">
               Site professionnel + IA vocale qui gère vos appels 24h/24, même quand vous êtes occupé.
             </p>
-            <a href="https://digital-code-growth.com" className="cta-btn">
-              En savoir plus
+            <a href="https://digital-code-growth.com/rdv" className="cta-btn">
+              Réserver ma démo gratuite
             </a>
           </div>
         </div>

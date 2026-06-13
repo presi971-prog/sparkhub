@@ -253,8 +253,8 @@ function MiniSite({ data, primary, secondary, accent }: { data: SiteData; primar
             Nous pouvons créer votre site professionnel et y intégrer une IA vocale
             qui répond à vos clients 24h/24, 7j/7.
           </p>
-          <a href="https://digital-code-growth.com" className="cta-button">
-            Découvrir DCG AI
+          <a href="https://digital-code-growth.com/rdv" className="cta-button">
+            Réserver ma démo gratuite
           </a>
         </div>
         <div className="footer">Aperçu généré par DCG AI — digital-code-growth.com</div>
