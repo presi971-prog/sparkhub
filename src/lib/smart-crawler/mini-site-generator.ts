@@ -89,7 +89,7 @@ export function generateMiniSiteHtml(
 
   <div class="cta">
     <p style="color: #94a3b8; margin-bottom: 16px;">Ce site a été généré automatiquement par DCG AI</p>
-    <a href="#" class="cta-button">Discuter avec notre IA</a>
+    <a href="https://digital-code-growth.com/rdv" class="cta-button">Réserver ma démo gratuite</a>
   </div>
 </body>
 </html>`
