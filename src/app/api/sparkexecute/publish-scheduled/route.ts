@@ -16,6 +16,7 @@
 
 import { NextResponse } from 'next/server'
 import { publishDueScheduledBlogPosts } from '@/lib/sparkexecute/publishers/scheduled-blog'
+import { publishDueCarousels } from '@/lib/sparkexecute/publishers/scheduled-carousels'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -40,7 +41,15 @@ async function handle(req: Request) {
 
   try {
     const summary = await publishDueScheduledBlogPosts({ referenceDate, dryRun })
-    return NextResponse.json(summary)
+    // Carrousels éducatifs : publication immédiate le jour J (isolée — une erreur
+    // carrousel ne doit jamais bloquer la publication du blog).
+    let carousels = null
+    try {
+      carousels = await publishDueCarousels({ referenceDate, dryRun })
+    } catch (e) {
+      carousels = { error: e instanceof Error ? e.message : 'Erreur carrousels' }
+    }
+    return NextResponse.json({ ...summary, carousels })
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : 'Erreur interne' },
