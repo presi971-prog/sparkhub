@@ -18,7 +18,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
-import { PUBLISH_BRAND_NAME, R0_ZERO_INVENTION } from '../brand'
+import { resolveBrandProfile, buildR0ZeroInvention } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -116,7 +116,8 @@ function buildPrompt(
   framework: string,
   task?: SparkpilotTask | null,
 ): string {
-  const audience = brief.audience?.trim() || 'patrons de TPE/PME en Guadeloupe'
+  const brand = resolveBrandProfile(brief.brand)
+  const audience = brief.audience?.trim() || brand.audienceDefault
   const ton = brief.ton?.trim() || 'chaleureux et direct (tutoiement)'
   const motsCles = (brief.mots_cles ?? []).filter((m) => m && m.trim()).slice(0, 6)
   const variant = describeVariant(brief.variant)
@@ -132,29 +133,22 @@ Ce post a été demandé pour avancer la tâche suivante :
     : ''
 
   return `[RÔLE]
-Tu es le copywriter LinkedIn senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}.
-Tu rédiges un post LinkedIn qui CARTONNE sur LinkedIn 2025-2026 pour des
-TPE/PME en Guadeloupe.
+Tu es le copywriter LinkedIn senior qui écrit AU NOM DE ${brand.name}.
+Tu rédiges un post LinkedIn qui CARTONNE sur LinkedIn 2025-2026.
+Public visé : ${audience}.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
 
-${R0_ZERO_INVENTION}
+${buildR0ZeroInvention(brand)}
 
-R0 #1 — ANCRAGE GUADELOUPE
-- Exemples, références, lieux : Guadeloupe (Pointe-à-Pitre, Basse-Terre,
-  Le Gosier, Saint-François, Marie-Galante…).
-- INTERDIT : exemples "métro", "rue grise européenne", "froid".
-- WhatsApp > SMS si tu parles de canal de com.
-- Ton accessible et chaleureux en français standard.
+${brand.anchoringRules}
 
 R0 #2 — STRUCTURE HOOK-STORY-CTA (format premier-pli LinkedIn 2026)
 1. HOOK (1ère ligne, max 200 caractères) : doit DONNER ENVIE de cliquer "Voir plus".
    - Question provocante, chiffre fort, contradiction, mini-cliffhanger.
    - INTERDIT de commencer par "Je..." ou "Aujourd'hui je veux vous parler de..."
-   - Exemples qui marchent :
-     * "3 patrons de restos m'ont dit la même chose la semaine dernière."
-     * "Ton standardiste coûte 2 200 €/mois. Le tien va te coûter 197 €."
-     * "Personne ne te dira ça en Guadeloupe (et c'est dommage)."
+   - Le hook doit être adapté à l'audience ci-dessus et au sujet — accroche
+     forte, concrète, sans cliché ni promesse inventée.
 
 2. STORY (le milieu, 3 à 6 paragraphes courts) :
    - Situation concrète et parlante — SANS inventer de faux témoignage ni de
@@ -178,7 +172,7 @@ R0 #4 — TON ET CIBLE
 - Audience : ${audience}
 - Ton : ${ton}
 ${variant ? `- Variante : ${variant}` : ''}
-- Tutoiement, pas de jargon. On parle à un patron de TPE, pas à un growth hacker.
+- Écris pour l'audience ci-dessus : pas de jargon inutile, ton adapté à ce public.
 
 R0 #5 — FRAMEWORK GUIDE : ${framework}
 ${frameworkGuidance(framework)}
@@ -199,9 +193,8 @@ ${taskContext}[FORMAT DE RÉPONSE — RESPECTE-LE À LA LETTRE]
 
 ---IMAGE_PROMPT---
 (prompt DÉTAILLÉ en ANGLAIS pour Nano Banana décrivant l'image éditoriale
-CARRÉE 1:1 qui accompagne le post. Ancrage Guadeloupe : palmiers, façades
-colorées de l'architecture locale, lumière chaude. JAMAIS de pull/col roulé,
-de rue grise européenne, ni de texte/logo incrusté. 3 à 6 lignes, style
+CARRÉE 1:1 qui accompagne le post. Univers visuel imposé : ${brand.imageStyle}
+JAMAIS de texte/logo incrusté. 3 à 6 lignes, style
 "Professional editorial photograph, hyperrealistic. Subject: ... Setting: ...
 Light: ...".)
 ---END_IMAGE_PROMPT---

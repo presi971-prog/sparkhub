@@ -20,7 +20,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
-import { PUBLISH_BRAND_NAME, R0_ZERO_INVENTION } from '../brand'
+import { resolveBrandProfile, buildR0ZeroInvention } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -126,7 +126,8 @@ function buildPrompt(
   task?: SparkpilotTask | null,
   aspectRatio: '1:1' | '4:5' = '4:5',
 ): string {
-  const audience = brief.audience?.trim() || 'patrons de TPE/PME en Guadeloupe'
+  const brand = resolveBrandProfile(brief.brand)
+  const audience = brief.audience?.trim() || brand.audienceDefault
   const ton = brief.ton?.trim() || 'chaleureux, visuel, énergique (tutoiement)'
   const motsCles = (brief.mots_cles ?? []).filter((m) => m && m.trim()).slice(0, 6)
   const variant = describeVariant(brief.variant)
@@ -145,19 +146,15 @@ Ce post a été demandé pour avancer la tâche suivante :
     : ''
 
   return `[RÔLE]
-Tu es le copywriter Instagram senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}.
-Tu rédiges une caption Instagram qui CARTONNE pour des TPE/PME en Guadeloupe
-en 2025-2026.
+Tu es le copywriter Instagram senior qui écrit AU NOM DE ${brand.name}.
+Tu rédiges une caption Instagram qui CARTONNE en 2025-2026.
+Public visé : ${audience}.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
 
-${R0_ZERO_INVENTION}
+${buildR0ZeroInvention(brand)}
 
-R0 #1 — ANCRAGE GUADELOUPE
-- Références, lieux, exemples : Guadeloupe (Pointe-à-Pitre, Le Gosier,
-  Saint-François, Basse-Terre, Marie-Galante…).
-- Marché ~400 000 habitants, communauté tissée, WhatsApp > SMS.
-- INTERDIT : exemples "métro", "rue grise européenne", "froid".
+${brand.anchoringRules}
 
 R0 #2 — STRUCTURE INSTAGRAM (caption qui retient)
 1. PREMIER-PLI (1ère ligne, max 125 caractères) :
@@ -189,7 +186,7 @@ R0 #4 — TON ET CIBLE
 - Audience : ${audience}
 - Ton : ${ton}
 ${variant ? `- Variante : ${variant}` : ''}
-- Tutoiement, pas de jargon. On parle à un patron de TPE, pas à un growth hacker.
+- Écris pour l'audience ci-dessus : pas de jargon inutile, ton adapté à ce public.
 
 R0 #5 — FRAMEWORK GUIDE : ${framework}
 ${frameworkGuidance(framework)}
@@ -212,15 +209,15 @@ ${taskContext}[FORMAT DE RÉPONSE — RESPECTE-LE À LA LETTRE]
 (prompt DÉTAILLÉ en ANGLAIS pour Nano Banana décrivant l'image éditoriale.
 FORMAT IMAGE OBLIGATOIRE : ${imageFormatLine}
 Esthétique Instagram : couleurs vibrantes mais naturelles, lumière chaude,
-cadrage Instagrammable. Ancrage Guadeloupe : palmiers, façades colorées de
-l'architecture locale, lumière dorée. JAMAIS de pull/col roulé, de rue grise
-européenne, ni de texte/logo incrusté. 3 à 6 lignes, style "Professional
+cadrage Instagrammable. Univers visuel imposé : ${brand.imageStyle}
+JAMAIS de texte/logo incrusté. 3 à 6 lignes, style "Professional
 editorial photograph, hyperrealistic, ${aspectRatio === '4:5' ? 'vertical portrait 4:5 format' : 'square 1:1 format'}. Subject: ... Setting: ... Light: ...".)
 ---END_IMAGE_PROMPT---
 
 ---HASHTAGS---
 (10 à 15 hashtags pertinents séparés par des espaces, sans le #. Mélange larges
-et niches, ex : #guadeloupe #971 #restoguadeloupe #tpegp #patronsgp)
+et niches, choisis selon le sujet et l'audience ci-dessus — jamais de hashtag
+hors sujet ni de localisation qui ne correspond pas à la marque.)
 ---END_HASHTAGS---
 
 ⚠️ Le bloc ---IMAGE_PROMPT--- est OBLIGATOIRE : sans lui, le post n'a pas

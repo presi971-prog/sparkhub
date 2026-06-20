@@ -67,6 +67,13 @@ export interface RunInputBrief {
   /** Sujet du livrable (ex : "L'IA pour les restaurants en Guadeloupe"). */
   sujet: string
 
+  /**
+   * Profil de marque éditrice (multi-site, comme SparkScan).
+   * Id d'un profil de `brand.ts` (ex : 'dcg_ai', 'concours_spp').
+   * Absent/inconnu → profil par défaut (DCG AI), comportement inchangé.
+   */
+  brand?: string
+
   /** Audience visée (ex : "Restaurateurs TPE en Guadeloupe"). Optionnel. */
   audience?: string
 

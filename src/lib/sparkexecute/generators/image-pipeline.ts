@@ -63,11 +63,25 @@ export async function generateAndStoreImage(
  * @param tone     Ambiance (ex : "professional and warm").
  * @param extra    Lignes additionnelles (ex : intention pack post LinkedIn).
  */
+/**
+ * Bloc "Setting and ambiance" par défaut (DCG AI / Guadeloupe).
+ * Conservé pour rétro-compat : utilisé si aucun `setting` n'est passé.
+ */
+const DEFAULT_SETTING = `- Location: Guadeloupe, French Caribbean. Tropical lush vegetation (palm trees,
+  hibiscus, banana leaves) or warm local Caribbean architecture (pastel wood
+  shutters, vibrant colored facades). NEVER European-style gray city streets.
+- Light: warm golden hour, soft tropical sunlight, slight haze.
+- Clothing of any person: lightweight tropical clothing (linen shirts, light
+  cotton tops). NEVER turtlenecks, NEVER heavy sweaters, NEVER pullovers.
+- Mood: confident, modern, accessible. No corporate cliché.`
+
 export function buildEditorialPhotoPrompt(args: {
   subject: string
   audience?: string
   tone?: string
   extra?: string
+  /** Univers visuel imposé (multi-site). Si absent → Guadeloupe par défaut. */
+  setting?: string
   aspectRatioHint?: 'square' | 'portrait' | 'landscape'
 }): string {
   const audience = args.audience?.trim() || 'small business owner in Guadeloupe'
@@ -79,6 +93,7 @@ export function buildEditorialPhotoPrompt(args: {
         ? 'landscape format 16:9'
         : 'square format 1:1'
   const extra = args.extra ? `\n${args.extra}\n` : ''
+  const setting = args.setting?.trim() || DEFAULT_SETTING
 
   return `Professional editorial photograph, hyperrealistic, ${ratio}.
 
@@ -87,13 +102,7 @@ Audience: ${audience}.
 Tone: ${tone}.${extra}
 
 Setting and ambiance (CRITICAL):
-- Location: Guadeloupe, French Caribbean. Tropical lush vegetation (palm trees,
-  hibiscus, banana leaves) or warm local Caribbean architecture (pastel wood
-  shutters, vibrant colored facades). NEVER European-style gray city streets.
-- Light: warm golden hour, soft tropical sunlight, slight haze.
-- Clothing of any person: lightweight tropical clothing (linen shirts, light
-  cotton tops). NEVER turtlenecks, NEVER heavy sweaters, NEVER pullovers.
-- Mood: confident, modern, accessible. No corporate cliché.
+${setting}
 
 Technical:
 - Crisp focus on subject, shallow depth of field background.

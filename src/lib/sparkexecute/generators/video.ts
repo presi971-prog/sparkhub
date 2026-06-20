@@ -8,7 +8,7 @@
 
 import { callClaudeText } from '../claude-text'
 import { generateVeoVideoToBucket, VEO_USD_PER_VIDEO } from './veo-video'
-import { PUBLISH_BRAND_NAME } from '../brand'
+import { resolveBrandProfile } from '../brand'
 import type { RunInputBrief, RunOutput } from '../types'
 import type { SparkpilotTask } from '@/lib/sparkpilot/types'
 
@@ -60,24 +60,24 @@ export async function generateVideo(
 }
 
 function buildPrompt(brief: RunInputBrief, task?: SparkpilotTask | null): string {
-  const audience = brief.audience?.trim() || 'patrons de TPE/PME en Guadeloupe'
+  const brand = resolveBrandProfile(brief.brand)
+  const audience = brief.audience?.trim() || brand.audienceDefault
   const taskContext = task
     ? `\n[CONTEXTE TÂCHE] ${task.title}${task.description ? ' — ' + task.description : ''}\n`
     : ''
 
   return `[RÔLE]
 Tu conçois une courte VIDÉO verticale (Reel ~8 s) pour les réseaux, AU NOM DE
-${PUBLISH_BRAND_NAME}, pour des ${audience}.
+${brand.name}, pour : ${audience}.
 
 [R0]
 - Le prompt vidéo est en ANGLAIS, cinématographique, SANS aucun texte incrusté,
   sans logo, sans watermark.
-- Ancrage Guadeloupe (végétation tropicale, architecture créole colorée, lumière
-  dorée). JAMAIS pull/col roulé, JAMAIS rue grise européenne.
-- La scène = UNE action simple, concrète, lisible en 8 secondes (ex : un
-  restaurateur souriant qui souffle, un artisan serein qui regarde son téléphone).
-- La légende (français) : accroche + valeur + appel à l'action. Tutoiement, zéro
-  jargon, zéro chiffre inventé, jamais les noms internes "SparkExecute" etc.
+- Univers visuel imposé : ${brand.imageStyle}
+- La scène = UNE action simple, concrète, lisible en 8 secondes, cohérente avec
+  l'audience et la marque.
+- La légende (français) : accroche + valeur + appel à l'action. Ton adapté à
+  l'audience, zéro chiffre inventé, jamais les noms internes "SparkExecute" etc.
 
 [SUJET] ${brief.sujet}
 ${taskContext}

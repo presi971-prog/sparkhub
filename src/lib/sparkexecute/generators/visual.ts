@@ -20,6 +20,7 @@ import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
 } from './image-pipeline'
+import { resolveBrandProfile } from '../brand'
 import type { RunInputBrief, RunOutput } from '../types'
 import type { SparkpilotTask } from '@/lib/sparkpilot/types'
 
@@ -112,11 +113,13 @@ function buildNanoBananaPrompt(
     ? `Context: this visual accompanies a SparkPilot task titled "${task.title}".`
     : ''
 
+  const brand = resolveBrandProfile(brief.brand)
   return buildEditorialPhotoPrompt({
     subject: brief.sujet,
-    audience: brief.audience || 'small business owner in Guadeloupe',
+    audience: brief.audience || brand.audienceDefault,
     tone: brief.ton || 'professional and warm',
     extra: contextLine,
+    setting: brand.imageStyle,
     aspectRatioHint: aspectRatio === '4:5' ? 'portrait' : 'square',
   })
 }

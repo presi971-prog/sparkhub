@@ -29,7 +29,7 @@
  */
 
 import { callClaudeText } from '../claude-text'
-import { PUBLISH_BRAND_NAME, PUBLISH_BRAND_DOMAIN, PUBLISH_BRAND_CTA_URL } from '../brand'
+import { resolveBrandProfile, buildR0ZeroInvention } from '../brand'
 import {
   generateAndStoreImage,
   NANO_BANANA_PRO_USD_PER_IMAGE,
@@ -153,7 +153,8 @@ function buildPrompt(
   targetWords: number,
   task?: SparkpilotTask | null,
 ): string {
-  const audience = brief.audience?.trim() || 'patrons de TPE/PME en Guadeloupe'
+  const brand = resolveBrandProfile(brief.brand)
+  const audience = brief.audience?.trim() || brand.audienceDefault
   const ton = brief.ton?.trim() || 'professionnel mais accessible (tutoiement)'
   const motsCles = (brief.mots_cles ?? []).filter((m) => m && m.trim()).slice(0, 12)
   const variant = describeVariant(brief.variant)
@@ -175,42 +176,26 @@ Garde ce contexte en tête pour rédiger un article qui colle au plan d'action d
     : ''
 
   return `[RÔLE]
-Tu es le rédacteur SEO senior qui écrit AU NOM DE ${PUBLISH_BRAND_NAME}
-(${PUBLISH_BRAND_DOMAIN}), une marque qui accompagne les TPE/PME en Guadeloupe.
+Tu es le rédacteur SEO senior qui écrit AU NOM DE ${brand.name}
+(${brand.domain}). Public visé : ${audience}.
 Tu rédiges un article optimisé pour ranker sur Google ET tu fournis le prompt
 d'une image hero éditoriale qui accompagne l'article sur le blog.
 
 ⚠️ "SparkExecute", "SparkScan", "SparkPilot" et "SparkHub" sont des noms
 d'OUTILS INTERNES. Ils ne doivent JAMAIS apparaître dans l'article ni dans le
-Schema. La SEULE marque visible par le lecteur est ${PUBLISH_BRAND_NAME}.
+Schema. La SEULE marque visible par le lecteur est ${brand.name}.
 
 [R0 ABSOLUES — NE PAS DÉROGER]
 
-R0 #0 — ZÉRO INVENTION (PRIORITÉ MAXIMALE, PRIME SUR TOUTES LES AUTRES)
-- INTERDIT d'inventer des témoignages, citations clients, avis, ou noms de
-  clients / d'entreprises présentés comme réels. Aucune fausse citation entre
-  guillemets attribuée à un "patron de restaurant à Saint-François" ou autre.
-- INTERDIT d'inventer des statistiques OU des sources ("BPI France 2023",
-  "une étude montre que 73 %…"). Si tu n'as pas de chiffre fiable et certain,
-  reste qualitatif ("beaucoup de temps", "plusieurs heures par semaine") sans
-  inventer de pourcentage ni de source.
-- Tu PEUX décrire un scénario générique explicitement hypothétique ("imaginons
-  un restaurateur au Gosier qui…") tant que tu ne le présentes pas comme un
-  fait réel ni un témoignage authentique.
-- Le CTA final invite à RÉSERVER un audit/RDV via ce lien réel (le SEUL
-  autorisé), formaté en lien Markdown cliquable — par ex. :
-  "👉 [Réserve ton audit gratuit de 30 minutes](${PUBLISH_BRAND_CTA_URL})".
+${buildR0ZeroInvention(brand)}
+- Tu PEUX décrire un scénario générique explicitement hypothétique tant que tu
+  ne le présentes pas comme un fait réel ni un témoignage authentique.
+- Le CTA final invite à la conversion via ce lien réel (le SEUL autorisé),
+  formaté en lien Markdown cliquable — par ex. :
+  "👉 [${brand.ctaLabel}](${brand.ctaUrl})".
   N'invente JAMAIS d'autre URL ni de "#". Jamais "SparkExecute" dans le CTA.
 
-R0 #1 — ANCRAGE GUADELOUPE (PRIORITÉ ABSOLUE)
-- Tous les exemples, références, comparaisons doivent ancrer le contenu en
-  Guadeloupe (mention de villes : Pointe-à-Pitre, Basse-Terre, Le Gosier,
-  Saint-François ; références au quotidien tropical ; contraintes locales).
-- WhatsApp Business > SMS (les SMS sont bloqués depuis numéros français vers
-  les opérateurs GP — ne JAMAIS conseiller le SMS).
-- Décalage horaire GMT-4 avec Paris (5-6h) si pertinent.
-- Ton accessible et chaleureux en français standard.
-- INTERDIT : exemples "rue grise européenne", "métro parisien", climat froid.
+${brand.anchoringRules}
 
 R0 #2 — STRUCTURE SEO STRICTE
 - Un SEUL H1 en tête (le titre principal). Pas de H1 dans le corps.
@@ -242,11 +227,11 @@ Ajoute en TOUT DERNIER, après le contenu, un bloc Schema.org JSON-LD :
   "@type": "Article",
   "headline": "<titre exact>",
   "description": "<résumé 2 phrases>",
-  "author": { "@type": "Organization", "name": "${PUBLISH_BRAND_NAME}" },
-  "publisher": { "@type": "Organization", "name": "${PUBLISH_BRAND_NAME}", "url": "${PUBLISH_BRAND_DOMAIN}" },
+  "author": { "@type": "Organization", "name": "${brand.name}" },
+  "publisher": { "@type": "Organization", "name": "${brand.name}", "url": "${brand.domain}" },
   "datePublished": "${todayIso}",
   "inLanguage": "fr-FR",
-  "areaServed": { "@type": "Place", "name": "Guadeloupe" }
+  "areaServed": { "@type": "Place", "name": "${brand.areaServed}" }
 }
 \`\`\`
 
@@ -255,9 +240,10 @@ Le bloc JSON-LD doit être à l'intérieur d'un bloc de code fenced (\`\`\`json 
 R0 #5 — TON ET CIBLE
 - Audience : ${audience}
 - Ton : ${ton}
-- Le lecteur est un patron de TPE, pas un dev ni un growth hacker — zéro jargon
-  technique sans l'expliquer immédiatement.
-- Verbes d'action concrets, exemples chiffrés (gain de temps, coût…).
+- Écris POUR cette audience précise : zéro jargon inutile, et tout terme
+  technique est expliqué immédiatement s'il est indispensable.
+- Verbes d'action concrets ; quand c'est pertinent et VÉRIFIABLE, exemples
+  chiffrés (sans jamais inventer, cf. R0 #0).
 
 R0 #6 — FRAMEWORK GUIDE : ${framework}
 Applique les principes du framework "${framework}" pour structurer l'article :
@@ -283,37 +269,25 @@ Spécifications du prompt image hero :
 - Format : 3 à 6 lignes, style "Professional editorial photograph,
   hyperrealistic, landscape 16:9 composition (1600×900).
   Subject: ... Setting: ... Light: ...".
-- L'image doit ILLUSTRER concrètement le sujet de l'article : un patron
-  TPE en action (dentiste à son cabinet, restaurateur au comptoir, ostéo
-  en consultation, artisan dans son atelier…), une scène d'usage IA
-  (téléphone qui sonne sans interruption, écran avec un chat IA, etc.),
-  ou une scène métier ancrée Guadeloupe.
-- ANCRAGE GUADELOUPE OBLIGATOIRE : palmiers / hibiscus / végétation
-  tropicale OU architecture locale colorée (volets pastel en bois,
-  façades colorées de l'architecture locale), lumière dorée chaude
-  (golden hour), atmosphère tropicale.
-- VÊTEMENTS : tenues légères tropicales (chemise lin, top coton léger).
-  JAMAIS pull, JAMAIS col roulé, JAMAIS gros manteau.
-- INTERDITS ABSOLUS : "métro parisien", "rue grise européenne", climat
-  froid, neige, brouillard, ciel gris terne, costume cravate sombre,
-  texte / logo / watermark incrusté dans l'image, UI screenshots.
-- Style éditorial : photoréaliste, profondeur de champ courte, color
-  grading chaud légèrement désaturé, qualité magazine.
+- L'image doit ILLUSTRER concrètement le sujet de l'article par une scène
+  réaliste et crédible, cohérente avec l'audience (${audience}).
+- UNIVERS VISUEL IMPOSÉ (à respecter strictement) : ${brand.imageStyle}
+- INTERDITS ABSOLUS : tout détail incohérent avec l'univers ci-dessus,
+  texte / logo / watermark incrusté dans l'image, captures d'écran d'UI.
+- Style éditorial : photoréaliste, profondeur de champ courte, qualité
+  magazine, color grading soigné.
 
 BLOC 2 — MARKDOWN DE L'ARTICLE (juste après la balise de fin) :
 Commence par # (le H1) directement, sans intro du genre "Voici l'article :",
 sans conclusion meta du genre "J'espère que cet article…". Juste le Markdown
 brut de l'article, du H1 au bloc JSON-LD final.
 
-EXEMPLE DE STRUCTURE DE RÉPONSE :
+EXEMPLE DE STRUCTURE DE RÉPONSE (adapte le contenu à l'univers visuel imposé) :
 ---HERO_IMAGE_PROMPT---
 Professional editorial photograph, hyperrealistic, landscape 16:9 composition (1600×900).
-Subject: a smiling dental practice owner in his 40s, light linen shirt, looking
-confident and relaxed at his front desk in Guadeloupe. Setting: bright modern
-dental reception with potted palm leaves visible through a large window, warm
-pastel wood shutters in the background. Light: soft warm golden hour light
-streaming through the window, slight tropical haze. Tone: editorial, accessible,
-modern small business owner in the French Caribbean. No text overlay, no logo.
+Subject: <a realistic scene illustrating the article topic, consistent with the
+imposed brand universe above>. Setting: <coherent with that universe>. Light:
+<natural, editorial>. Tone: editorial, accessible, modern. No text overlay, no logo.
 ---END_HERO_IMAGE_PROMPT---
 # Titre H1 de l'article
 [paragraphes, H2, H3, listes, blockquote, bloc JSON-LD à la fin…]`

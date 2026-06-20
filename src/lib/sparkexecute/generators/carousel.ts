@@ -22,6 +22,7 @@ import {
   GPT_IMAGE_USD_PER_IMAGE,
 } from './openai-image'
 import { composeCarouselSlide } from './slide-composer'
+import { resolveBrandProfile } from '../brand'
 import type { RunInputBrief, RunOutput } from '../types'
 import type { SparkpilotTask } from '@/lib/sparkpilot/types'
 
@@ -45,6 +46,7 @@ export async function generateCarousel(
 }> {
   const framework =
     brief.framework_override ?? task?.metadata?.framework_used ?? DEFAULT_FRAMEWORK
+  const brand = resolveBrandProfile(brief.brand)
 
   // 1) Claude conçoit la structure : caption + slides (titre/sous-titre) + hashtags.
   const result = await callClaudeText({
@@ -69,7 +71,7 @@ export async function generateCarousel(
     slides.map(async (slide) => {
       try {
         const background = await generateImageBuffer(
-          buildBackgroundPrompt(slide.index),
+          buildBackgroundPrompt(slide.index, brand.imageStyle),
           size,
           'medium',
         )
@@ -125,20 +127,22 @@ function buildPrompt(
   framework: string,
   task?: SparkpilotTask | null,
 ): string {
-  const audience = brief.audience?.trim() || 'patrons de TPE/PME en Guadeloupe'
+  const brand = resolveBrandProfile(brief.brand)
+  const audience = brief.audience?.trim() || brand.audienceDefault
   const taskContext = task
     ? `\n[CONTEXTE TÂCHE] ${task.title}${task.description ? ' — ' + task.description : ''}\n`
     : ''
 
   return `[RÔLE]
 Tu conçois un CARROUSEL de ${NB_SLIDES} slides pour les réseaux (Instagram /
-LinkedIn) AU NOM DE DCG AI, pour des ${audience}.
+LinkedIn) AU NOM DE ${brand.name}, pour : ${audience}.
 
 [R0 — NE PAS DÉROGER]
 - ZÉRO INVENTION : pas de faux chiffre, pas de fausse stat, pas de faux
   témoignage. Reste qualitatif si tu n'as pas de chiffre fiable.
 - Jamais les noms internes "SparkExecute/SparkScan/SparkPilot/SparkHub".
-- Ancrage Guadeloupe, ton accessible, tutoiement, zéro jargon.
+- ${brand.anchoringRules.split('\n').slice(1).join(' ').trim()}
+- Ton adapté à l'audience, zéro jargon inutile.
 - Le TEXTE DES SLIDES doit être TRÈS COURT (il sera affiché DANS l'image) :
   titre = 6 mots max ; sous-titre = 12 mots max. Phrases simples, sans accent
   superflu mais avec les accents corrects là où il en faut.
@@ -167,7 +171,7 @@ ${taskContext}
 // Prompt image d'une slide (gpt-image-1)
 // ============================================================
 
-function buildBackgroundPrompt(index: number): string {
+function buildBackgroundPrompt(index: number, imageStyle: string): string {
   // DÉCOR SEUL, SANS TEXTE : le texte est ajouté après par sharp (accents sûrs).
   // On varie légèrement la composition des palmes selon la slide.
   const corner =
@@ -176,11 +180,11 @@ function buildBackgroundPrompt(index: number): string {
 ABSOLUTELY NO TEXT, no words, no letters, no numbers, no logo, no watermark,
 no people, no UI elements.
 
-Warm cream/beige background softly blending into deep emerald green, elegant
-tropical palm-leaf silhouettes in the ${corner} corners only. Keep a large,
-calm, UNCLUTTERED empty area in the CENTER (space reserved for a text overlay).
-Soft high-key lighting, premium brand aesthetic, subtle paper grain, Guadeloupe
-Caribbean mood. Flat, clean, elegant.`
+Elegant minimalist background with subtle decorative accents in the ${corner}
+corners only. Keep a large, calm, UNCLUTTERED empty area in the CENTER (space
+reserved for a text overlay). Soft high-key lighting, premium brand aesthetic,
+subtle paper grain, flat, clean, elegant.
+Brand mood/universe to respect: ${imageStyle}`
 }
 
 // ============================================================
