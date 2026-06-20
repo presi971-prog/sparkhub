@@ -36,6 +36,7 @@ import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/server'
 import { createSparkExecuteAdmin } from '@/lib/sparkexecute/supabase-admin'
 import { publishToGhlBlog } from '@/lib/sparkexecute/publishers/ghl-blog'
+import { publishToConcoursSppBlog } from '@/lib/sparkexecute/publishers/concours-spp-blog'
 import { publishToSocialPlanner } from '@/lib/sparkexecute/publishers/ghl-social'
 import type {
   PublicationStatus,
@@ -222,23 +223,44 @@ export async function POST(req: Request, context: RouteContext) {
   for (const { id: pubId, platform } of pendingRows) {
     if (platform === 'ghl_blog') {
       try {
-        // Catégorie automatique intelligente (DCG AI) : FAQ détectée → "Questions
-        // fréquentes", sinon → "Guides". L'utilisateur peut override via options.
-        const GHL_CATEGORY_GUIDES = '69f56dd988031ddb006579e3'
-        const GHL_CATEGORY_FAQ = '6a1b01b0ee427950f38eca33'
-        const GHL_AUTHOR_DCGAI = '69f56f1188031dd70d6596d1'
-        const titleAndDesc = `${run.input_brief?.sujet ?? ''} ${run.input_brief?.audience ?? ''}`.toLowerCase()
-        const looksLikeFaq = /\bfaq\b|\bquestion(s)?\b|^(comment|pourquoi|combien|quel(le)?(s)?)\b/i.test(
-          run.input_brief?.sujet ?? '',
-        ) || /\bfaq\b/i.test(titleAndDesc)
-        const autoCategoryId = looksLikeFaq ? GHL_CATEGORY_FAQ : GHL_CATEGORY_GUIDES
+        // MULTI-SITE : la marque du run décide de la destination du blog.
+        // - concours_spp → publie sur le site Concours SPP (projet-B).
+        // - sinon (dcg_ai) → blog GHL DCG AI (comportement historique).
+        let post_id: string
+        let post_url: string | null
+        let raw_response: unknown
 
-        const { post_id, post_url, raw_response } = await publishToGhlBlog(run, {
-          categoryId: payload.options?.blogCategoryId ?? autoCategoryId,
-          authorId: payload.options?.blogAuthorId ?? GHL_AUTHOR_DCGAI,
-          tags: payload.options?.blogTags,
-          publishedAt: payload.options?.scheduledAt,
-        })
+        if (run.input_brief?.brand === 'concours_spp') {
+          const r = await publishToConcoursSppBlog(run, {
+            tags: payload.options?.blogTags,
+            // Brouillon par défaut (relecture experts) ; 'published' si demandé.
+            status: payload.options?.scheduledAt ? 'draft' : 'draft',
+          })
+          post_id = r.post_id
+          post_url = r.post_url
+          raw_response = r.raw_response
+        } else {
+          // Catégorie automatique intelligente (DCG AI) : FAQ détectée → "Questions
+          // fréquentes", sinon → "Guides". L'utilisateur peut override via options.
+          const GHL_CATEGORY_GUIDES = '69f56dd988031ddb006579e3'
+          const GHL_CATEGORY_FAQ = '6a1b01b0ee427950f38eca33'
+          const GHL_AUTHOR_DCGAI = '69f56f1188031dd70d6596d1'
+          const titleAndDesc = `${run.input_brief?.sujet ?? ''} ${run.input_brief?.audience ?? ''}`.toLowerCase()
+          const looksLikeFaq = /\bfaq\b|\bquestion(s)?\b|^(comment|pourquoi|combien|quel(le)?(s)?)\b/i.test(
+            run.input_brief?.sujet ?? '',
+          ) || /\bfaq\b/i.test(titleAndDesc)
+          const autoCategoryId = looksLikeFaq ? GHL_CATEGORY_FAQ : GHL_CATEGORY_GUIDES
+
+          const r = await publishToGhlBlog(run, {
+            categoryId: payload.options?.blogCategoryId ?? autoCategoryId,
+            authorId: payload.options?.blogAuthorId ?? GHL_AUTHOR_DCGAI,
+            tags: payload.options?.blogTags,
+            publishedAt: payload.options?.scheduledAt,
+          })
+          post_id = r.post_id
+          post_url = r.post_url ?? null
+          raw_response = r.raw_response
+        }
         await admin
           .from('sparkexecute_publications')
           .update({
