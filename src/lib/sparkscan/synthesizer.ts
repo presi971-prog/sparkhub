@@ -279,7 +279,8 @@ Sources de l'arbre : Kotler (challenger/follower/nicher) + Blue Ocean (Kim & Mau
 
 RÈGLES DE QUALITÉ STRICTES :
 - INTERDIT d'inventer un chiffre que tu ne peux pas justifier. Si tu n'as pas l'info, écris "estimation à valider" honnêtement.
-- INTERDIT de proposer une action qui dépasse le budget mensuel indiqué dans le cadrage client (s'il est fourni).
+- INTERDIT de proposer une action qui dépasse le budget GLOBAL mensuel indiqué dans le cadrage client (s'il est fourni).
+- DEUX budgets DISTINCTS à respecter séparément : (1) le budget PUBLICITÉ borne UNIQUEMENT la pub payante (Google Ads, Meta Ads, sponsoring) ; si le budget pub = 0€, INTERDIT ABSOLU de proposer la moindre pub payante — bascule tout sur l'organique/SEO/gratuit. (2) le budget GLOBAL borne le reste (outils, rédacteur freelance, etc.). Un budget pub à 0€ N'EMPÊCHE PAS de proposer un rédacteur freelance si le budget global le permet, et inversement.
 - INTERDIT de mentionner des outils payants spécifiques que le client n'aurait pas (Semrush, Ahrefs, etc.) sauf si tu sais qu'il les a. Préfère Google Search Console (gratuit), ChatGPT, Tableur Google.
 - INTERDIT de copier-coller les forces/faiblesses telles quelles : tu dois SYNTHÉTISER en action concrète.
 - Si plusieurs concurrents mènent au même levier et à des actions très proches, c'est OK : ne force pas la diversité, sors la vraie meilleure réponse pour chacun.
@@ -331,10 +332,18 @@ function buildClientContextBlock(ctx: ClientContext | undefined): string {
   }[ctx.team_size]
 
   const budget = {
+    none: '0€/mois (AUCUN budget global : uniquement des actions 100% gratuites / DIY, zéro outil payant, zéro freelance rémunéré)',
     under_500: 'moins de 500€/mois (budget très serré, privilégier les actions gratuites ou DIY)',
     '500_2000': '500€ à 2000€/mois (budget modéré, actions ciblées avec un peu d\'externalisation)',
     '2000_plus': 'plus de 2000€/mois (vraie capacité d\'investissement marketing)',
   }[ctx.monthly_budget]
+
+  const adBudget = {
+    none: '0€/mois (AUCUNE publicité payante : INTERDIT de proposer Google Ads, Meta Ads, ou toute pub payante — uniquement organique / SEO / gratuit)',
+    under_300: 'moins de 300€/mois (petites campagnes pub de test seulement)',
+    '300_1000': '300€ à 1000€/mois (campagnes pub ciblées possibles)',
+    '1000_plus': 'plus de 1000€/mois (vraie capacité d\'achat média publicitaire)',
+  }[ctx.ad_budget ?? 'none']
 
   const hz = {
     '30j': '30 jours (résultats attendus très court terme)',
@@ -345,6 +354,7 @@ function buildClientContextBlock(ctx: ClientContext | undefined): string {
   return `- Cadrage client (renseigné avant le scan, à RESPECTER absolument) :
    • Objectif principal : ${obj}
    • Équipe disponible : ${team}
-   • Budget mensuel marketing : ${budget}
+   • Budget GLOBAL mensuel (outils, rédacteur, freelance) : ${budget}
+   • Budget PUBLICITÉ mensuel (Google/Meta Ads) : ${adBudget}
    • Horizon visé : ${hz}`
 }

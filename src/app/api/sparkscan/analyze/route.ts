@@ -33,9 +33,16 @@ const VALID_OBJECTIVES: ClientContext['objective'][] = [
 ]
 const VALID_TEAMS: ClientContext['team_size'][] = ['solo', '2-5', '5+']
 const VALID_BUDGETS: ClientContext['monthly_budget'][] = [
+  'none',
   'under_500',
   '500_2000',
   '2000_plus',
+]
+const VALID_AD_BUDGETS: ClientContext['ad_budget'][] = [
+  'none',
+  'under_300',
+  '300_1000',
+  '1000_plus',
 ]
 const VALID_HORIZONS: ClientContext['horizon'][] = ['30j', '90j', '6m']
 
@@ -106,10 +113,17 @@ function sanitizeClientContext(raw: unknown): ClientContext | undefined {
     VALID_BUDGETS.includes(r.monthly_budget as ClientContext['monthly_budget']) &&
     VALID_HORIZONS.includes(r.horizon as ClientContext['horizon'])
   ) {
+    // Rétro-compat : un ancien client peut ne pas envoyer ad_budget → 0€ par défaut.
+    const ad_budget = VALID_AD_BUDGETS.includes(
+      r.ad_budget as ClientContext['ad_budget'],
+    )
+      ? (r.ad_budget as ClientContext['ad_budget'])
+      : 'none'
     return {
       objective: r.objective as ClientContext['objective'],
       team_size: r.team_size as ClientContext['team_size'],
       monthly_budget: r.monthly_budget as ClientContext['monthly_budget'],
+      ad_budget,
       horizon: r.horizon as ClientContext['horizon'],
     }
   }

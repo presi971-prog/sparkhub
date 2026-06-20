@@ -43,9 +43,17 @@ const TEAMS: { value: ClientContextInput['team_size']; label: string }[] = [
 ]
 
 const BUDGETS: { value: ClientContextInput['monthly_budget']; label: string }[] = [
+  { value: 'none', label: '0€ — rien à dépenser' },
   { value: 'under_500', label: 'Moins de 500€/mois' },
   { value: '500_2000', label: '500 à 2 000€/mois' },
   { value: '2000_plus', label: 'Plus de 2 000€/mois' },
+]
+
+const AD_BUDGETS: { value: ClientContextInput['ad_budget']; label: string }[] = [
+  { value: 'none', label: '0€ — aucune pub, tout en organique' },
+  { value: 'under_300', label: 'Moins de 300€/mois' },
+  { value: '300_1000', label: '300 à 1 000€/mois' },
+  { value: '1000_plus', label: 'Plus de 1 000€/mois' },
 ]
 
 const HORIZONS: { value: ClientContextInput['horizon']; label: string }[] = [
@@ -144,7 +152,9 @@ export function SparkScanForm({
     useState<ClientContextInput['objective']>('acquisition')
   const [teamSize, setTeamSize] = useState<ClientContextInput['team_size']>('solo')
   const [monthlyBudget, setMonthlyBudget] =
-    useState<ClientContextInput['monthly_budget']>('500_2000')
+    useState<ClientContextInput['monthly_budget']>('under_500')
+  const [adBudget, setAdBudget] =
+    useState<ClientContextInput['ad_budget']>('none')
   const [horizon, setHorizon] = useState<ClientContextInput['horizon']>('90j')
 
   // Auto-reprise d'un scan interrompu (onglet fermé puis rouvert) : si un
@@ -203,6 +213,7 @@ export function SparkScanForm({
             objective,
             team_size: teamSize,
             monthly_budget: monthlyBudget,
+            ad_budget: adBudget,
             horizon,
           },
         }),
@@ -533,7 +544,7 @@ export function SparkScanForm({
                 style={{ fontFamily: 'var(--font-geist-mono)' }}
               >
                 <Wallet className="mr-1.5 inline h-3 w-3 text-pink-600" />
-                Ton budget marketing mensuel
+                Ton budget global mensuel
               </label>
               <select
                 id="budget"
@@ -546,6 +557,32 @@ export function SparkScanForm({
                 style={{ backgroundImage: selectChevron }}
               >
                 {BUDGETS.map((b) => (
+                  <option key={b.value} value={b.value}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="ad-budget"
+                className={labelClass}
+                style={{ fontFamily: 'var(--font-geist-mono)' }}
+              >
+                <Wallet className="mr-1.5 inline h-3 w-3 text-pink-600" />
+                Ton budget pub (publicité) mensuel
+              </label>
+              <select
+                id="ad-budget"
+                disabled={isLocked}
+                value={adBudget}
+                onChange={(e) =>
+                  setAdBudget(e.target.value as ClientContextInput['ad_budget'])
+                }
+                className={selectClass}
+                style={{ backgroundImage: selectChevron }}
+              >
+                {AD_BUDGETS.map((b) => (
                   <option key={b.value} value={b.value}>
                     {b.label}
                   </option>

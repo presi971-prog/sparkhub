@@ -181,7 +181,8 @@ export interface StrategicSynthesis {
 export interface ClientContextInput {
   objective: 'acquisition' | 'fidelisation' | 'differenciation' | 'defense'
   team_size: 'solo' | '2-5' | '5+'
-  monthly_budget: 'under_500' | '500_2000' | '2000_plus'
+  monthly_budget: 'none' | 'under_500' | '500_2000' | '2000_plus'
+  ad_budget: 'none' | 'under_300' | '300_1000' | '1000_plus'
   horizon: '30j' | '90j' | '6m'
 }
 

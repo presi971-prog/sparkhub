@@ -41,8 +41,10 @@ export interface ClientContext {
   objective: 'acquisition' | 'fidelisation' | 'differenciation' | 'defense'
   /** Taille de l'équipe disponible. */
   team_size: 'solo' | '2-5' | '5+'
-  /** Budget mensuel disponible en EUR pour des actions marketing/SEO/pub. */
-  monthly_budget: 'under_500' | '500_2000' | '2000_plus'
+  /** Budget global mensuel en EUR (outils, rédacteur, freelance…). 'none' = 0€. */
+  monthly_budget: 'none' | 'under_500' | '500_2000' | '2000_plus'
+  /** Budget PUBLICITÉ mensuel en EUR (Google/Meta Ads…). 'none' = 0€, aucune pub payante. */
+  ad_budget: 'none' | 'under_300' | '300_1000' | '1000_plus'
   /** Horizon visé pour mesurer les résultats. */
   horizon: '30j' | '90j' | '6m'
 }
