@@ -10,6 +10,7 @@ import * as Sentry from '@sentry/nextjs'
 
 import { createClient } from '@/lib/supabase/server'
 import { executeRun } from '@/lib/sparkexecute/orchestrate'
+import { resolveBrandProfile } from '@/lib/sparkexecute/brand'
 import { RUN_TYPE_AVAILABLE_V1, deduceTypeFromFramework } from '@/lib/sparkexecute/type-mapping'
 import type {
   RunInputBrief,
@@ -148,8 +149,13 @@ export async function POST(req: Request) {
           ? '1:1'
           : undefined
 
+  // Profil de marque (multi-site) : on résout l'id fourni ; tout id inconnu/absent
+  // retombe sur le défaut (DCG AI) → comportement inchangé pour l'existant.
+  const brandId = resolveBrandProfile(payload.input_brief?.brand).id
+
   const inputBrief: RunInputBrief = {
     sujet: payload.input_brief?.sujet?.trim() || task?.title || 'Sans sujet',
+    brand: brandId,
     audience: payload.input_brief?.audience,
     ton: payload.input_brief?.ton,
     mots_cles: payload.input_brief?.mots_cles,

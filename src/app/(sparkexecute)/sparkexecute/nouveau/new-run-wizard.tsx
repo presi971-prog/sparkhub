@@ -34,6 +34,7 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
 import { RUN_TYPE_AVAILABLE_V1 } from '@/lib/sparkexecute/type-mapping'
+import { BRAND_PROFILES, DEFAULT_BRAND_ID } from '@/lib/sparkexecute/brand'
 import type { RunInputBrief, RunType } from '@/lib/sparkexecute/types'
 
 interface TypeCard {
@@ -137,6 +138,7 @@ export function NewRunWizard() {
   const [selectedType, setSelectedType] = useState<RunType | null>(null)
   const [brief, setBrief] = useState<RunInputBrief>({
     sujet: '',
+    brand: DEFAULT_BRAND_ID,
     audience: '',
     ton: 'chaleureux et direct',
     mots_cles: [],
@@ -324,6 +326,26 @@ export function NewRunWizard() {
             onSubmit={handleSubmit}
             className="space-y-5 rounded-xl border border-[#E4E7E2] bg-white p-6 shadow-[0_1px_0_rgba(15,17,21,0.04),0_1px_2px_rgba(15,17,21,0.05)]"
           >
+            <Field
+              label="Marque / projet"
+              required
+              hint="Pour qui on publie ? Le contenu (ton, exemples, images, lien) s'adapte à la marque choisie."
+            >
+              <select
+                value={brief.brand ?? DEFAULT_BRAND_ID}
+                onChange={(e) =>
+                  setBrief((b) => ({ ...b, brand: e.target.value }))
+                }
+                className="block w-full rounded-md border border-[#E4E7E2] bg-white px-3 py-2.5 text-sm focus:border-[#10B981] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
+              >
+                {Object.values(BRAND_PROFILES).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
             <Field
               label="Sujet"
               required
