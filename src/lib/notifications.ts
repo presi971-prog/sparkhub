@@ -308,3 +308,59 @@ export async function sendVisibilityDigestEmail(
     `,
   })
 }
+
+// ============================================================
+// SparkPilot — email hebdo des tâches HUMAINES (lundi)
+// ============================================================
+
+interface WeeklyTaskItem {
+  title: string
+  due_date: string | null
+  overdue: boolean
+}
+
+/**
+ * Email du lundi : les tâches de la semaine du plan SparkPilot + le socle
+ * des actions que la machine ne fait JAMAIS à la place de l'humain
+ * (référentiel v2.0 : la conversation ne s'automatise pas).
+ */
+export async function sendWeeklyHumanTasksEmail(
+  email: string,
+  planTitle: string,
+  tasks: WeeklyTaskItem[],
+) {
+  const taskRows = tasks
+    .map(
+      (t) => `
+      <tr>
+        <td style="padding:8px 14px;border-bottom:1px solid #E9E5D9;font-size:13px;">
+          ${t.overdue ? '<span style="color:#B3382C;font-weight:600;">En retard</span> · ' : ''}${t.title}
+          ${t.due_date ? `<span style="color:#A8ACB5;font-size:12px;"> · pour le ${new Date(t.due_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>` : ''}
+        </td>
+      </tr>`,
+    )
+    .join('')
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: `📋 Ta semaine visibilité : ${tasks.length} tâche${tasks.length > 1 ? 's' : ''} + les 4 rituels`,
+    html: `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;color:#0F1115;">
+        <h2 style="font-weight:600;">Ta semaine, côté humain</h2>
+        <p style="color:#5E626C;">La machine publie toute seule. Voici ce qui a besoin de TOI cette semaine (plan : ${planTitle}).</p>
+        ${tasks.length > 0 ? `<table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #E9E5D9;border-radius:8px;">${taskRows}</table>` : '<p style="color:#5E626C;">Aucune tâche datée cette semaine dans ton plan.</p>'}
+        <h3 style="font-weight:600;margin-top:20px;">Les 4 rituels de la semaine (jamais automatisables)</h3>
+        <ol style="color:#0F1115;font-size:14px;line-height:1.7;">
+          <li>Répondre aux commentaires dans l'heure qui suit chaque publication</li>
+          <li>Répondre aux avis Google, personnalisé (jamais de réponse type)</li>
+          <li>2 à 3 posts sur ton profil LinkedIn perso (la machine te prépare la matière)</li>
+          <li>Relayer 1 contenu dans les groupes Facebook 971</li>
+        </ol>
+        <p style="margin-top:20px;">
+          <a href="${APP_URL}/sparkpilot" style="display:inline-block;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:8px;">Ouvrir mon plan</a>
+        </p>
+      </div>
+    `,
+  })
+}

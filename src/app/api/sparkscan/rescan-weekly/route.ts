@@ -28,7 +28,11 @@ import {
   type NiveauZone,
 } from '@/lib/sparkscan/competitors'
 import { extractDomain } from '@/lib/sparkscan/dataforseo'
-import { sendVisibilityRecapEmail } from '@/lib/notifications'
+import { decomposeReportToTasks } from '@/lib/sparkpilot/decompose'
+import {
+  sendVisibilityRecapEmail,
+  sendWeeklyHumanTasksEmail,
+} from '@/lib/notifications'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -124,6 +128,16 @@ export async function GET(req: Request) {
     return handleReport(admin, reportId, params.get('previous'))
   }
 
+  // ---- Lundi : email des tâches humaines de la semaine (étape 3.2) ----
+  // Idempotent via metadata.weekly_email_last sur le plan (le cron VPS peut
+  // appeler cette route plusieurs fois le même jour).
+  const isoToday = new Date().getUTCDay() === 0 ? 7 : new Date().getUTCDay()
+  if (isoToday === 1) {
+    await sendMondayTaskEmails(admin).catch((e) =>
+      console.error('[SparkScan][CRON] Email lundi échoué (non bloquant):', e),
+    )
+  }
+
   // ---- Phase déclenchement ----
   const { data: completedRows, error } = await admin
     .from('sparkscan_scans')
@@ -209,6 +223,55 @@ export async function GET(req: Request) {
     },
     { status: 202 },
   )
+}
+
+/**
+ * Lundi matin : pour chaque plan SparkPilot actif, envoie à son propriétaire
+ * l'email des tâches humaines de la semaine (dues sous 7 jours ou en retard).
+ * Idempotent par plan via metadata.weekly_email_last.
+ */
+async function sendMondayTaskEmails(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+) {
+  const today = new Date().toISOString().split('T')[0]
+  const { data: plans } = await admin
+    .from('sparkpilot_plans')
+    .select('id, user_id, title, metadata')
+    .eq('status', 'active')
+    .limit(10)
+
+  for (const plan of plans ?? []) {
+    if (plan.metadata?.weekly_email_last === today) continue
+
+    const inSevenDays = new Date(Date.now() + 7 * 86_400_000).toISOString().split('T')[0]
+    const { data: taskRows } = await admin
+      .from('sparkpilot_tasks')
+      .select('title, due_date, status')
+      .eq('plan_id', plan.id)
+      .neq('status', 'done')
+      .lte('due_date', inSevenDays)
+      .order('due_date', { ascending: true })
+      .limit(12)
+    const tasks = ((taskRows ?? []) as { title: string; due_date: string | null }[]).map(
+      (t) => ({
+        title: t.title,
+        due_date: t.due_date,
+        overdue: !!t.due_date && t.due_date < today,
+      }),
+    )
+
+    const { data: userData } = await admin.auth.admin.getUserById(plan.user_id)
+    const email = userData?.user?.email
+    if (!email) continue
+
+    await sendWeeklyHumanTasksEmail(email, plan.title ?? 'Plan visibilité', tasks)
+    await admin
+      .from('sparkpilot_plans')
+      .update({ metadata: { ...(plan.metadata ?? {}), weekly_email_last: today } })
+      .eq('id', plan.id)
+    console.log(`[SparkScan][CRON] EMAIL LUNDI envoyé à ${email} (${tasks.length} tâches)`)
+  }
 }
 
 /**
@@ -322,5 +385,33 @@ async function handleReport(
     .eq('id', row.id)
 
   console.log(`[SparkScan][CRON] RECAP EMAIL sent to ${email} for ${host}`)
-  return NextResponse.json({ ready: true, status: 'completed', email_sent: true })
+
+  // Plan vivant (étape 3) : le nouveau scan régénère le plan SparkPilot.
+  // On crée d'abord le nouveau plan, PUIS on archive les anciens (jamais
+  // l'inverse : si la génération échoue, l'utilisateur garde son plan).
+  // Non bloquant : certains scans n'ont pas de top3 (jeunes sites) → on log.
+  let planRegenerated = false
+  try {
+    const result = await decomposeReportToTasks(row.id, admin, row.user_id)
+    await admin
+      .from('sparkpilot_plans')
+      .update({ status: 'archived' })
+      .eq('user_id', row.user_id)
+      .eq('status', 'active')
+      .neq('id', result.planId)
+    planRegenerated = true
+    console.log(
+      `[SparkScan][CRON] PLAN régénéré ${result.planId} (${result.tasksInserted} tâches), anciens archivés`,
+    )
+  } catch (planErr) {
+    const msg = planErr instanceof Error ? planErr.message : String(planErr)
+    console.error(`[SparkScan][CRON] Régénération du plan impossible (non bloquant): ${msg}`)
+  }
+
+  return NextResponse.json({
+    ready: true,
+    status: 'completed',
+    email_sent: true,
+    plan_regenerated: planRegenerated,
+  })
 }

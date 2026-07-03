@@ -74,7 +74,11 @@ export function TaskCard({
             task_id: task.id,
             type: inferredType,
             input_brief: {
-              sujet: task.title,
+              // Contexte complet (étape 3.3) : le livrable est généré depuis
+              // le titre ET la description de la tâche, au lieu d'un titre nu.
+              sujet: task.description
+                ? `${task.title} — Contexte : ${task.description.slice(0, 400)}`
+                : task.title,
               audience: '',
             },
           }),
