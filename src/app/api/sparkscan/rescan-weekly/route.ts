@@ -1,35 +1,41 @@
 /**
  * Re-scan automatique hebdomadaire — le moteur de la boucle de suivi.
  *
- * Appelé par un cron Vercel quotidien. À chaque passage :
- *   1. Pour chaque utilisateur, repère son "site suivi" = le site de son
- *      scan terminé le plus récent.
- *   2. Si ce scan date de 7 jours ou plus (et qu'aucun scan ne tourne déjà),
- *      le site devient candidat au re-scan.
- *   3. UN SEUL candidat est re-scanné par passage (le plus ancien), en mode
- *      bloquant, pour rester dans la fenêtre d'exécution de l'hébergeur.
- *      Le cron quotidien étale naturellement les utilisateurs sur la semaine.
- *   4. Si le scan aboutit, un email récap (delta score IA / rang / mots-clés
- *      vs scan précédent) part via Resend, avec lien vers la page Suivi.
+ * Contrainte hébergeur : une fonction est plafonnée à 300s alors qu'un scan
+ * complet peut durer plus. On fait donc comme l'interface SparkScan :
+ * DÉCLENCHER le scan en arrière-plan (202 immédiat) puis revenir plus tard.
+ * L'orchestrateur (cron VPS) enchaîne :
  *
- * Auth : même modèle que content-machine/generate-daily (Vercel cron Bearer
- * CRON_SECRET, ou header x-cron-secret pour un appel manuel).
+ *   1. GET /api/sparkscan/rescan-weekly
+ *      → nettoie les scans zombis (running > 30 min, reco audit 07/06),
+ *        choisit le site suivi le plus "périmé" (dernier scan >= 7 jours,
+ *        un seul par passage), lance startScanInBackground,
+ *        répond 202 { scan_id, previous_scan_id, host }.
+ *   2. GET ...?report=<scan_id>&previous=<previous_scan_id>  (toutes les 60s)
+ *      → si le scan est fini : envoie l'email récap (deltas vs scan précédent)
+ *        et marque l'envoi (idempotent). Sinon { ready: false }.
+ *
+ *   Mode test : ?dry=1 montre le candidat sans rien lancer.
+ *
+ * Auth : Bearer CRON_SECRET ou header x-cron-secret (pattern content-machine).
  */
 
 import { NextResponse } from 'next/server'
 
 import { getSparkScanAdminClient } from '@/lib/sparkscan/supabase-admin'
-import { analyzeUrl, type NiveauZone } from '@/lib/sparkscan/competitors'
+import {
+  startScanInBackground,
+  type NiveauZone,
+} from '@/lib/sparkscan/competitors'
 import { extractDomain } from '@/lib/sparkscan/dataforseo'
 import { sendVisibilityRecapEmail } from '@/lib/notifications'
 
 export const dynamic = 'force-dynamic'
-// Un scan complet peut dépasser 5 minutes (constaté : coupure à 300s sur le
-// scan concours-spp du 03/07). 800s = plafond Fluid compute Vercel.
-export const maxDuration = 800
+export const maxDuration = 300
 
 const CRON_SECRET = process.env.CRON_SECRET
 const RESCAN_AFTER_DAYS = 7
+const STUCK_SCAN_MINUTES = 30
 
 function verifyCronAuth(req: Request): boolean {
   const authHeader = req.headers.get('authorization')
@@ -54,6 +60,9 @@ interface ScanRow {
   langue: string
   client_context: unknown
   created_at: string
+  status?: string
+  error_message?: string | null
+  progress?: Record<string, unknown> | null
   ranked_keywords_count: number | null
   geo_citations: { visibility?: GeoVisibilityEntry[] } | null
 }
@@ -73,14 +82,49 @@ function targetGeo(scan: {
   )
 }
 
+/**
+ * Janitor (reco n°1 audit 07/06) : un scan "running" depuis plus de 30 min est
+ * mort (fonction coupée par l'hébergeur). On le passe en erreur, sinon il
+ * bloque à jamais les relances (index anti-double-run) et fausse l'UI.
+ */
+async function cleanupStuckScans(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+): Promise<number> {
+  const cutoff = new Date(Date.now() - STUCK_SCAN_MINUTES * 60_000).toISOString()
+  const { data } = await admin
+    .from('sparkscan_scans')
+    .update({
+      status: 'error',
+      error_message: `Scan interrompu (aucune activité depuis ${STUCK_SCAN_MINUTES} min : fonction probablement coupée par l'hébergeur). Relance-le.`,
+    })
+    .in('status', ['pending', 'running'])
+    .lt('created_at', cutoff)
+    .select('id')
+  const cleaned = data?.length ?? 0
+  if (cleaned > 0) {
+    console.log(`[SparkScan][CRON] JANITOR: ${cleaned} scan(s) zombi(s) passés en erreur`)
+  }
+  return cleaned
+}
+
 export async function GET(req: Request) {
   if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const admin = getSparkScanAdminClient()
+  const params = new URL(req.url).searchParams
 
-  // Scans terminés récents (le plus récent par user = son site suivi)
+  const cleaned = await cleanupStuckScans(admin)
+
+  // ---- Phase rapport : ?report=<scan_id>&previous=<scan_id> ----
+  const reportId = params.get('report')
+  if (reportId) {
+    return handleReport(admin, reportId, params.get('previous'))
+  }
+
+  // ---- Phase déclenchement ----
   const { data: completedRows, error } = await admin
     .from('sparkscan_scans')
     .select(
@@ -94,13 +138,11 @@ export async function GET(req: Request) {
   }
 
   // Users avec un scan déjà en cours (on ne double pas)
-  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
   const { data: runningRows } = await admin
     .from('sparkscan_scans')
     .select('user_id')
     .in('status', ['pending', 'running'])
-    .gte('created_at', twoHoursAgo)
-  const busyUsers = new Set((runningRows ?? []).map((r) => r.user_id as string))
+  const busyUsers = new Set((runningRows ?? []).map((r: { user_id: string }) => r.user_id))
 
   // Site suivi par user = scan terminé le plus récent (rows déjà triées desc)
   const latestByUser = new Map<string, ScanRow>()
@@ -119,21 +161,19 @@ export async function GET(req: Request) {
     return NextResponse.json({
       rescanned: null,
       eligible: 0,
+      cleaned_stuck: cleaned,
       message: `Aucun site à re-scanner (seuil : ${RESCAN_AFTER_DAYS} jours).`,
     })
   }
 
   const host = extractDomain(candidate.input_url)
-  console.log(
-    `[SparkScan][CRON] RESCAN ${host} (user=${candidate.user_id}, last=${candidate.created_at}, eligible=${candidates.length})`,
-  )
 
-  // Mode test : ?dry=1 montre ce que le cron FERAIT, sans scan ni email.
-  if (new URL(req.url).searchParams.get('dry') === '1') {
+  if (params.get('dry') === '1') {
     return NextResponse.json({
       dry_run: true,
       would_rescan: host,
       last_scan_at: candidate.created_at,
+      cleaned_stuck: cleaned,
       eligible: candidates.map((c) => ({
         host: extractDomain(c.input_url),
         last_scan_at: c.created_at,
@@ -141,112 +181,146 @@ export async function GET(req: Request) {
     })
   }
 
-  // Re-scan BLOQUANT avec les mêmes paramètres que le scan d'origine
-  const output = await analyzeUrl({
+  console.log(
+    `[SparkScan][CRON] TRIGGER rescan ${host} (user=${candidate.user_id}, last=${candidate.created_at}, eligible=${candidates.length})`,
+  )
+
+  const { scanId, cachedOutput } = await startScanInBackground({
     userId: candidate.user_id,
     url: candidate.input_url,
     zone: candidate.zone,
     niveauZone: candidate.niveau_zone as NiveauZone,
     langue: candidate.langue,
     clientContext:
-      (candidate.client_context as Parameters<typeof analyzeUrl>[0]['clientContext']) ??
-      undefined,
+      (candidate.client_context as Parameters<
+        typeof startScanInBackground
+      >[0]['clientContext']) ?? undefined,
     supabaseAdmin: admin,
   })
 
-  if (output.status !== 'completed') {
-    console.error(`[SparkScan][CRON] RESCAN FAILED ${host}: ${output.error_message}`)
+  return NextResponse.json(
+    {
+      triggered: host,
+      scan_id: cachedOutput ? cachedOutput.scan_id : scanId,
+      previous_scan_id: candidate.id,
+      cached: !!cachedOutput,
+      cleaned_stuck: cleaned,
+      next: `?report=${cachedOutput ? cachedOutput.scan_id : scanId}&previous=${candidate.id}`,
+    },
+    { status: 202 },
+  )
+}
+
+/**
+ * Phase rapport : si le scan est terminé, envoie l'email récap (une seule
+ * fois : marqueur recap_email_sent dans la colonne progress).
+ */
+async function handleReport(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  scanId: string,
+  previousId: string | null,
+) {
+  const { data: scan } = await admin
+    .from('sparkscan_scans')
+    .select(
+      'id, user_id, input_url, status, error_message, progress, created_at, ranked_keywords_count, geo_citations',
+    )
+    .eq('id', scanId)
+    .maybeSingle()
+
+  if (!scan) {
+    return NextResponse.json({ error: 'Scan introuvable' }, { status: 404 })
+  }
+  const row = scan as ScanRow
+  if (row.status === 'pending' || row.status === 'running') {
+    return NextResponse.json({ ready: false, status: row.status })
+  }
+  if (row.status === 'error') {
     return NextResponse.json({
-      rescanned: host,
-      scan_id: output.scan_id,
-      status: output.status,
+      ready: true,
+      status: 'error',
       email_sent: false,
-      error: output.error_message ?? null,
+      error: row.error_message ?? null,
     })
   }
 
-  // Email récap : nouveau scan vs scan précédent (le candidat)
-  let emailSent = false
-  try {
-    const { data: userData } = await admin.auth.admin.getUserById(candidate.user_id)
-    const email = userData?.user?.email
-    if (email) {
-      const newGeo = targetGeo({
-        input_url: candidate.input_url,
-        geo_citations: output.geo_citations as ScanRow['geo_citations'],
-      })
-      const prevGeo = targetGeo(candidate)
-      const totalActors =
-        (output.geo_citations as ScanRow['geo_citations'])?.visibility?.length ?? 0
-
-      const metrics = []
-      if (newGeo) {
-        const delta = prevGeo ? newGeo.visibility_score - prevGeo.visibility_score : null
-        metrics.push({
-          label: 'Score de visibilité IA',
-          current: `${newGeo.visibility_score}/100`,
-          delta:
-            delta === null
-              ? null
-              : delta === 0
-                ? 'stable'
-                : `${delta > 0 ? '+' : ''}${delta} pts`,
-          direction: (delta === null || delta === 0
-            ? 'flat'
-            : delta > 0
-              ? 'up'
-              : 'down') as 'up' | 'down' | 'flat',
-        })
-        const rankDelta = prevGeo ? prevGeo.rank - newGeo.rank : null
-        metrics.push({
-          label: 'Rang IA vs concurrents',
-          current: `${newGeo.rank}e sur ${totalActors}`,
-          delta:
-            rankDelta === null
-              ? null
-              : rankDelta === 0
-                ? 'stable'
-                : rankDelta > 0
-                  ? `+${rankDelta} place${rankDelta > 1 ? 's' : ''}`
-                  : `${rankDelta} place${rankDelta < -1 ? 's' : ''}`,
-          direction: (rankDelta === null || rankDelta === 0
-            ? 'flat'
-            : rankDelta > 0
-              ? 'up'
-              : 'down') as 'up' | 'down' | 'flat',
-        })
-      }
-      const kwDelta =
-        candidate.ranked_keywords_count === null
-          ? null
-          : output.ranked_keywords_count - candidate.ranked_keywords_count
-      metrics.push({
-        label: 'Mots-clés top 20 Google',
-        current: `${output.ranked_keywords_count}`,
-        delta:
-          kwDelta === null ? null : kwDelta === 0 ? 'stable' : `${kwDelta > 0 ? '+' : ''}${kwDelta}`,
-        direction: (kwDelta === null || kwDelta === 0
-          ? 'flat'
-          : kwDelta > 0
-            ? 'up'
-            : 'down') as 'up' | 'down' | 'flat',
-      })
-
-      await sendVisibilityRecapEmail(email, host, metrics)
-      emailSent = true
-      console.log(`[SparkScan][CRON] RECAP EMAIL sent to ${email} for ${host}`)
-    }
-  } catch (emailErr) {
-    const msg = emailErr instanceof Error ? emailErr.message : String(emailErr)
-    console.error(`[SparkScan][CRON] RECAP EMAIL failed (non bloquant): ${msg}`)
+  if (row.progress?.recap_email_sent) {
+    return NextResponse.json({ ready: true, status: 'completed', email_sent: 'already' })
   }
 
-  return NextResponse.json({
-    rescanned: host,
-    scan_id: output.scan_id,
-    status: output.status,
-    cost_usd: output.cost_usd,
-    email_sent: emailSent,
-    eligible_remaining: candidates.length - 1,
+  let previous: ScanRow | null = null
+  if (previousId) {
+    const { data: prevRow } = await admin
+      .from('sparkscan_scans')
+      .select('id, user_id, input_url, created_at, ranked_keywords_count, geo_citations')
+      .eq('id', previousId)
+      .maybeSingle()
+    previous = (prevRow as ScanRow) ?? null
+  }
+
+  const host = extractDomain(row.input_url)
+  const { data: userData } = await admin.auth.admin.getUserById(row.user_id)
+  const email = userData?.user?.email
+  if (!email) {
+    return NextResponse.json({ ready: true, status: 'completed', email_sent: false })
+  }
+
+  const newGeo = targetGeo(row)
+  const prevGeo = previous ? targetGeo(previous) : null
+  const totalActors = row.geo_citations?.visibility?.length ?? 0
+
+  const metrics: {
+    label: string
+    current: string
+    delta: string | null
+    direction: 'up' | 'down' | 'flat'
+  }[] = []
+  const dir = (d: number | null): 'up' | 'down' | 'flat' =>
+    d === null || d === 0 ? 'flat' : d > 0 ? 'up' : 'down'
+
+  if (newGeo) {
+    const delta = prevGeo ? newGeo.visibility_score - prevGeo.visibility_score : null
+    metrics.push({
+      label: 'Score de visibilité IA',
+      current: `${newGeo.visibility_score}/100`,
+      delta:
+        delta === null ? null : delta === 0 ? 'stable' : `${delta > 0 ? '+' : ''}${delta} pts`,
+      direction: dir(delta),
+    })
+    const rankDelta = prevGeo ? prevGeo.rank - newGeo.rank : null
+    metrics.push({
+      label: 'Rang IA vs concurrents',
+      current: `${newGeo.rank}e sur ${totalActors}`,
+      delta:
+        rankDelta === null
+          ? null
+          : rankDelta === 0
+            ? 'stable'
+            : `${rankDelta > 0 ? '+' : ''}${rankDelta} place${Math.abs(rankDelta) > 1 ? 's' : ''}`,
+      direction: dir(rankDelta),
+    })
+  }
+  const kwDelta =
+    previous && previous.ranked_keywords_count !== null
+      ? (row.ranked_keywords_count ?? 0) - previous.ranked_keywords_count
+      : null
+  metrics.push({
+    label: 'Mots-clés top 20 Google',
+    current: `${row.ranked_keywords_count ?? 0}`,
+    delta:
+      kwDelta === null ? null : kwDelta === 0 ? 'stable' : `${kwDelta > 0 ? '+' : ''}${kwDelta}`,
+    direction: dir(kwDelta),
   })
+
+  await sendVisibilityRecapEmail(email, host, metrics)
+  await admin
+    .from('sparkscan_scans')
+    .update({
+      progress: { ...(row.progress ?? {}), recap_email_sent: new Date().toISOString() },
+    })
+    .eq('id', row.id)
+
+  console.log(`[SparkScan][CRON] RECAP EMAIL sent to ${email} for ${host}`)
+  return NextResponse.json({ ready: true, status: 'completed', email_sent: true })
 }

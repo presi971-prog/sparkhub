@@ -1,9 +1,11 @@
 #!/bin/bash
 # Installe sur le VPS (srv1326181) le déclencheur quotidien du re-scan
-# SparkGrowth : cron 10h00 UTC (= 6h00 Guadeloupe) qui appelle
-# /api/sparkscan/rescan-weekly sur le domaine live, avec le CRON_SECRET.
-# Lance aussi UN premier re-scan immédiat pour valider toute la chaîne
-# (scan → positions mots-clés → email récap).
+# SparkGrowth : cron 10h00 UTC (= 6h00 Guadeloupe).
+#
+# Logique v2 (l'hébergeur coupe les fonctions à 300s, un scan peut durer plus) :
+#   1. Appel du déclencheur → lance le scan en arrière-plan (202 + scan_id)
+#   2. Toutes les 60s : appel du rapport → quand le scan est fini, le serveur
+#      envoie l'email récap (deltas vs scan précédent) et répond ready:true.
 #
 # Usage (depuis le Mac) : bash scripts/install-rescan-cron.sh
 set -euo pipefail
@@ -19,7 +21,7 @@ SECRET=$(grep '^CRON_SECRET=' /tmp/p.tmp | cut -d= -f2- | tr -d '"')
 rm -f /tmp/p.tmp
 [ -n "$SECRET" ] || { echo "CRON_SECRET introuvable"; exit 1; }
 
-echo "2/3 Installation sur le VPS (fichier env 600 + script + cron 10h UTC)…"
+echo "2/3 Installation sur le VPS (fichier env 600 + script v2 + cron 10h UTC)…"
 ssh "$VPS" bash -s <<REMOTE
 set -euo pipefail
 umask 077
@@ -27,11 +29,23 @@ mkdir -p /root/.config
 printf 'CRON_SECRET=%s\n' '$SECRET' > /root/.config/sparkgrowth-rescan.env
 cat > /root/sparkgrowth-rescan.sh <<'SCRIPT'
 #!/bin/bash
-# Re-scan quotidien SparkGrowth (ne re-scanne un site que si >= 7 jours)
+# Re-scan quotidien SparkGrowth : déclenche, puis attend la fin pour que
+# le serveur envoie l'email récap. Ne re-scanne que si >= 7 jours.
 . /root/.config/sparkgrowth-rescan.env
-echo "--- \$(date -u '+%F %T') UTC" >> /root/sparkgrowth-rescan.log
-curl -s -m 600 -H "x-cron-secret: \$CRON_SECRET" "$URL" >> /root/sparkgrowth-rescan.log 2>&1
-echo >> /root/sparkgrowth-rescan.log
+BASE="$URL"
+LOG=/root/sparkgrowth-rescan.log
+echo "--- \$(date -u '+%F %T') UTC" >> \$LOG
+R=\$(curl -s -m 120 -H "x-cron-secret: \$CRON_SECRET" "\$BASE")
+echo "\$R" >> \$LOG
+NEXT=\$(echo "\$R" | grep -o '"next":"[^"]*"' | cut -d'"' -f4)
+if [ -z "\$NEXT" ]; then echo "(rien à re-scanner)" >> \$LOG; exit 0; fi
+for i in \$(seq 1 20); do
+  sleep 60
+  S=\$(curl -s -m 120 -H "x-cron-secret: \$CRON_SECRET" "\$BASE\$NEXT")
+  echo "\$S" >> \$LOG
+  if echo "\$S" | grep -q '"ready":true'; then exit 0; fi
+done
+echo "TIMEOUT après 20 min" >> \$LOG
 SCRIPT
 chmod 700 /root/sparkgrowth-rescan.sh
 ( crontab -l 2>/dev/null | grep -v sparkgrowth-rescan ; echo '0 10 * * * /root/sparkgrowth-rescan.sh' ) | crontab -
@@ -39,7 +53,5 @@ echo "Cron installé :"
 crontab -l | grep sparkgrowth-rescan
 REMOTE
 
-echo "3/3 Premier re-scan réel lancé maintenant (3 à 6 min, ~0,15 \$)…"
-ssh "$VPS" 'nohup /root/sparkgrowth-rescan.sh >/dev/null 2>&1 & echo "Lancé en arrière-plan. Suivi : ssh root@69.62.97.3 tail -f /root/sparkgrowth-rescan.log"'
-
-echo "Terminé. Tu recevras l'email récap sur l'adresse de ton compte SparkHub quand le scan sera fini."
+echo "3/3 OK. Test manuel possible : ssh $VPS /root/sparkgrowth-rescan.sh puis tail /root/sparkgrowth-rescan.log"
+echo "Terminé."
