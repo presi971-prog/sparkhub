@@ -14,7 +14,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 /** Version du playbook courant. À bumper en même temps que le markdown. */
-export const PLAYBOOK_VERSION = 'v1.0'
+export const PLAYBOOK_VERSION = 'v2.0'
 
 /** Catégories autorisées du playbook (cf. section "Catégories de priorités SparkScan"). */
 export const PLAYBOOK_CATEGORIES = [
@@ -34,7 +34,7 @@ const PLAYBOOK_FILE = path.join(
   'lib',
   'sparkpilot',
   'playbooks',
-  'playbook-strategies-v1.md',
+  'playbook-strategies-v2.md',
 )
 
 /** Cache process-wide : on lit le markdown 1× par instance serveur. */

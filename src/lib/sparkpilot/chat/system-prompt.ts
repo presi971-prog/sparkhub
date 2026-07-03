@@ -8,7 +8,7 @@
  *     sa priorité parente, sa date prévue, sa durée estimée
  *   - Si un plan est ouvert : son titre, ses 3 priorités, nombre de tâches
  *     faites / restantes, snapshot du rapport SparkScan source
- *   - Le playbook v1.0 complet (5 catégories × 16 frameworks éprouvés)
+ *   - Le playbook v2.0 complet (5 catégories × 16 frameworks éprouvés)
  *   - Le contexte Guadeloupe (WhatsApp prioritaire, marché restreint, etc.)
  *
  * R0 absolues injectées :

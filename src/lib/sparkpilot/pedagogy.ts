@@ -10,7 +10,7 @@
  *   Plutôt que de regénérer ce contenu via Claude à chaque lecture (coûteux,
  *   non déterministe, fragile), on dérive ces blocs en pur rule-based depuis
  *   ce qu'on a déjà en base (framework + priorité parente). Le contenu source
- *   est tiré du playbook v1.0 (signaux de succès, frameworks éprouvés).
+ *   est tiré du playbook v2.0 (signaux de succès, frameworks éprouvés).
  *
  *   Fichier 100% pur (pas d'I/O, pas de "use client"), importable côté serveur
  *   comme côté client.
@@ -21,7 +21,7 @@
  *   - pas de jargon ("leverage", "funnel", "throughput") → "tes clients", "ton site"
  *   - exemples concrets quand possible
  *
- * Référence : src/lib/sparkpilot/playbooks/playbook-strategies-v1.md
+ * Référence : src/lib/sparkpilot/playbooks/playbook-strategies-v2.md
  */
 
 import type { SparkpilotTask } from './types'
@@ -115,7 +115,7 @@ interface FrameworkContent {
  * Source de vérité : pour chaque framework reconnu, ce qu'on dit à
  * l'utilisateur dans les blocs "Résultats" et "Comment ça marche".
  *
- * Cohérent avec le playbook v1.0 (signaux de succès par catégorie).
+ * Cohérent avec le playbook v2.0 (signaux de succès par catégorie).
  */
 const FRAMEWORK_CONTENT: Record<FrameworkSlug, FrameworkContent> = {
   geo: {

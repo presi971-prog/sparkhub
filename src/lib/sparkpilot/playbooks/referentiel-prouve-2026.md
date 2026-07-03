@@ -9,11 +9,24 @@
 > académique / étude à grand échantillon). [TENDANCE] = consensus d'experts sans étude
 > massive. [SPÉCULATIF] = circule mais non sourçable → à traiter comme NON fiable.
 >
-> **VEILLE** — Version v1.0, dernière mise à jour : **08/06/2026**. Prochaine veille conseillée : **~08/09/2026** (trimestriel, car algos/formats évoluent vite).
+> **VEILLE** — Version v2.0, dernière mise à jour : **03/07/2026** (veille complète : 6 recherches sourcées, sources officielles Meta/Instagram/LinkedIn/Google + études Buffer/Socialinsider/Metricool/Ahrefs/BrightLocal 2025-2026). Prochaine veille conseillée : **~03/10/2026**.
 > Procédure de veille (à faire AVEC validation humaine, jamais en auto-écrasement) :
 > 1. Relancer les 5 recherches sourcées (blog/SEO, réseaux, GEO, conversion, pub).
 > 2. Comparer aux entrées ci-dessous ; ne remplacer que ce qui a une NOUVELLE source fiable.
 > 3. Mettre à jour la date ci-dessus. Tout ce qui n'est pas re-sourcé reste tel quel ou passe en [SPÉCULATIF].
+
+---
+
+## ⚠️ LA RÈGLE TRANSVERSALE 2026 : L'ORIGINALITÉ OU LA MORT (ajout v2.0)
+
+Toutes les plateformes ont déployé en 2025-2026 la même arme, non pas contre le contenu IA (autorisé et labellisé partout), mais contre le **contenu répétitif sans valeur ajoutée** :
+- **[PROUVÉ] Facebook** : « Rewarding Original Creators » (13/03/2026) : contenu « non original » (reposts, gabarits, clips sans narration, watermarks) = distribution réduite sur TOUTE la Page. Vues des Reels originaux doublées au S2 2025. *(about.fb.com, 13/03/2026 + creators.facebook.com, 14/07/2025)*
+- **[PROUVÉ] Instagram** : politique originalité étendue aux photos et carrousels (30/04/2026) : un compte publiant surtout du « non créé ou édité de façon substantielle » est coupé des recommandations aux non-abonnés. *(Engadget/TechCrunch, 30/04/2026)*
+- **[PROUVÉ] LinkedIn** : offensive anti « AI slop » (20/05/2026) : détection à 94 % des posts IA génériques → confinés au 1er degré (plus de reach 2e/3e degré). Commentaires automatisés explicitement ciblés. Le contenu « assisté par IA » avec idées originales reste bienvenu. *(TheNextWeb/Entrepreneur, 05/2026)*
+- **[PROUVÉ] Google** : « scaled content abuse » = beaucoup de pages IA sans valeur ajoutée = pénalisé (mars 2024 : ~1 446 sites désindexés, motif constant = IA brute à grande échelle sans révision). Aucun cas documenté de pénalité pour IA + relecture humaine + apport original. *(developers.google.com spam policies ; Originality.ai, 03/2024)*
+- **[PROUVÉ] Le contenu IA n'est PAS pénalisé en soi** : labels C2PA « AI info » sur Meta/LinkedIn sans impact de portée documenté ; 87,8 % des URLs citées par les AI Overviews sont mixtes humain+IA (corrélation usage IA/citation ≈ 0 ; le 100 % IA atteint rarement la position n°1, le MIX gagne). *(Ahrefs 500K URLs, 14/07/2025)*
+
+**Conséquence opérationnelle pour toute machine de publication** : chaque contenu doit contenir au moins 1 élément non générable par une IA (fait local, chiffre terrain, cas réel, opinion, vraie photo) et varier réellement de format et d'angle. Jamais deux posts sur le même gabarit d'affilée. JAMAIS de commentaires automatisés.
 
 ---
 
@@ -48,21 +61,36 @@
 - **[PROUVÉ via pénalités] Valeur/authenticité > promo pure** : Meta réduit la portée des légendes hors-sujet et de l'"engagement bait". Le contenu utile/coulisses/preuve performe ; la sur-promo dégrade. *(Meta Content Distribution Guidelines)*
 - **[PROUVÉ] Surcouche Guadeloupe** : tout CTA pointe vers WhatsApp (lien wa.me), JAMAIS vers le SMS (SMS depuis numéros français bloqués par les opérateurs en GP). Bio = lien WhatsApp direct.
 
-### Tactiques prouvées (FORME — format par réseau, médiane Buffer 45M+ posts)
-- **[PROUVÉ] LinkedIn** : carrousel/document (PDF à swiper) = format le plus engageant, très loin devant vidéo et texte. 3-10 slides. Idéal B2B (sous-traitance, ordres pro).
-- **[PROUVÉ] Instagram** : Reels pour ATTEINDRE de nouveaux clients (×2,25 de portée vs image) ; carrousels pour ENGAGER l'audience existante. Image statique en déclin.
-- **[PROUVÉ] Facebook** : format agnostique (image ≈ vidéo ≈ texte). L'image simple suffit. Groupes locaux + Marketplace = prospection de proximité. Fort en GP.
+### Tactiques prouvées (FORME — format par réseau, mis à jour v2.0 03/07/2026)
+- **[PROUVÉ] LinkedIn** : carrousel/document (PDF à swiper) = format n°1 toutes études 2026 (Metricool 673K posts ; van der Blom relayé). 3-10 slides. Vidéo verticale 30-90 s sous-titrée en 2e (poussée officiellement, +36 % watch time/an, mais saturée). **Signal n°1 = dwell time** (temps de lecture), devant les likes ; question dans le post = +77 % de commentaires. **Golden hour : les 60-90 premières minutes décident de la portée** → ne publier que quand quelqu'un peut répondre aux commentaires dans l'heure. *(Dataslayer 02/2026, Hootsuite 06/2026, Metricool 2026)*
+- **[PROUVÉ] LinkedIn, liens et profil vs Page** : liens externes pénalisés sur PROFIL (-27 % impressions) mais PAS sur PAGE (+51 %) → router les liens blog vers la Page. Profil perso >> Page en engagement (2,60 % vs 1,60 % ; posts de personnes = 6-8x la portée des Pages) → le profil du fondateur poste du natif, la Page porte les liens. *(Metricool 2026)*
+- **[PROUVÉ] Instagram** : carrousels 0,55 % d'engagement > Reels 0,52 % > images 0,37 % (Socialinsider 35M posts). Reels pour ATTEINDRE (recommandations, jusqu'à 3 min éligibles, idéal <90 s, ~50 % regardés SANS SON → sous-titres obligatoires) ; carrousels pour ENGAGER. Mix conseillé ~60-70 % Reels / 20-30 % carrousels. **Signaux dominants (Mosseri) : watch time, likes/reach, et surtout ENVOIS PAR DM (sends/reach)** → fabriquer du « partageable » (checklists, comparatifs). Trial reels = tester sur des non-abonnés avant les abonnés. *(Hootsuite 06/2026, Buffer 03/2026)*
+- **[PROUVÉ] Instagram est indexé par Google depuis le 10/07/2025** (comptes pro, posts publics) : la 1re ligne de légende = titre SEO (mot-clé métier + ville), alt text + géotag = leviers locaux. Chaque post = une mini page Google.
+- **[PROUVÉ] Facebook** : engagement par format (Socialinsider 25M posts, éd. 2026) : texte 0,20 % > albums 0,18 % = Reels 0,18 % (seul format en hausse) > images 0,15 % > **liens 0,05 % (le pire, de loin)** → lien en commentaire, jamais dans le post. Depuis 06/2025 toute vidéo FB = Reel, sans limite de durée. >20 % du fil = recommandations de comptes non suivis = la porte d'entrée d'une petite Page. Groupes locaux + Marketplace = prospection de proximité, fort en GP (les groupes exigent un humain, pas d'automatisation).
 - **[PROUVÉ] TikTok** : vidéo courte (process / avant-après / coulisses). Ne pas se forcer si pas de moyens de tournage.
 - **[PROUVÉ] Structure d'un post** : 1 hook (1ère ligne / 3 premières secondes) → 1 idée utile → 1 seul CTA clair. Pour la GP : "Écris-nous sur WhatsApp".
-- **[PROUVÉ] Cadence réaliste solo** : 2-3 posts/semaine TENUS sur UN réseau prioritaire, plutôt que s'éparpiller sur 4.
-- **[TENDANCE] Meilleurs horaires** : mardi-jeudi en journée (heure LOCALE) comme baseline À TESTER. Pas d'"heure magique". En GP (GMT-4) : convertir tout tableau US/EU et valider sur ses propres stats.
+- **[PROUVÉ] Cadences optimales mesurées (v2.0)** : Instagram **3-5 posts/semaine** = point d'équilibre (+12 % de reach/post vs 1-2 ; Buffer 2,1M posts, 08/2025) ; ne pas publier en rafale. LinkedIn **2-5/semaine, JAMAIS plus de 1/jour** (cannibalisation mesurée au 2e post/jour ; Buffer 4,8M posts, 03/2026). Facebook : constance > volume, pas de fréquence magique. La règle « régularité tenue > volume » (ci-dessus) reste le socle : ces plafonds ne valent que s'ils sont TENUS.
+- **[TENDANCE] Meilleurs horaires** : études divergentes (jeudi 9h, mercredi 12h/18h, mercredi 16h LinkedIn…) → baseline à TESTER sur ses propres stats. En GP (GMT-4) : convertir tout tableau US/EU et valider localement.
 
 ### Anti-patterns réseaux (pour DÉMONTER une reco)
+- **[PROUVÉ] Contenu répétitif / gabarit / « AI slop »** : LE risque n°1 de 2026, voir la règle transversale en tête de document (Meta 03/2026, Instagram 04/2026, LinkedIn 05/2026). Dépriorisation du compte entier, pas juste du post.
+- **[PROUVÉ] Commentaires automatisés (LinkedIn)** : explicitement ciblés par l'offensive du 20/05/2026. Jamais.
 - **[PROUVÉ] Engagement bait** ("commente OUI", "tague 3 amis") : portée réduite + inéligible monétisation. *(Meta)*
-- **[PROUVÉ] Hashtags de masse** : plafond ~5 hashtags Instagram (déc. 2025) ; au-delà = blocage. Les hashtags ne sont pas une source de trafic.
+- **[PROUVÉ] Hashtags de masse** : plafond ~5 hashtags Instagram (limite en déploiement déc. 2025) et Facebook (<5 conseil officiel) ; LinkedIn : quasi dépréciés (pages hashtags désactivées ~10/2024), 0-3 max. Aucun gain de portée démontré sur aucune plateforme ; catégorisation seulement.
 - **[PROUVÉ] Légendes hors-sujet / clickbait** : restrictions de feed. *(Meta)*
+- **[PROUVÉ] Lien externe dans le corps d'un post Facebook** : 0,05 % d'engagement, pire format mesuré (Socialinsider 2026) ; lien en commentaire ou natif.
+- **[PROUVÉ] Plus de 1 post/jour sur LinkedIn** : cannibalisation mesurée (Buffer 4,8M posts).
 - **[TENDANCE] Acheter des abonnés, pods d'engagement, tag-for-repost** : effondrent l'engagement réel / considérés spam.
 - **[PROUVÉ] Image statique comme format principal Instagram** : en déclin net (préférer carrousel/Reel).
+
+### G. FICHE GOOGLE BUSINESS (local) — ajout v2.0 (03/07/2026)
+- **[PROUVÉ] Les posts GBP ne font PAS monter le classement** : test contrôlé Sterling Sky (9 semaines, 441 mots-clés) = zéro mouvement. Les posts servent la CONVERSION et le signal « fiche vivante ». 1-2 posts/semaine suffisent. *(Sterling Sky, relais concordants)*
+- **[PROUVÉ] Facteurs officiels : pertinence, distance, proéminence** ; catégorie principale = facteur individuel n°1 (Whitespark 2026 relayé : GBP ≈ 32 % du ranking local, avis ≈ 20 %).
+- **[PROUVÉ] Avis : récence et vélocité > volume, et RÉPONDRE À TOUT** : 74 % des consommateurs veulent des avis <3 mois ; 80 % favorisent les entreprises qui répondent à tous les avis ; 50 % rejettent les réponses « template » → réponses personnalisées obligatoires, jamais automatisées. *(BrightLocal, 11/02/2026)*
+- **[PROUVÉ] JAMAIS de numéro de téléphone dans le texte d'un post GBP** = cause n°1 de rejet automatique. *(Google Business Help)*
+- **[PROUVÉ] Médias GBP = vraies photos prises sur place** : les politiques de contribution exigent des médias « capturés par vous, au lieu concerné » → les images IA/stock sont non conformes de facto. Les avis fabriqués (y compris par IA) = interdits (fake engagement), sanctions publiques possibles (bandeau, gel des avis). *(Google contribution policies)*
+- **[PROUVÉ] Service-area business (sans vitrine)** : adresse masquée obligatoire, max 20 zones ; la zone déclarée n'est PAS un levier de ranking (distance calculée depuis l'emplacement réel) ; masquer l'adresse fait baisser les rankings (test relayé Local Falcon, 12/2025).
+- **[PROUVÉ] 45 % des consommateurs utilisent déjà ChatGPT & co pour trouver un commerce local** (6 % un an avant) ; Gemini/AI Mode s'appuient sur les données Google Maps/Business Profile → la fiche GBP est la donnée d'entrée des recommandations IA locales. *(BrightLocal 02/2026 ; Google ai.google.dev Maps grounding)*
 
 ---
 
@@ -82,10 +110,18 @@
 - **[PROUVÉ] Données structurées NON requises pour l'IA** (dixit Google). FAQ/HowTo rich results dépréciés (mai 2026). Schema utile : Article, Organization, LocalBusiness.
 - **[TENDANCE] Local** : fiche Google Business complète + beaucoup d'avis récents avec réponses + NAP (nom/adresse/tel) cohérent partout. (chiffres d'éditeurs = non garantis)
 
+### Ajouts v2.0 (03/07/2026) — GEO
+- **[PROUVÉ] Facteur n°1 de citation IA = les MENTIONS DE MARQUE hors-site** : corrélation 0,664 (75 000 marques), loin devant les backlinks (0,218). Faire exister le nom à côté de son métier sur des sites tiers (presse locale, annuaires, CCI, LinkedIn, forums) est le levier le plus rentable. *(Ahrefs, 26/05/2025)*
+- **[PROUVÉ] Le SEO classique alimente la visibilité IA** : Perplexity recouvre à >91 % le top 10 Google ; page 1 corrèle ~0,65 avec les mentions LLM. *(Semrush 11/2025 ; Seer Interactive 01/2025)*
+- **[PROUVÉ] robots.txt : autoriser les bots IA** : `OAI-SearchBot` (ChatGPT search), `ChatGPT-User`, `GPTBot` (entraînement, optionnel), `PerplexityBot`, `Perplexity-User`. Vérifier que le WAF/Cloudflare ne les bloque pas. *(developers.openai.com ; docs.perplexity.ai)*
+- **[PROUVÉ] Le trafic venu de ChatGPT convertit à 7,1 %** (2e derrière le payant) ; trafic référé par les IA x3 en un an. *(Similarweb, 28/05/2026)*
+- **[PROUVÉ] Fenêtre France** : AI Overviews/AI Mode PAS encore déployés en France (courrier officiel Google 29/06/2026 : été 2026, au plus tard 23/09/2026). CTR mesuré ailleurs : -34 à -58 % en position 1 quand un résumé IA s'affiche (contesté par Google, controverse ouverte). → Se positionner AVANT : réponse courte en haut + valeur locale inextractible en dessous. *(Abondance 30/06/2026 ; Pew 07/2025 ; Ahrefs 02/2026)*
+- **[PROUVÉ] Google Discover update (02/2026)** : favorise le contenu localement pertinent de sites du pays + l'expertise démontrée sujet par sujet ; anti-clickbait. La niche « métier × lieu » coche toutes les cases. *(Search Engine Land, 05/02/2026)*
+
 ### Anti-patterns GEO (pour DÉMONTER)
 - **[PROUVÉ] Keyword stuffing** : INEFFICACE pour l'IA (sous la base de référence). *(GEO paper)*
 - **[PROUVÉ] "Il suffit d'être n°1 sur Google pour être cité"** : FAUX (seulement ~38 % des citations viennent du top 10). *(Ahrefs, 4M URL)*
-- **[PROUVÉ] Miser sur backlinks/DR comme levier IA principal** : corrélation faible. *(Ahrefs, 75K marques)*
+- **[PROUVÉ] Miser sur backlinks/DR comme levier IA principal** : corrélation faible (0,218 vs 0,664 pour les mentions). *(Ahrefs, 75K marques)*
 - **[SPÉCULATIF] à refuser** : tout "% de citation" précis par plateforme, "FAQ x3,2 dans AI Overviews", pondérations par IA → non sourçables.
 
 ---

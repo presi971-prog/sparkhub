@@ -9,8 +9,8 @@
  * méthode citée dans ses tâches, en français simple, avec des exemples
  * ancrés Guadeloupe.
  *
- * 15 frameworks documentés, dérivés du playbook v1.0
- * (src/lib/sparkpilot/playbooks/playbook-strategies-v1.md).
+ * 15 frameworks documentés, dérivés du playbook v2.0
+ * (src/lib/sparkpilot/playbooks/playbook-strategies-v2.md).
  */
 
 import Link from 'next/link'
@@ -46,7 +46,7 @@ interface Framework {
 }
 
 /**
- * Les 15 frameworks cités par SparkPilot dans le playbook v1.0.
+ * Les 15 frameworks cités par SparkPilot dans le playbook v2.0.
  * Ordre = ordre d'apparition logique pour un user qui découvre.
  *
  * R0 "ne pas inventer" : pour l'origine, on cite uniquement quand on est
