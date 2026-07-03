@@ -56,9 +56,26 @@ done
 echo "ECHEC après 3 rounds" >> \$LOG
 SCRIPT
 chmod 700 /root/sparkgrowth-rescan.sh
-( crontab -l 2>/dev/null | grep -v sparkgrowth-rescan ; echo '0 10 * * * /root/sparkgrowth-rescan.sh' ) | crontab -
-echo "Cron installé :"
-crontab -l | grep sparkgrowth-rescan
+
+# Machine de visibilité : déclenche le cycle quotidien (calendrier auto +
+# génération + programmation GHL + digest) sur le déploiement LIVE (preview),
+# à 07:45 UTC = avant le cron 08:00 de l'ancienne production Vercel.
+cat > /root/sparkgrowth-daily.sh <<'SCRIPT'
+#!/bin/bash
+. /root/.config/sparkgrowth-rescan.env
+LOG=/root/sparkgrowth-daily.log
+echo "--- \$(date -u '+%F %T') UTC" >> \$LOG
+curl -s -m 280 -H "x-cron-secret: \$CRON_SECRET" \
+  "https://sparkgrowth.digital-code-growth.com/api/content-machine/generate-daily" >> \$LOG 2>&1
+echo >> \$LOG
+SCRIPT
+chmod 700 /root/sparkgrowth-daily.sh
+
+( crontab -l 2>/dev/null | grep -v sparkgrowth-rescan | grep -v sparkgrowth-daily ; \
+  echo '0 10 * * * /root/sparkgrowth-rescan.sh' ; \
+  echo '45 7 * * * /root/sparkgrowth-daily.sh' ) | crontab -
+echo "Crons installés :"
+crontab -l | grep sparkgrowth
 REMOTE
 
 echo "Terminé."
