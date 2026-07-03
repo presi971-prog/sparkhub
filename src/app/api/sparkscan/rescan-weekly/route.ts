@@ -24,9 +24,9 @@ import { extractDomain } from '@/lib/sparkscan/dataforseo'
 import { sendVisibilityRecapEmail } from '@/lib/notifications'
 
 export const dynamic = 'force-dynamic'
-// Un scan complet peut durer plusieurs minutes : on prend la fenêtre maximale
-// déjà utilisée ailleurs dans le repo (sparkexecute/runs).
-export const maxDuration = 300
+// Un scan complet peut dépasser 5 minutes (constaté : coupure à 300s sur le
+// scan concours-spp du 03/07). 800s = plafond Fluid compute Vercel.
+export const maxDuration = 800
 
 const CRON_SECRET = process.env.CRON_SECRET
 const RESCAN_AFTER_DAYS = 7
