@@ -230,3 +230,81 @@ export async function sendVisibilityRecapEmail(
     `,
   })
 }
+
+// ============================================================
+// Machine de visibilité — digest du matin (orchestrateur)
+// ============================================================
+
+interface DigestScheduledItem {
+  brand: string
+  content_type: string
+  theme: string
+  scheduled: { platform: string; at: string }[]
+  errors: { platform: string; error: string }[]
+}
+
+/**
+ * Récap quotidien de la machine de visibilité : ce qui part aujourd'hui
+ * (réseau par réseau), les erreurs, et l'état du calendrier.
+ * Rendu sobre, tutoiement, pas de tiret long.
+ */
+export async function sendVisibilityDigestEmail(
+  email: string,
+  items: DigestScheduledItem[],
+  calendarInfo: string,
+) {
+  const PLATFORM_LABELS: Record<string, string> = {
+    facebook: 'Facebook',
+    instagram: 'Instagram',
+    linkedin: 'LinkedIn',
+    google_business: 'Fiche Google',
+    tiktok: 'TikTok',
+    youtube: 'YouTube',
+  }
+  const fmtTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Guadeloupe',
+    })
+
+  const rows = items
+    .map((item) => {
+      const nets = item.scheduled
+        .map((s) => `${PLATFORM_LABELS[s.platform] ?? s.platform} ${fmtTime(s.at)}`)
+        .join(' · ')
+      const errs = item.errors.length
+        ? `<div style="color:#B3382C;font-size:12px;">⚠ ${item.errors.map((e) => `${PLATFORM_LABELS[e.platform] ?? e.platform}: ${e.error.slice(0, 80)}`).join(' · ')}</div>`
+        : ''
+      return `
+      <tr>
+        <td style="padding:10px 14px;border-bottom:1px solid #E9E5D9;font-size:13px;">
+          <strong>${item.theme}</strong>
+          <div style="color:#5E626C;font-size:12px;">${item.content_type} · ${nets || 'rien programmé'}</div>
+          ${errs}
+        </td>
+      </tr>`
+    })
+    .join('')
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject:
+      items.length > 0
+        ? `🗞 Aujourd'hui : ${items.reduce((n, i) => n + i.scheduled.length, 0)} publications programmées`
+        : `🗞 Machine de visibilité : rien à publier aujourd'hui`,
+    html: `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;color:#0F1115;">
+        <h2 style="font-weight:600;">Ta machine de visibilité, ce matin</h2>
+        <p style="color:#5E626C;">Voici ce qui part aujourd'hui (heures Guadeloupe). Pour bloquer un contenu : ouvre le tableau de bord et passe-le en "rejeté" avant son heure.</p>
+        ${items.length > 0 ? `<table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #E9E5D9;border-radius:8px;">${rows}</table>` : '<p>Aucun contenu prêt pour aujourd\'hui.</p>'}
+        <p style="color:#5E626C;font-size:13px;margin-top:16px;">${calendarInfo}</p>
+        <p style="margin-top:20px;">
+          <a href="${APP_URL}/content-machine" style="display:inline-block;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:8px;">Ouvrir le tableau de bord</a>
+        </p>
+        <p style="color:#A8ACB5;font-size:12px;margin-top:24px;">Rappel du jour : réponds aux commentaires dans l'heure qui suit chaque publication, c'est le levier n°1.</p>
+      </div>
+    `,
+  })
+}

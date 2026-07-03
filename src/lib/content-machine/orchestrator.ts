@@ -1,0 +1,413 @@
+/**
+ * Orchestrateur de la machine de visibilité (mode agressif, 03/07/2026).
+ *
+ * Appelé par le cron quotidien /api/content-machine/generate-daily, il ajoute
+ * les 3 chaînons qui manquaient à l'usine à contenus :
+ *   1. ensureCalendarCoverage — le calendrier éditorial se remplit tout seul
+ *      (7 jours d'avance, thèmes ANCRÉS sur les fiches métier = anti-répétition).
+ *   2. pushTodayToGhl — les contenus générés (marque DCG AI) partent en
+ *      PROGRAMMÉ vers GHL Social Planner aux créneaux où Thierry peut répondre
+ *      aux commentaires (règle golden hour du référentiel v2.0).
+ *   3. buildDigest — le récap du matin (envoyé par email via notifications.ts).
+ *
+ * Règles algorithmes appliquées (référentiel v2.0, sourcé) :
+ *   - jamais 2 thèmes sur le même angle d'affilée (anti « AI slop »),
+ *   - chaque thème ancré sur un fait local des fiches métier,
+ *   - Facebook : pas de lien dans le post ; LinkedIn : max 1/jour ;
+ *     Instagram : 1re ligne = mot-clé métier + Guadeloupe, ≤5 hashtags ;
+ *     Google Business : jamais de téléphone (filtre publisher), 2 posts/sem.
+ */
+
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
+
+import { askClaude } from '@/lib/content-machine/anthropic'
+import {
+  publishToSocialPlanner,
+  listConnectedSocialAccounts,
+  type SocialAccountsByPlatform,
+} from '@/lib/sparkexecute/publishers/ghl-social'
+import type { SocialPlatform, SparkexecuteRun } from '@/lib/sparkexecute/types'
+
+// ------------------------------------------------------------
+// Rotation des métiers (2 métiers/semaine, gabarit stratégie 13/06)
+// ------------------------------------------------------------
+
+/** Fiches métier embarquées (copiées depuis dcg-ai-wiki/fiches-metier). */
+const METIERS = [
+  { key: 'plombiers', label: 'plombiers et artisans du bâtiment', fiche: '01-plombiers-artisans.md' },
+  { key: 'osteopathes', label: 'ostéopathes et pros du bien-être', fiche: '02-osteopathes-bien-etre.md' },
+  { key: 'avocats', label: 'avocats et professions juridiques', fiche: '03-avocats-juridique.md' },
+  { key: 'commercants', label: 'commerçants et boutiques', fiche: '04-commercants-boutiques.md' },
+  { key: 'coiffeurs', label: 'coiffeurs et instituts de beauté', fiche: '05-coiffeurs-instituts.md' },
+  { key: 'garagistes', label: 'garagistes et mécaniciens', fiche: '06-garagistes-mecaniciens.md' },
+] as const
+
+/**
+ * Les 2 métiers de la semaine : rotation déterministe sur le numéro de
+ * semaine ISO (pas de Math.random : reproductible, testable, et le même
+ * résultat quel que soit le jour de la semaine où on régénère).
+ */
+export function metiersForWeek(date: Date): [typeof METIERS[number], typeof METIERS[number]] {
+  const week = isoWeekNumber(date)
+  const first = (week * 2) % METIERS.length
+  const second = (first + 1) % METIERS.length
+  return [METIERS[first], METIERS[second]]
+}
+
+function isoWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7)
+}
+
+/** Charge le contenu d'une fiche métier embarquée (tronqué pour le prompt). */
+export async function loadFicheMetier(ficheFile: string, maxChars = 2600): Promise<string> {
+  const p = path.join(process.cwd(), 'src', 'lib', 'content-machine', 'fiches', ficheFile)
+  try {
+    const content = await fs.readFile(p, 'utf-8')
+    return content.slice(0, maxChars)
+  } catch {
+    return ''
+  }
+}
+
+// ------------------------------------------------------------
+// 1. Couverture du calendrier (7 jours d'avance, thèmes ancrés)
+// ------------------------------------------------------------
+
+interface CmBrand {
+  id: string
+  slug: string
+  name: string
+  description?: string
+  tone?: string
+  target?: string
+  arguments?: string
+}
+
+/** Cadence hebdo par marque (type de contenu par jour ISO 1=lundi..7=dimanche).
+ *  null = pas de contenu ce jour-là. Mode agressif DCG AI : 6 contenus/sem
+ *  (le 7e jour = repos volontaire : la régularité TENUE bat le volume). */
+const AGGRESSIVE_PATTERNS: Record<string, Record<number, string | null>> = {
+  'dcg-ai': {
+    1: 'post_image', // lundi : post texte+image (métier A)
+    2: 'carousel',   // mardi : carrousel (métier A) + post Google
+    3: 'video',      // mercredi : Reel (métier A)
+    4: 'post_image', // jeudi : post (métier B)
+    5: 'carousel',   // vendredi : carrousel (métier B) + post Google
+    6: 'video',      // samedi : Reel (métier B)
+    7: null,         // dimanche : repos (et régénération du calendrier)
+  },
+  'concours-spp': {
+    1: 'post_image',
+    3: 'carousel',
+    5: 'post_image',
+    2: null, 4: null, 6: null, 7: null,
+  },
+  transpoquickd: {
+    // En veille tant que la licence Dréal n'est pas là : 1 post/sem.
+    2: 'post_image',
+    1: null, 3: null, 4: null, 5: null, 6: null, 7: null,
+  },
+}
+
+/**
+ * Garantit 7 jours de calendrier d'avance pour les marques pilotées par
+ * l'orchestrateur. Thèmes générés par Claude, ANCRÉS sur la fiche métier de
+ * la semaine + les angles récents à ne pas répéter.
+ */
+export async function ensureCalendarCoverage(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+): Promise<{ created: number; details: string[] }> {
+  const { data: brands } = await supabase.from('cm_brands').select('*')
+  const details: string[] = []
+  let created = 0
+
+  for (const brand of (brands ?? []) as CmBrand[]) {
+    const pattern = AGGRESSIVE_PATTERNS[brand.slug]
+    if (!pattern) continue // marques hors machine (cobeone, sparkhub) : inchangées
+
+    // Les 7 prochains jours sans entrée existante
+    const days: { date: string; isoDay: number; contentType: string }[] = []
+    for (let i = 0; i < 7; i++) {
+      const d = new Date()
+      d.setUTCDate(d.getUTCDate() + i)
+      const isoDay = d.getUTCDay() === 0 ? 7 : d.getUTCDay()
+      const contentType = pattern[isoDay]
+      if (!contentType) continue
+      days.push({ date: d.toISOString().split('T')[0], isoDay, contentType })
+    }
+    if (days.length === 0) continue
+
+    const { data: existing } = await supabase
+      .from('cm_calendar')
+      .select('date')
+      .eq('brand_id', brand.id)
+      .in('date', days.map((d) => d.date))
+    const existingDates = new Set((existing ?? []).map((e: { date: string }) => e.date))
+    const missing = days.filter((d) => !existingDates.has(d.date))
+    if (missing.length === 0) continue
+
+    // Angles récents à ne pas répéter (anti « AI slop »)
+    const { data: recent } = await supabase
+      .from('cm_calendar')
+      .select('theme')
+      .eq('brand_id', brand.id)
+      .order('date', { ascending: false })
+      .limit(14)
+    const recentThemes = ((recent ?? []) as { theme: string }[])
+      .map((r) => `- ${r.theme}`)
+      .join('\n')
+
+    // Ancrage métier (DCG AI uniquement : les 2 métiers de la semaine)
+    let grounding = ''
+    if (brand.slug === 'dcg-ai') {
+      const [metierA, metierB] = metiersForWeek(new Date())
+      const ficheA = await loadFicheMetier(metierA.fiche)
+      const ficheB = await loadFicheMetier(metierB.fiche)
+      grounding = `MÉTIERS DE LA SEMAINE (alterne : lun-mer = ${metierA.label}, jeu-sam = ${metierB.label}).
+Chaque thème DOIT partir d'une galère ou d'un fait CONCRET tiré des fiches ci-dessous (jamais un thème générique du type "l'IA au service des pros") :
+
+=== FICHE ${metierA.label} ===
+${ficheA}
+
+=== FICHE ${metierB.label} ===
+${ficheB}`
+    } else if (brand.slug === 'concours-spp') {
+      grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel (programme officiel, épreuves, annales, méthode de révision, sport). RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre non sourcé : rester sur des angles de méthode et de motivation.`
+    } else if (brand.slug === 'transpoquickd') {
+      grounding = `Thèmes ancrés sur le transport de marchandises en Guadeloupe (livraison locale, fiabilité, entreprise guadeloupéenne). Sobre et factuel : l'entreprise démarre, AUCUNE promesse chiffrée, aucun faux témoignage.`
+    }
+
+    const scheduleText = missing
+      .map((m, i) => `${i + 1}. ${m.date} — type: ${m.contentType}`)
+      .join('\n')
+
+    const systemPrompt = `Tu es directeur éditorial pour ${brand.name} (audience : ${brand.target || 'professionnels en Guadeloupe'}).
+${grounding}
+
+RÈGLES ANTI-RÉPÉTITION (vitales : les réseaux sociaux dépriorisent les comptes répétitifs en 2026) :
+- Chaque thème = un angle DIFFÉRENT (une galère précise, un avant/après, un mythe à casser, une question de client, un chiffre commenté…)
+- INTERDIT de reprendre les angles récents suivants :
+${recentThemes || '(aucun)'}
+- Zéro invention : pas de faux témoignage, pas de chiffre inventé, pas de promesse de résultat.
+
+Réponds UNIQUEMENT en JSON : un tableau de strings, un thème par ligne du planning, dans l'ordre. Pas de markdown.`
+
+    let themes: string[] = []
+    try {
+      const raw = await askClaude(systemPrompt, `Planning à thématiser :\n${scheduleText}`, 1500)
+      themes = JSON.parse(raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+    } catch {
+      themes = missing.map((m) => `Contenu ${m.contentType} ancré métier (${m.date})`)
+    }
+
+    const rows = missing.map((m, i) => ({
+      brand_id: brand.id,
+      content_type: m.contentType,
+      theme: themes[i] || `Contenu ${m.contentType}`,
+      date: m.date,
+      status: 'planned',
+    }))
+    const { error } = await supabase.from('cm_calendar').insert(rows)
+    if (!error) {
+      created += rows.length
+      details.push(`${brand.slug}: +${rows.length} jours`)
+    } else {
+      details.push(`${brand.slug}: ERREUR ${error.message}`)
+    }
+  }
+
+  return { created, details }
+}
+
+// ------------------------------------------------------------
+// 2. Publication programmée du jour (marque DCG AI uniquement en V1)
+// ------------------------------------------------------------
+
+/** Créneaux de publication (UTC) : ceux validés par la campagne de juin
+ *  (LinkedIn 7h30 GP / FB 13h GP / IG 19h GP), où Thierry peut répondre
+ *  aux commentaires dans l'heure (golden hour). */
+const PLATFORM_SLOTS_UTC: Partial<Record<SocialPlatform, { h: number; m: number }>> = {
+  linkedin: { h: 11, m: 30 },
+  facebook: { h: 17, m: 0 },
+  instagram: { h: 23, m: 0 },
+  google_business: { h: 15, m: 0 },
+  tiktok: { h: 21, m: 0 },
+  youtube: { h: 20, m: 0 },
+}
+
+/** Réseaux visés selon le type de contenu (cadences agressives du plan).
+ *  LinkedIn ne reçoit qu'1 contenu/jour max : le post ou le carrousel, pas les 2. */
+function platformsForContent(contentType: string, isoDay: number): SocialPlatform[] {
+  const base: Record<string, SocialPlatform[]> = {
+    post_image: ['facebook', 'instagram', 'linkedin'],
+    carousel: ['facebook', 'instagram', 'linkedin'],
+    video: ['facebook', 'instagram', 'tiktok', 'youtube'],
+  }
+  const platforms = [...(base[contentType] ?? ['facebook'])]
+  // Post Google 2x/semaine : mardi et vendredi (jours carrousel DCG AI)
+  if (isoDay === 2 || isoDay === 5) platforms.push('google_business')
+  return platforms
+}
+
+interface PushSummaryItem {
+  content_id: string
+  brand: string
+  content_type: string
+  theme: string
+  scheduled: { platform: string; at: string }[]
+  errors: { platform: string; error: string }[]
+}
+
+/**
+ * Pousse vers GHL (en PROGRAMMÉ aux créneaux du jour) les contenus du jour
+ * de la marque DCG AI qui sont générés et non rejetés. Idempotent via
+ * cm_contents.pushed_at (migration 057).
+ */
+export async function pushTodayToGhl(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  /** true = simulation : calcule tout (réseaux, créneaux) sans appeler GHL ni marquer pushed_at. */
+  dryRun = false,
+): Promise<{ pushed: PushSummaryItem[]; skipped: number }> {
+  const today = new Date().toISOString().split('T')[0]
+  const isoDay = new Date().getUTCDay() === 0 ? 7 : new Date().getUTCDay()
+
+  // Seule marque câblée aux comptes sociaux GHL (location DCG AI) en V1.
+  const { data: brandRows } = await supabase
+    .from('cm_brands')
+    .select('id, slug, name')
+    .eq('slug', 'dcg-ai')
+    .limit(1)
+  const brand = (brandRows ?? [])[0]
+  if (!brand) return { pushed: [], skipped: 0 }
+
+  const { data: entries } = await supabase
+    .from('cm_calendar')
+    .select('id, date, content_type, theme')
+    .eq('brand_id', brand.id)
+    .eq('date', today)
+  if (!entries || entries.length === 0) return { pushed: [], skipped: 0 }
+
+  const calendarIds = entries.map((e: { id: string }) => e.id)
+  const { data: contents, error: contentsError } = await supabase
+    .from('cm_contents')
+    .select('id, calendar_id, content_type, text_content, status, pushed_at')
+    .in('calendar_id', calendarIds)
+    .in('status', ['pending', 'approved', 'modified'])
+    .is('pushed_at', null)
+
+  if (contentsError) {
+    // Cas typique : migration 057 (pushed_at) pas encore appliquée.
+    console.error(`[orchestrator] Lecture cm_contents impossible: ${contentsError.message}`)
+    return { pushed: [], skipped: -1 }
+  }
+  if (!contents || contents.length === 0) return { pushed: [], skipped: 0 }
+
+  let accounts: SocialAccountsByPlatform
+  try {
+    accounts = await listConnectedSocialAccounts()
+  } catch (err) {
+    console.error(`[orchestrator] Comptes GHL illisibles: ${err instanceof Error ? err.message : err}`)
+    return { pushed: [], skipped: contents.length }
+  }
+  const accountIds = Object.fromEntries(
+    Object.entries(accounts).map(([platform, list]) => [
+      platform,
+      (list ?? []).map((a) => a.id),
+    ]),
+  ) as Record<SocialPlatform, string[]>
+
+  const pushed: PushSummaryItem[] = []
+  let skipped = 0
+
+  for (const content of contents) {
+    const entry = entries.find((e: { id: string }) => e.id === content.calendar_id)
+    if (!entry || !content.text_content) {
+      skipped++
+      continue
+    }
+
+    // Médias du contenu (image de couverture / vidéo)
+    const { data: assets } = await supabase
+      .from('cm_assets')
+      .select('type, public_url, position')
+      .eq('content_id', content.id)
+      .order('position', { ascending: true })
+    const imageUrl = (assets ?? []).find(
+      (a: { type: string; public_url: string | null }) =>
+        (a.type === 'image' || a.type === 'carousel_slide') && a.public_url,
+    )?.public_url
+    const videoUrl = (assets ?? []).find(
+      (a: { type: string; public_url: string | null }) => a.type === 'video' && a.public_url,
+    )?.public_url
+
+    // Pseudo-run minimal : le publisher GHL ne lit que output.content /
+    // output.hashtags / output.image_url / output.video_url.
+    const pseudoRun = {
+      id: content.id,
+      output: {
+        content: content.text_content,
+        hashtags: [],
+        image_url: imageUrl ?? undefined,
+        video_url: videoUrl ?? undefined,
+      },
+    } as unknown as SparkexecuteRun
+
+    const platforms = platformsForContent(entry.content_type, isoDay)
+    const item: PushSummaryItem = {
+      content_id: content.id,
+      brand: brand.slug,
+      content_type: entry.content_type,
+      theme: entry.theme,
+      scheduled: [],
+      errors: [],
+    }
+
+    for (const platform of platforms) {
+      const slot = PLATFORM_SLOTS_UTC[platform]
+      if (!slot) continue
+      const when = new Date()
+      when.setUTCHours(slot.h, slot.m, 0, 0)
+      // Créneau déjà passé (>-30 min) → demain même heure, plutôt que publier
+      // dans une heure creuse où personne ne peut répondre aux commentaires.
+      if (when.getTime() < Date.now() + 30 * 60 * 1000) {
+        when.setUTCDate(when.getUTCDate() + 1)
+      }
+      if (dryRun) {
+        const hasAccount = (accountIds[platform] ?? []).length > 0
+        if (hasAccount) item.scheduled.push({ platform, at: when.toISOString() })
+        else item.errors.push({ platform, error: 'Aucun compte connecté (dry run)' })
+        continue
+      }
+      const results = await publishToSocialPlanner(pseudoRun, {
+        platforms: [platform],
+        accountIds,
+        scheduledAt: when.toISOString(),
+      })
+      for (const r of results) {
+        if (r.error) item.errors.push({ platform: r.platform, error: r.error })
+        else item.scheduled.push({ platform: r.platform, at: when.toISOString() })
+      }
+    }
+
+    if (!dryRun) {
+      await supabase
+        .from('cm_contents')
+        .update({
+          pushed_at: new Date().toISOString(),
+          push_results: { scheduled: item.scheduled, errors: item.errors },
+        })
+        .eq('id', content.id)
+    }
+
+    pushed.push(item)
+  }
+
+  return { pushed, skipped }
+}

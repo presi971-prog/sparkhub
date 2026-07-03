@@ -4,8 +4,38 @@ import { askClaude } from '@/lib/content-machine/anthropic'
 import { generateKieImage, generateKieVideo } from '@/lib/content-machine/kie-ai'
 import { generateVoiceover, BRAND_VOICES } from '@/lib/content-machine/elevenlabs'
 import { publishDueScheduledBlogPosts } from '@/lib/sparkexecute/publishers/scheduled-blog'
+import { ensureCalendarCoverage, pushTodayToGhl } from '@/lib/content-machine/orchestrator'
+import { sendVisibilityDigestEmail } from '@/lib/notifications'
 
 const CRON_SECRET = process.env.CRON_SECRET
+
+/** Destinataire du digest du matin (machine de visibilité). */
+const DIGEST_EMAIL = process.env.ADMIN_EMAIL || 'presi971@gmail.com'
+
+/**
+ * Programmation GHL du jour + digest email. Non bloquant : une erreur ici
+ * ne doit jamais casser la génération quotidienne.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function runPushAndDigest(supabase: any, calendarInfo: string, dryRun = false) {
+  try {
+    const push = await pushTodayToGhl(supabase, dryRun)
+    await sendVisibilityDigestEmail(
+      DIGEST_EMAIL,
+      push.pushed,
+      `${calendarInfo}${push.skipped > 0 ? ` · ${push.skipped} contenu(s) non poussé(s)` : ''}`,
+    )
+    return {
+      pushed: push.pushed.length,
+      scheduled: push.pushed.reduce((n, i) => n + i.scheduled.length, 0),
+      errors: push.pushed.reduce((n, i) => n + i.errors.length, 0),
+      skipped: push.skipped,
+    }
+  } catch (e) {
+    console.error('[orchestrator] push/digest échoué (non bloquant):', e)
+    return { error: e instanceof Error ? e.message : 'Erreur inconnue' }
+  }
+}
 
 /**
  * Verifie l'authentification du cron.
@@ -122,7 +152,24 @@ export async function POST(req: Request) {
 
   const supabase = createAdminSupabase()
   const today = new Date().toISOString().split('T')[0]
+  // Mode test : ?dry=1 simule la programmation GHL (aucun post réel).
+  const dryRun = new URL(req.url).searchParams.get('dry') === '1'
   const results: Array<{ calendarId: string; brand: string; status: string; error?: string }> = []
+
+  // Couverture du calendrier AVANT la lecture des entrées du jour : le
+  // calendrier se remplit tout seul 7 jours d'avance (thèmes ancrés fiches
+  // métier, anti-répétition). Sans ça, un calendrier vide = machine morte.
+  let calendarInfo = 'Calendrier à jour'
+  try {
+    const coverage = await ensureCalendarCoverage(supabase)
+    if (coverage.created > 0) {
+      calendarInfo = `Calendrier complété : ${coverage.details.join(', ')}`
+      console.info(`[orchestrator] ${calendarInfo}`)
+    }
+  } catch (e) {
+    calendarInfo = 'Erreur de remplissage du calendrier'
+    console.error('[orchestrator] ensureCalendarCoverage échoué (non bloquant):', e)
+  }
 
   try {
     // Recuperer les entrees du calendrier pour aujourd'hui
@@ -140,11 +187,14 @@ export async function POST(req: Request) {
     }
 
     if (!entries || entries.length === 0) {
+      // Même sans génération, on programme ce qui est prêt et on envoie le digest.
+      const orchestration = await runPushAndDigest(supabase, calendarInfo, dryRun)
       return NextResponse.json({
         message: 'Aucun contenu planifie pour aujourd\'hui',
         date: today,
         generated: 0,
         scheduledBlog,
+        orchestration,
       })
     }
 
@@ -253,6 +303,23 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
           entry.theme
         )
 
+        // Blindage : Claude renvoie parfois imagePrompts sous une autre forme
+        // (string seule, absent avec slides[].imagePrompt à la place…).
+        if (!Array.isArray(textResult.imagePrompts)) {
+          const fromSlides = Array.isArray(textResult.slides)
+            ? (textResult.slides as Array<{ imagePrompt?: string }>)
+                .map((s) => s.imagePrompt)
+                .filter((p): p is string => typeof p === 'string' && p.length > 0)
+            : []
+          textResult.imagePrompts =
+            typeof textResult.imagePrompts === 'string'
+              ? [textResult.imagePrompts]
+              : fromSlides
+        }
+        if (textResult.imagePrompts.length === 0) {
+          throw new Error('Aucun prompt d\'image exploitable dans la réponse IA')
+        }
+
         // 2. Generer les images sequentiellement
         const assets: Array<{ storagePath: string; publicUrl: string; prompt: string }> = []
 
@@ -327,6 +394,9 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
     const successCount = results.filter(r => r.status === 'success').length
     const errorCount = results.filter(r => r.status === 'error').length
 
+    // Programmation GHL des contenus du jour + digest email (machine de visibilité)
+    const orchestration = await runPushAndDigest(supabase, calendarInfo, dryRun)
+
     return NextResponse.json({
       message: `Generation terminee: ${successCount} succes, ${errorCount} erreurs`,
       date: today,
@@ -334,6 +404,7 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
       errors: errorCount,
       details: results,
       scheduledBlog,
+      orchestration,
     })
   } catch (error) {
     console.error('[content-machine/generate-daily] Erreur globale:', error)
