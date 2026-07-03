@@ -101,11 +101,16 @@ const AGGRESSIVE_PATTERNS: Record<string, Record<number, string | null>> = {
     6: 'video',      // samedi : Reel (métier B)
     7: null,         // dimanche : repos (et régénération du calendrier)
   },
+  // Concours SPP a DÉJÀ une série quotidienne programmée dans GHL jusqu'en
+  // octobre 2026 (~4-5 posts/sem/compte, constaté le 04/07). La machine
+  // n'ajoute qu'1 carrousel pédagogique/semaine (format complémentaire),
+  // pour rester dans la fourchette saine mesurée (IG 3-5 posts/semaine).
+  // + 2 articles de blog/semaine (SEO, publiés directement sur le site).
   'concours-spp': {
-    1: 'post_image',
+    2: 'blog_article',
     3: 'carousel',
-    5: 'post_image',
-    2: null, 4: null, 6: null, 7: null,
+    6: 'blog_article',
+    1: null, 4: null, 5: null, 7: null,
   },
   transpoquickd: {
     // En veille tant que la licence Dréal n'est pas là : 1 post/sem.
@@ -178,7 +183,7 @@ ${ficheA}
 === FICHE ${metierB.label} ===
 ${ficheB}`
     } else if (brand.slug === 'concours-spp') {
-      grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel (programme officiel, épreuves, annales, méthode de révision, sport). RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre non sourcé : rester sur des angles de méthode et de motivation.`
+      grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel. Format : CARROUSEL PÉDAGOGIQUE (méthode pas-à-pas, organisation de révision, préparation mentale ou physique GÉNÉRALE). Une série de posts courts de motivation tourne déjà tous les jours sur ces comptes : NE PAS faire de la motivation, faire de la MÉTHODE structurée. RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre de barème, aucune date d'épreuve, aucun contenu d'annale : uniquement de la méthode générale.`
     } else if (brand.slug === 'transpoquickd') {
       grounding = `Thèmes ancrés sur le transport de marchandises en Guadeloupe (livraison locale, fiabilité, entreprise guadeloupéenne). Sobre et factuel : l'entreprise démarre, AUCUNE promesse chiffrée, aucun faux témoignage.`
     }
@@ -449,4 +454,98 @@ export async function pushTodayToGhl(
   }
 
   return { pushed, skipped }
+}
+
+// ------------------------------------------------------------
+// 3. Articles de blog Concours SPP (générés + publiés directement)
+// ------------------------------------------------------------
+
+/**
+ * Traite les entrées calendrier `blog_article` du jour (marque concours-spp) :
+ * génère un article MÉTHODE en markdown (blindage anti-invention strict :
+ * jamais de chiffre réglementaire, de barème, de date d'épreuve) et le publie
+ * directement sur le blog du site Concours SPP. Le résultat apparaît dans le
+ * digest du matin.
+ */
+export async function generateAndPublishSppArticles(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+): Promise<{ published: { title: string; url: string | null }[]; errors: string[] }> {
+  const published: { title: string; url: string | null }[] = []
+  const errors: string[] = []
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: brand } = await supabase
+    .from('cm_brands')
+    .select('id, slug, name')
+    .eq('slug', 'concours-spp')
+    .maybeSingle()
+  if (!brand) return { published, errors }
+
+  const { data: entries } = await supabase
+    .from('cm_calendar')
+    .select('id, date, content_type, theme, status')
+    .eq('brand_id', brand.id)
+    .eq('date', today)
+    .eq('content_type', 'blog_article')
+    .eq('status', 'planned')
+  if (!entries || entries.length === 0) return { published, errors }
+
+  const { publishToConcoursSppBlog } = await import(
+    '@/lib/sparkexecute/publishers/concours-spp-blog'
+  )
+
+  for (const entry of entries) {
+    try {
+      const systemPrompt = `Tu rédiges un article de blog pour Concours SPP, la plateforme de préparation aux concours de sapeur-pompier professionnel. Audience : candidats aux concours (caporal, lieutenant, capitaine), souvent en poste, qui préparent en plus de leur travail.
+
+RÈGLES ABSOLUES (crédibilité de la plateforme, non négociables) :
+- UNIQUEMENT de la MÉTHODE : organisation de révision, préparation mentale, hygiène de travail, préparation physique GÉNÉRALE, gestion du stress, planification.
+- INTERDIT : tout chiffre réglementaire, barème, coefficient, durée d'épreuve, date, contenu de programme officiel, référence à un arrêté. Si le sujet t'y pousse, reste général et renvoie le lecteur vers « les textes officiels de ton concours ».
+- INTERDIT : témoignage inventé, statistique inventée, promesse de réussite.
+- Ton : direct, tutoiement, concret, phrases courtes. Style sobre, AUCUN tiret long (—).
+
+FORMAT : markdown. UN titre H1 accrocheur (c'est le titre de l'article), une intro de 2 phrases qui répond à la question, des sections H2 avec des étapes actionnables, une conclusion avec UN conseil unique à appliquer aujourd'hui. 700 à 1000 mots.`
+
+      const markdown = await askClaude(
+        systemPrompt,
+        `Écris l'article sur ce thème : "${entry.theme}"`,
+        3500,
+      )
+
+      const pseudoRun = {
+        id: entry.id,
+        input_brief: { sujet: entry.theme },
+        output: { content: markdown, image_url: null },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any
+
+      const result = await publishToConcoursSppBlog(pseudoRun, {
+        status: 'published',
+        category: 'conseil',
+      })
+
+      await supabase
+        .from('cm_contents')
+        .insert({
+          calendar_id: entry.id,
+          brand_id: brand.id,
+          content_type: 'blog_article',
+          text_content: markdown,
+          status: 'approved',
+          pushed_at: new Date().toISOString(),
+          push_results: { blog: { post_id: result.post_id, url: result.post_url } },
+        })
+      await supabase.from('cm_calendar').update({ status: 'generated' }).eq('id', entry.id)
+
+      published.push({ title: entry.theme, url: result.post_url })
+      console.log(`[orchestrator] BLOG SPP publié: ${entry.theme} → ${result.post_url}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      errors.push(`${entry.theme}: ${msg}`)
+      console.error(`[orchestrator] BLOG SPP échec (non bloquant): ${msg}`)
+    }
+  }
+
+  return { published, errors }
 }

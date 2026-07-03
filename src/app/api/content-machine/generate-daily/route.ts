@@ -4,7 +4,11 @@ import { askClaude } from '@/lib/content-machine/anthropic'
 import { generateKieImage, generateKieVideo } from '@/lib/content-machine/kie-ai'
 import { generateVoiceover, BRAND_VOICES } from '@/lib/content-machine/elevenlabs'
 import { publishDueScheduledBlogPosts } from '@/lib/sparkexecute/publishers/scheduled-blog'
-import { ensureCalendarCoverage, pushTodayToGhl } from '@/lib/content-machine/orchestrator'
+import {
+  ensureCalendarCoverage,
+  pushTodayToGhl,
+  generateAndPublishSppArticles,
+} from '@/lib/content-machine/orchestrator'
 import { sendVisibilityDigestEmail } from '@/lib/notifications'
 
 const CRON_SECRET = process.env.CRON_SECRET
@@ -171,6 +175,25 @@ export async function POST(req: Request) {
     console.error('[orchestrator] ensureCalendarCoverage échoué (non bloquant):', e)
   }
 
+  // Articles de blog Concours SPP du jour : générés et publiés directement
+  // sur le site (méthode uniquement, blindage anti-invention). Marque leurs
+  // entrées calendrier en 'generated' AVANT la boucle ci-dessous, pour
+  // qu'elles ne passent jamais par le pipeline image/vidéo.
+  let sppBlog: unknown = null
+  try {
+    const blogResult = await generateAndPublishSppArticles(supabase)
+    sppBlog = blogResult
+    if (blogResult.published.length > 0) {
+      calendarInfo += ` · Blog SPP : ${blogResult.published.length} article(s) publié(s)`
+    }
+    if (blogResult.errors.length > 0) {
+      calendarInfo += ` · Blog SPP : ${blogResult.errors.length} échec(s)`
+    }
+  } catch (e) {
+    console.error('[orchestrator] Blog SPP échoué (non bloquant):', e)
+    sppBlog = { error: e instanceof Error ? e.message : 'Erreur inconnue' }
+  }
+
   try {
     // Recuperer les entrees du calendrier pour aujourd'hui
     const { data: entries, error: fetchError } = await supabase
@@ -200,6 +223,10 @@ export async function POST(req: Request) {
 
     // Traiter chaque entree sequentiellement (queue pattern)
     for (const entry of entries as CalendarEntry[]) {
+      // Les articles de blog sont traités par generateAndPublishSppArticles,
+      // jamais par le pipeline image/vidéo ci-dessous.
+      if (entry.content_type === 'blog_article') continue
+
       try {
         // === VIDÉO : pipeline spécial ===
         if (entry.content_type === 'video') {
@@ -404,6 +431,7 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
       errors: errorCount,
       details: results,
       scheduledBlog,
+      sppBlog,
       orchestration,
     })
   } catch (error) {
