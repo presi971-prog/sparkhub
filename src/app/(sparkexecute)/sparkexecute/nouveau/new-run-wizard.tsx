@@ -37,6 +37,17 @@ import { RUN_TYPE_AVAILABLE_V1 } from '@/lib/sparkexecute/type-mapping'
 import { BRAND_PROFILES, DEFAULT_BRAND_ID } from '@/lib/sparkexecute/brand'
 import type { RunInputBrief, RunType } from '@/lib/sparkexecute/types'
 
+/**
+ * Suggestions tirées du dernier scan SparkScan de l'utilisateur :
+ *  - topics = questions que de vrais clients posent aux IA (sujets prêts)
+ *  - keywords = mots-clés où le site ranke en positions 4-20 (à renforcer)
+ */
+export interface ScanSuggestions {
+  host: string
+  topics: string[]
+  keywords: { keyword: string; position: number }[]
+}
+
 interface TypeCard {
   type: RunType
   label: string
@@ -132,7 +143,11 @@ const TYPE_CARDS: TypeCard[] = [
   },
 ]
 
-export function NewRunWizard() {
+export function NewRunWizard({
+  scanSuggestions = null,
+}: {
+  scanSuggestions?: ScanSuggestions | null
+}) {
   const router = useRouter()
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedType, setSelectedType] = useState<RunType | null>(null)
@@ -321,6 +336,83 @@ export function NewRunWizard() {
               Plus tu précises, plus le livrable colle à ton besoin. Seul le sujet est obligatoire.
             </p>
           </header>
+
+          {scanSuggestions && (
+            <aside className="mb-5 rounded-xl border border-[#10B981]/25 bg-[#10B981]/[0.06] p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0B7A5C]">
+                Depuis ton dernier scan · {scanSuggestions.host}
+              </p>
+              {scanSuggestions.topics.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[12.5px] text-[#5E626C]">
+                    Sujets que de vrais clients demandent aux IA (clique pour
+                    remplir le sujet) :
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {scanSuggestions.topics.map((topic) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => setBrief((b) => ({ ...b, sujet: topic }))}
+                        className={`rounded-full border px-3 py-1.5 text-left text-[12px] transition ${
+                          brief.sujet === topic
+                            ? 'border-[#10B981] bg-[#10B981] text-white'
+                            : 'border-[#10B981]/40 bg-white text-[#0F1115] hover:border-[#10B981]'
+                        }`}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {scanSuggestions.keywords.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[12.5px] text-[#5E626C]">
+                    Mots-clés où ton site est déjà classé mais pas premier
+                    (clique pour les ajouter aux mots-clés) :
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {scanSuggestions.keywords.map((k) => {
+                      const active = motsClesInput
+                        .split(',')
+                        .map((s) => s.trim())
+                        .includes(k.keyword)
+                      return (
+                        <button
+                          key={k.keyword}
+                          type="button"
+                          onClick={() =>
+                            setMotsClesInput((prev) => {
+                              const list = prev
+                                .split(',')
+                                .map((s) => s.trim())
+                                .filter(Boolean)
+                              return (
+                                list.includes(k.keyword)
+                                  ? list.filter((s) => s !== k.keyword)
+                                  : [...list, k.keyword]
+                              ).join(', ')
+                            })
+                          }
+                          className={`rounded-full border px-3 py-1.5 font-mono text-[11.5px] transition ${
+                            active
+                              ? 'border-[#10B981] bg-[#10B981] text-white'
+                              : 'border-[#10B981]/40 bg-white text-[#0F1115] hover:border-[#10B981]'
+                          }`}
+                        >
+                          {k.keyword}
+                          <span className={active ? 'ml-1.5 text-white/70' : 'ml-1.5 text-[#A8ACB5]'}>
+                            #{k.position}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </aside>
+          )}
 
           <form
             onSubmit={handleSubmit}

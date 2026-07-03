@@ -1,19 +1,69 @@
 /**
- * Suivi — placeholder V1.1.
+ * Suivi — l'évolution de ta visibilité, scan après scan.
  *
- * En V1, le journal de bord est déjà affiché sur le dashboard. La page Suivi
- * dédiée arrivera en V1.1 avec graphes de progression, comparatif d'un mois
- * sur l'autre, indicateurs SparkScan (delta du score Perplexity, etc.).
+ * Page fine : auth + lecture des scans terminés de l'utilisateur, puis
+ * délègue tout l'affichage à <SuiviContent /> (composant pur, testable).
  */
 
-import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/server'
+import {
+  groupScansBySite,
+  SuiviContent,
+  type KeywordRow,
+  type SuiviScanRow,
+} from '@/components/sparkpilot/suivi/suivi-content'
 
 export const metadata = {
-  title: 'Suivi · à venir',
+  title: 'Suivi',
 }
 
-export default function SparkPilotSuiviPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function SparkPilotSuiviPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ site?: string }>
+}) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/connexion?redirectTo=/sparkpilot/suivi')
+  }
+
+  const { site } = await searchParams
+
+  const { data: scanRows } = await supabase
+    .from('sparkscan_scans')
+    .select(
+      'id, input_url, zone, status, created_at, completed_at, ranked_keywords_count, geo_citations',
+    )
+    .eq('user_id', user.id)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: true })
+    .limit(200)
+
+  const scans = (scanRows ?? []) as SuiviScanRow[]
+
+  // Positions de mots-clés des 2 derniers scans du site sélectionné
+  // (le RLS de sparkscan_keywords limite déjà aux lignes de l'utilisateur).
+  const { siteScans } = groupScansBySite(scans, site)
+  const lastTwoIds = siteScans.slice(-2).map((s) => s.id)
+  let keywordRows: KeywordRow[] = []
+  if (lastTwoIds.length > 0) {
+    const { data: kwRows } = await supabase
+      .from('sparkscan_keywords')
+      .select('scan_id, keyword, position, search_volume, ranked_url')
+      .in('scan_id', lastTwoIds)
+      .order('position', { ascending: true })
+      .limit(400)
+    keywordRows = (kwRows ?? []) as KeywordRow[]
+  }
+
   return (
     <div className="relative mx-auto max-w-[1240px] px-5 py-10 sm:px-8 sm:py-14">
       <nav
@@ -26,32 +76,7 @@ export default function SparkPilotSuiviPage() {
         <span className="text-[#A8ACB5]">/</span>
         <span className="text-[#0F1115]">Suivi</span>
       </nav>
-
-      <div className="rounded-2xl border border-[#E9E5D9] bg-white p-10 text-center shadow-[0_1px_0_rgba(15,17,21,0.04),0_1px_2px_rgba(15,17,21,0.04)] sm:p-14">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#EEF0FF] text-[#4F46E5]">
-          <Sparkles className="h-6 w-6" />
-        </span>
-        <h1
-          className="mt-6 text-[32px] leading-tight tracking-tight sm:text-[40px]"
-          style={{ fontFamily: 'var(--font-instrument-serif), Georgia, serif' }}
-        >
-          Bientôt — le suivi
-        </h1>
-        <p className="mx-auto mt-3 max-w-lg text-[14.5px] leading-relaxed text-[#5E626C]">
-          On prépare la page suivi : courbe de progression de ton plan, comparaison
-          d&apos;un mois sur l&apos;autre, et delta de ton score SparkScan après
-          chaque action.
-        </p>
-        <p className="mx-auto mt-2 max-w-lg text-[13px] text-[#5E626C]">
-          En attendant, le journal de bord est déjà visible sur le tableau de bord.
-        </p>
-        <Link
-          href="/sparkpilot"
-          className="mt-6 inline-flex h-10 items-center rounded-lg bg-[#0F1115] px-4 text-[13.5px] font-medium text-[#F7F5EF] transition hover:bg-[#22252C]"
-        >
-          Retour au tableau de bord
-        </Link>
-      </div>
+      <SuiviContent scans={scans} selectedSite={site} keywordRows={keywordRows} />
     </div>
   )
 }

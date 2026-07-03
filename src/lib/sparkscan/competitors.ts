@@ -18,6 +18,7 @@ import { after } from 'next/server'
 import {
   extractDomain,
   countRankedKeywordsTop20,
+  fetchRankedKeywordsTop20,
   findCompetitorsByDomain,
   type Competitor,
 } from './dataforseo'
@@ -294,7 +295,7 @@ async function runScanPipelineInternal(
   scanId: string,
   input: AnalyzeInput,
 ): Promise<AnalyzeOutput> {
-  const { url, zone, niveauZone, langue, clientContext, supabaseAdmin } = input
+  const { userId, url, zone, niveauZone, langue, clientContext, supabaseAdmin } = input
   const domain = extractDomain(url)
 
   // Helper local : envoie l'étape en cours dans la colonne progress (non bloquant).
@@ -319,6 +320,46 @@ async function runScanPipelineInternal(
     console.log(
       `[SparkScan] MATURITY ${maturityStatus} (count=${count}, cost=$${countCost})`,
     )
+
+    // 2bis. Rank tracking : liste des mots-clés + positions du site cible,
+    // persistée dans sparkscan_keywords pour la page Suivi (delta scan à scan).
+    // Non bloquant : un échec ici ne doit jamais faire échouer le scan.
+    if (count > 0) {
+      try {
+        const { keywords, cost: kwCost } = await fetchRankedKeywordsTop20(
+          domain,
+          zone,
+          langue,
+        )
+        totalCost += kwCost
+        if (keywords.length > 0) {
+          const { error: kwError } = await supabaseAdmin
+            .from('sparkscan_keywords')
+            .insert(
+              keywords.map((k) => ({
+                scan_id: scanId,
+                user_id: userId,
+                keyword: k.keyword,
+                position: k.position,
+                search_volume: k.search_volume,
+                ranked_url: k.ranked_url,
+              })),
+            )
+          if (kwError) {
+            console.error(
+              `[SparkScan] KEYWORDS insert failed (non bloquant): ${kwError.message}`,
+            )
+          } else {
+            console.log(
+              `[SparkScan] KEYWORDS saved ${keywords.length} positions (cost=$${kwCost})`,
+            )
+          }
+        }
+      } catch (kwErr) {
+        const kwMsg = kwErr instanceof Error ? kwErr.message : String(kwErr)
+        console.error(`[SparkScan] KEYWORDS fetch failed (non bloquant): ${kwMsg}`)
+      }
+    }
 
     // 3-7. Pipeline méthode A ou B
     const pipelineOut =

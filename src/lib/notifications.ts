@@ -174,3 +174,59 @@ export async function sendNewBadgeEmail(
     `
   })
 }
+
+// ============================================================
+// SparkPilot — Récap visibilité après re-scan automatique
+// ============================================================
+
+interface VisibilityRecapMetric {
+  label: string
+  current: string
+  delta: string | null
+  /** 'up' = bonne nouvelle, 'down' = mauvaise, 'flat' = stable */
+  direction: 'up' | 'down' | 'flat'
+}
+
+/**
+ * Email récap envoyé après le re-scan hebdo automatique : compare le nouveau
+ * scan au précédent (score IA, rang, mots-clés) et renvoie vers la page Suivi.
+ * Tutoiement, rendu sobre, pas de tiret long (règle de style Thierry).
+ */
+export async function sendVisibilityRecapEmail(
+  email: string,
+  host: string,
+  metrics: VisibilityRecapMetric[],
+) {
+  const COLORS = { up: '#3E6B4A', down: '#B3382C', flat: '#6B7280' }
+  const rows = metrics
+    .map(
+      (m) => `
+      <tr>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #E9E5D9; color: #5E626C; font-size: 13px;">${m.label}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #E9E5D9; font-weight: 600; font-size: 14px;">${m.current}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #E9E5D9; font-size: 13px; color: ${COLORS[m.direction]};">${m.delta ?? ''}</td>
+      </tr>`,
+    )
+    .join('')
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: `📈 Ton point visibilité : ${host}`,
+    html: `
+      <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #0F1115;">
+        <h2 style="font-weight: 600;">Ton point visibilité</h2>
+        <p style="color: #5E626C;">SparkScan vient de re-scanner <strong>${host}</strong> automatiquement. Voici ce qui a bougé depuis le scan précédent :</p>
+        <table style="width: 100%; border-collapse: collapse; background: #FFFFFF; border: 1px solid #E9E5D9; border-radius: 8px;">
+          ${rows}
+        </table>
+        <p style="margin-top: 20px;">
+          <a href="${APP_URL}/sparkpilot/suivi" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px;">
+            Voir les courbes complètes
+          </a>
+        </p>
+        <p style="color: #A8ACB5; font-size: 12px; margin-top: 24px;">Re-scan automatique hebdomadaire. Le rapport complet du scan est disponible dans SparkScan.</p>
+      </div>
+    `,
+  })
+}

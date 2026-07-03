@@ -244,6 +244,77 @@ export async function countRankedKeywordsTop20(
 }
 
 // ------------------------------------------------------------
+// Endpoint 1bis : Ranked Keywords (liste complète pour le rank tracking)
+// ------------------------------------------------------------
+
+interface RankedKeywordItemRaw {
+  keyword_data?: {
+    keyword?: string
+    keyword_info?: { search_volume?: number }
+  }
+  ranked_serp_element?: {
+    serp_item?: {
+      rank_group?: number
+      url?: string
+    }
+  }
+}
+
+export interface RankedKeyword {
+  keyword: string
+  /** Position Google (rank_group, 1 = première place). */
+  position: number
+  search_volume: number | null
+  ranked_url: string | null
+}
+
+/**
+ * List the keywords this domain ranks for in Google's top 20, with positions.
+ * Same endpoint as countRankedKeywordsTop20 but items are read AND returned,
+ * to be persisted in sparkscan_keywords (rank tracking scan après scan).
+ */
+export async function fetchRankedKeywordsTop20(
+  domain: string,
+  zone: string,
+  languageCode: string,
+  limit: number = 100,
+): Promise<{ keywords: RankedKeyword[]; cost: number }> {
+  const tasks = [
+    {
+      target: domain,
+      location_code: mapZoneToLocationCode(zone),
+      language_code: languageCode,
+      filters: [
+        ['ranked_serp_element.serp_item.rank_group', '<=', 20],
+      ],
+      order_by: ['ranked_serp_element.serp_item.rank_group,asc'],
+      limit,
+    },
+  ]
+  const json = await dataforseoFetch<{ items?: RankedKeywordItemRaw[] }>(
+    '/dataforseo_labs/google/ranked_keywords/live',
+    tasks,
+  )
+  const task = json.tasks?.[0]
+  const items = task?.result?.[0]?.items ?? []
+  const seen = new Set<string>()
+  const keywords: RankedKeyword[] = []
+  for (const it of items) {
+    const keyword = it.keyword_data?.keyword?.trim()
+    const position = it.ranked_serp_element?.serp_item?.rank_group
+    if (!keyword || !position || seen.has(keyword)) continue
+    seen.add(keyword)
+    keywords.push({
+      keyword,
+      position,
+      search_volume: it.keyword_data?.keyword_info?.search_volume ?? null,
+      ranked_url: it.ranked_serp_element?.serp_item?.url ?? null,
+    })
+  }
+  return { keywords, cost: task?.cost ?? 0 }
+}
+
+// ------------------------------------------------------------
 // Endpoint 2 : Competitors Domain (method A)
 // ------------------------------------------------------------
 
