@@ -241,9 +241,35 @@ const PLATFORM_SLOTS_UTC: Partial<Record<SocialPlatform, { h: number; m: number 
   youtube: { h: 20, m: 0 },
 }
 
+/**
+ * SÉPARATION STRICTE DES MARQUES : la location GHL contient les comptes de
+ * PLUSIEURS entités (Cobeone, DCG AI, Concours SPP, Locavore…). Chaque marque
+ * ne publie QUE sur les comptes listés ici, identifiés par leur NOM EXACT
+ * dans GHL. Si un compte est renommé, la publication échoue avec une alerte
+ * dans le digest (échec sûr) plutôt que de publier sur la mauvaise page.
+ */
+const BRAND_SOCIAL_ACCOUNT_NAMES: Record<string, Partial<Record<SocialPlatform, string[]>>> = {
+  'dcg-ai': {
+    facebook: ['DCG AI'],
+    instagram: ['dcg.ai'],
+    linkedin: ['Digital Code Growth'],
+    google_business: ['Digital Code Growth'],
+    tiktok: ['DCG AI'],
+    // youtube : la chaîne connectée (Dom-Com Digital Expert) n'est pas DCG AI.
+  },
+  'concours-spp': {
+    facebook: ['Concours SPP'],
+    instagram: ['concours.spp'],
+  },
+}
+
 /** Réseaux visés selon le type de contenu (cadences agressives du plan).
  *  LinkedIn ne reçoit qu'1 contenu/jour max : le post ou le carrousel, pas les 2. */
-function platformsForContent(contentType: string, isoDay: number): SocialPlatform[] {
+function platformsForContent(
+  contentType: string,
+  isoDay: number,
+  brandSlug: string,
+): SocialPlatform[] {
   const base: Record<string, SocialPlatform[]> = {
     post_image: ['facebook', 'instagram', 'linkedin'],
     carousel: ['facebook', 'instagram', 'linkedin'],
@@ -252,7 +278,9 @@ function platformsForContent(contentType: string, isoDay: number): SocialPlatfor
   const platforms = [...(base[contentType] ?? ['facebook'])]
   // Post Google 2x/semaine : mardi et vendredi (jours carrousel DCG AI)
   if (isoDay === 2 || isoDay === 5) platforms.push('google_business')
-  return platforms
+  // Une marque ne vise que les réseaux où elle a un compte déclaré.
+  const allowed = BRAND_SOCIAL_ACCOUNT_NAMES[brandSlug] ?? {}
+  return platforms.filter((p) => (allowed[p] ?? []).length > 0)
 }
 
 interface PushSummaryItem {
@@ -278,53 +306,63 @@ export async function pushTodayToGhl(
   const today = new Date().toISOString().split('T')[0]
   const isoDay = new Date().getUTCDay() === 0 ? 7 : new Date().getUTCDay()
 
-  // Seule marque câblée aux comptes sociaux GHL (location DCG AI) en V1.
+  // Marques câblées à des comptes sociaux (séparation stricte par nom de compte).
+  const wiredSlugs = Object.keys(BRAND_SOCIAL_ACCOUNT_NAMES)
   const { data: brandRows } = await supabase
     .from('cm_brands')
     .select('id, slug, name')
-    .eq('slug', 'dcg-ai')
-    .limit(1)
-  const brand = (brandRows ?? [])[0]
-  if (!brand) return { pushed: [], skipped: 0 }
-
-  const { data: entries } = await supabase
-    .from('cm_calendar')
-    .select('id, date, content_type, theme')
-    .eq('brand_id', brand.id)
-    .eq('date', today)
-  if (!entries || entries.length === 0) return { pushed: [], skipped: 0 }
-
-  const calendarIds = entries.map((e: { id: string }) => e.id)
-  const { data: contents, error: contentsError } = await supabase
-    .from('cm_contents')
-    .select('id, calendar_id, content_type, text_content, status, pushed_at')
-    .in('calendar_id', calendarIds)
-    .in('status', ['pending', 'approved', 'modified'])
-    .is('pushed_at', null)
-
-  if (contentsError) {
-    // Cas typique : migration 057 (pushed_at) pas encore appliquée.
-    console.error(`[orchestrator] Lecture cm_contents impossible: ${contentsError.message}`)
-    return { pushed: [], skipped: -1 }
-  }
-  if (!contents || contents.length === 0) return { pushed: [], skipped: 0 }
+    .in('slug', wiredSlugs)
+  const brands = (brandRows ?? []) as { id: string; slug: string; name: string }[]
+  if (brands.length === 0) return { pushed: [], skipped: 0 }
 
   let accounts: SocialAccountsByPlatform
   try {
     accounts = await listConnectedSocialAccounts()
   } catch (err) {
     console.error(`[orchestrator] Comptes GHL illisibles: ${err instanceof Error ? err.message : err}`)
-    return { pushed: [], skipped: contents.length }
+    return { pushed: [], skipped: -1 }
   }
-  const accountIds = Object.fromEntries(
-    Object.entries(accounts).map(([platform, list]) => [
-      platform,
-      (list ?? []).map((a) => a.id),
-    ]),
-  ) as Record<SocialPlatform, string[]>
+
+  /** Ids de comptes autorisés pour une marque, plateforme par plateforme. */
+  function brandAccountIds(brandSlug: string): Record<SocialPlatform, string[]> {
+    const allowed = BRAND_SOCIAL_ACCOUNT_NAMES[brandSlug] ?? {}
+    return Object.fromEntries(
+      Object.entries(accounts).map(([platform, list]) => [
+        platform,
+        (list ?? [])
+          .filter((a) => (allowed[platform as SocialPlatform] ?? []).includes(a.name))
+          .map((a) => a.id),
+      ]),
+    ) as Record<SocialPlatform, string[]>
+  }
 
   const pushed: PushSummaryItem[] = []
   let skipped = 0
+
+  for (const brand of brands) {
+    const accountIds = brandAccountIds(brand.slug)
+
+    const { data: entries } = await supabase
+      .from('cm_calendar')
+      .select('id, date, content_type, theme')
+      .eq('brand_id', brand.id)
+      .eq('date', today)
+    if (!entries || entries.length === 0) continue
+
+    const calendarIds = entries.map((e: { id: string }) => e.id)
+    const { data: contents, error: contentsError } = await supabase
+      .from('cm_contents')
+      .select('id, calendar_id, content_type, text_content, status, pushed_at')
+      .in('calendar_id', calendarIds)
+      .in('status', ['pending', 'approved', 'modified'])
+      .is('pushed_at', null)
+
+    if (contentsError) {
+      // Cas typique : migration 057 (pushed_at) pas encore appliquée.
+      console.error(`[orchestrator] Lecture cm_contents impossible: ${contentsError.message}`)
+      return { pushed, skipped: -1 }
+    }
+    if (!contents || contents.length === 0) continue
 
   for (const content of contents) {
     const entry = entries.find((e: { id: string }) => e.id === content.calendar_id)
@@ -359,7 +397,7 @@ export async function pushTodayToGhl(
       },
     } as unknown as SparkexecuteRun
 
-    const platforms = platformsForContent(entry.content_type, isoDay)
+    const platforms = platformsForContent(entry.content_type, isoDay, brand.slug)
     const item: PushSummaryItem = {
       content_id: content.id,
       brand: brand.slug,
@@ -407,6 +445,7 @@ export async function pushTodayToGhl(
     }
 
     pushed.push(item)
+  }
   }
 
   return { pushed, skipped }
