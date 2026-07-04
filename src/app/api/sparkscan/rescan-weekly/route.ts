@@ -29,6 +29,7 @@ import {
 } from '@/lib/sparkscan/competitors'
 import { extractDomain } from '@/lib/sparkscan/dataforseo'
 import { decomposeReportToTasks } from '@/lib/sparkpilot/decompose'
+import { fetchBusinessMetrics } from '@/lib/sparkexecute/publishers/ghl-metrics'
 import {
   sendVisibilityRecapEmail,
   sendWeeklyHumanTasksEmail,
@@ -375,6 +376,34 @@ async function handleReport(
       kwDelta === null ? null : kwDelta === 0 ? 'stable' : `${kwDelta > 0 ? '+' : ''}${kwDelta}`,
     direction: dir(kwDelta),
   })
+
+  // Chiffres BUSINESS (pas seulement la visibilité) : la visibilité n'est
+  // qu'un moyen, ce qui compte c'est si elle se transforme en conversations
+  // et rendez-vous. Lus en direct dans GHL (location DCG AI uniquement :
+  // GHL_DCGAI_LOCATION_ID n'a de sens que pour ce domaine).
+  if (host === 'digital-code-growth.com') {
+    try {
+      const business = await fetchBusinessMetrics(7)
+      if (business.demoAppointments !== null) {
+        metrics.push({
+          label: 'RDV de démo pris (7 derniers jours)',
+          current: `${business.demoAppointments}`,
+          delta: null,
+          direction: 'flat',
+        })
+      }
+      if (business.activeConversations !== null) {
+        metrics.push({
+          label: 'Conversations actives (7 derniers jours)',
+          current: `${business.activeConversations}`,
+          delta: null,
+          direction: 'flat',
+        })
+      }
+    } catch (err) {
+      console.error('[SparkScan][CRON] Métriques business échouées (non bloquant):', err)
+    }
+  }
 
   await sendVisibilityRecapEmail(email, host, metrics)
   await admin
