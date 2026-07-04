@@ -183,7 +183,9 @@ ${ficheA}
 === FICHE ${metierB.label} ===
 ${ficheB}`
     } else if (brand.slug === 'concours-spp') {
-      grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel. Format : CARROUSEL PÉDAGOGIQUE (méthode pas-à-pas, organisation de révision, préparation mentale ou physique GÉNÉRALE). Une série de posts courts de motivation tourne déjà tous les jours sur ces comptes : NE PAS faire de la motivation, faire de la MÉTHODE structurée. RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre de barème, aucune date d'épreuve, aucun contenu d'annale : uniquement de la méthode générale.`
+      grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel. Une série de posts courts de motivation tourne déjà tous les jours sur ces comptes : NE PAS faire de la motivation, faire de la MÉTHODE structurée.
+CONTINUITÉ ÉDITORIALE : les thèmes de la semaine forment une mini-série : l'article de blog du mardi ouvre un sujet de méthode, le CARROUSEL du mercredi en donne la version résumée en 5 étapes (même sujet, angle "les 5 clés"), l'article du samedi ouvre un sujet différent. Le thème du carrousel doit se terminer par : (renvoi : article complet gratuit sur le blog, lien en bio).
+RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre de barème, aucune date d'épreuve, aucun contenu d'annale : uniquement de la méthode générale.`
     } else if (brand.slug === 'transpoquickd') {
       grounding = `Thèmes ancrés sur le transport de marchandises en Guadeloupe (livraison locale, fiabilité, entreprise guadeloupéenne). Sobre et factuel : l'entreprise démarre, AUCUNE promesse chiffrée, aucun faux témoignage.`
     }
