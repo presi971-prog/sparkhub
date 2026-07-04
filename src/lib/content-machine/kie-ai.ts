@@ -38,7 +38,7 @@ export async function createKieImageTask(prompt: string, aspectRatio: string = '
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'nano-banana-pro',
+      model: 'nano-banana-2',
       input: {
         prompt,
         aspect_ratio: aspectRatio,
@@ -194,7 +194,7 @@ export async function generateKieImageWithRef(prompt: string, imageUrl: string, 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'nano-banana-pro',
+      model: 'nano-banana-2',
       input: {
         prompt,
         image_input: [imageUrl],

@@ -373,6 +373,15 @@ JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", 
           }
         }
 
+        // Un post/carrousel SANS image n'est pas un succès : on marque l'entrée
+        // en erreur plutôt que de créer un contenu impubliable (constaté 04/07 :
+        // "succès" silencieux avec 0 asset → 422 GHL au moment du push).
+        if (assets.length === 0) {
+          throw new Error(
+            'Aucune image générée (crédits ou API Kie) : contenu non créé, entrée en erreur.',
+          )
+        }
+
         // 3. Stocker le contenu
         const { data: content, error: contentError } = await supabase
           .from('cm_contents')

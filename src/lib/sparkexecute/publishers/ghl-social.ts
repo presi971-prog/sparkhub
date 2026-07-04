@@ -181,6 +181,9 @@ async function publishOnePlatform(
     body.media = carouselUrls.map((u) => ({ url: u, type: mimeFromUrl(u) }))
   } else if (mediaUrl) {
     body.media = [{ url: mediaUrl, type: mimeFromUrl(mediaUrl) }]
+  } else {
+    // Texte seul : GHL EXIGE un tableau media, meme vide (422 sinon, constate 04/07).
+    body.media = []
   }
 
   // GHL EXIGE une date de publication, sinon HTTP 400. Pas de date fournie =
