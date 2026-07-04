@@ -624,6 +624,29 @@ async function runMethodA(
   )
   console.log(`[MethodA] TOP after qualify: ${top.length}`)
 
+  // "Concurrent connu" = TOUJOURS dans le rapport final (même logique que
+  // méthode B) : selectTopCompetitors peut l'exclure (score bas / 'noise') si
+  // son site est peu scrapable. On le réinjecte s'il manque.
+  if (knownOnlyA.length > 0) {
+    const topDomainsA = new Set(top.map((c) => c.domain.toLowerCase()))
+    for (const known of knownOnlyA) {
+      if (topDomainsA.has(known.domain.toLowerCase())) continue
+      const candidate = candidatesWithKey.find((c) => c.domain === known.domain)
+      if (!candidate) continue
+      const judgment = judgments.find((j) => j.key === candidate.qualifierKey)
+      top.push({
+        ...candidate,
+        qualification: judgment?.qualification === 'noise' ? 'indirect' : (judgment?.qualification ?? 'direct'),
+        relevance_score: judgment?.relevance_score ?? 50,
+        reason: judgment
+          ? `${judgment.reason} (concurrent ajouté manuellement, toujours inclus)`
+          : 'Concurrent ajouté manuellement (non jugé automatiquement) — toujours inclus dans le rapport.',
+        confidence: judgment?.confidence ?? 'low',
+      })
+      console.log(`[MethodA] CONCURRENT CONNU réintégré de force (hors top ${TOP_COMPETITORS_TO_ENRICH} auto) : ${known.domain}`)
+    }
+  }
+
   await onProgress('enricher', 'Analyse des forces / faiblesses des 10 meilleurs', 55)
   // A4. Enrichir top 10 (parallèle)
   const enrichInputs: EnrichInput[] = top.map((c) => ({
@@ -1083,6 +1106,37 @@ async function runMethodB(
     judgments,
     TOP_COMPETITORS_TO_ENRICH,
   )
+
+  // "Concurrent connu" = TOUJOURS dans le rapport final, pas juste candidat au
+  // tri auto. selectTopCompetitors coupe au topN par score et exclut les
+  // jugements 'noise' : un concurrent manuel mal classé (site peu scrapable,
+  // ex. page Podia rendue en JS) disparaissait silencieusement (constaté sur
+  // Pharos Academy le 04/07/2026). On le réinjecte s'il manque, avec son
+  // propre jugement s'il existe, sinon une entrée neutre explicite.
+  const knownDomainsSetB = new Set(knownCompetitors
+    .map((raw) => normalizeDomain(raw.startsWith('http') ? raw : `https://${raw}`))
+    .filter((d): d is string => !!d))
+  if (knownDomainsSetB.size > 0) {
+    const topDomains = new Set(
+      top.map((p) => normalizeDomain(p.website)).filter((d): d is string => !!d),
+    )
+    for (const domain of knownDomainsSetB) {
+      if (topDomains.has(domain)) continue
+      const place = placesWithKey.find((p) => normalizeDomain(p.website) === domain)
+      if (!place) continue // n'a pas survécu au cap de 40 candidats (cas extrême)
+      const judgment = judgments.find((j) => j.key === place.qualifierKey)
+      top.push({
+        ...place,
+        qualification: judgment?.qualification === 'noise' ? 'indirect' : (judgment?.qualification ?? 'direct'),
+        relevance_score: judgment?.relevance_score ?? 50,
+        reason: judgment
+          ? `${judgment.reason} (concurrent ajouté manuellement, toujours inclus)`
+          : 'Concurrent ajouté manuellement (non jugé automatiquement) — toujours inclus dans le rapport.',
+        confidence: judgment?.confidence ?? 'low',
+      })
+      console.log(`[MethodB] CONCURRENT CONNU réintégré de force (hors top ${TOP_COMPETITORS_TO_ENRICH} auto) : ${domain}`)
+    }
+  }
 
   await onProgress('enricher', 'Analyse des forces / faiblesses des 10 meilleurs', 65)
   // B6. Enrichir
