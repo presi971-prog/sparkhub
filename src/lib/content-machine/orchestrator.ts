@@ -412,9 +412,32 @@ export async function pushTodayToGhl(
       errors: [],
     }
 
+    // Garde-fou média (GHL refuse un post sans média sur la plupart des réseaux,
+    // constaté 04/07 : erreur 422 « media must be an array with media objects »).
+    const hasMedia = !!(imageUrl || videoUrl)
+    if (entry.content_type === 'video' && !videoUrl) {
+      item.errors.push({
+        platform: 'tous',
+        error: 'Vidéo non générée (vérifier les crédits Kie AI) : contenu non poussé.',
+      })
+      if (!dryRun) {
+        await supabase
+          .from('cm_contents')
+          .update({ pushed_at: new Date().toISOString(), push_results: { errors: item.errors } })
+          .eq('id', content.id)
+      }
+      pushed.push(item)
+      continue
+    }
+
     for (const platform of platforms) {
       const slot = PLATFORM_SLOTS_UTC[platform]
       if (!slot) continue
+      // Sans média : seuls Facebook et LinkedIn acceptent le texte seul.
+      if (!hasMedia && platform !== 'facebook' && platform !== 'linkedin') {
+        item.errors.push({ platform, error: 'Pas de média : réseau sauté (média requis).' })
+        continue
+      }
       const when = new Date()
       when.setUTCHours(slot.h, slot.m, 0, 0)
       // Créneau déjà passé (>-30 min) → demain même heure, plutôt que publier

@@ -2,7 +2,9 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_EMAIL = 'SparkHub <noreply@sparkhub.digital-code-growth.com>'
+// Le domaine d'envoi DOIT etre verifie dans Resend. sparkhub.digital-code-growth.com
+// ne l'etait pas : TOUS les emails partaient en erreur 403 silencieuse (constate 04/07).
+const FROM_EMAIL = 'SparkHub <machine@digital-code-growth.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkhub.digital-code-growth.com'
 
 // ============================================================
@@ -209,7 +211,7 @@ export async function sendVisibilityRecapEmail(
     )
     .join('')
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: `📈 Ton point visibilité : ${host}`,
@@ -229,6 +231,9 @@ export async function sendVisibilityRecapEmail(
       </div>
     `,
   })
+  if (error) {
+    throw new Error('Resend a refuse l envoi : ' + (error.message ?? JSON.stringify(error)))
+  }
 }
 
 // ============================================================
@@ -287,7 +292,7 @@ export async function sendVisibilityDigestEmail(
     })
     .join('')
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
     subject:
@@ -307,6 +312,9 @@ export async function sendVisibilityDigestEmail(
       </div>
     `,
   })
+  if (error) {
+    throw new Error('Resend a refuse l envoi : ' + (error.message ?? JSON.stringify(error)))
+  }
 }
 
 // ============================================================
@@ -341,7 +349,7 @@ export async function sendWeeklyHumanTasksEmail(
     )
     .join('')
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: `📋 Ta semaine visibilité : ${tasks.length} tâche${tasks.length > 1 ? 's' : ''} + les 4 rituels`,
@@ -363,4 +371,7 @@ export async function sendWeeklyHumanTasksEmail(
       </div>
     `,
   })
+  if (error) {
+    throw new Error('Resend a refuse l envoi : ' + (error.message ?? JSON.stringify(error)))
+  }
 }
