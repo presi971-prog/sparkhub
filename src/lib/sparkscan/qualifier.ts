@@ -47,6 +47,10 @@ export interface ClientContext {
   ad_budget: 'none' | 'under_300' | '300_1000' | '1000_plus'
   /** Horizon visé pour mesurer les résultats. */
   horizon: '30j' | '90j' | '6m'
+  /** Domaines de concurrents déjà repérés à la main (découverte terrain) à
+   *  toujours inclure dans le scan, même s'ils échappent à la découverte
+   *  automatique (DataForSEO/Maps/Perplexity/Brave). Optionnel. */
+  known_competitors?: string[]
 }
 
 export interface TargetContext {

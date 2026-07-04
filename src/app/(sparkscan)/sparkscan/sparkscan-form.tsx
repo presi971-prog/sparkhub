@@ -156,6 +156,7 @@ export function SparkScanForm({
   const [adBudget, setAdBudget] =
     useState<ClientContextInput['ad_budget']>('none')
   const [horizon, setHorizon] = useState<ClientContextInput['horizon']>('90j')
+  const [knownCompetitors, setKnownCompetitors] = useState('')
 
   // Auto-reprise d'un scan interrompu (onglet fermé puis rouvert) : si un
   // scan_id est dans le localStorage et qu'il a moins de 30 min, on reprend
@@ -215,6 +216,10 @@ export function SparkScanForm({
             monthly_budget: monthlyBudget,
             ad_budget: adBudget,
             horizon,
+            known_competitors: knownCompetitors
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean),
           },
         }),
       })
@@ -615,6 +620,30 @@ export function SparkScanForm({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Concurrents connus (découverte terrain) */}
+          <div className="space-y-2 sm:col-span-2">
+            <label
+              htmlFor="known-competitors"
+              className={labelClass}
+              style={{ fontFamily: 'var(--font-geist-mono)' }}
+            >
+              Concurrents que tu as déjà repérés (optionnel)
+            </label>
+            <input
+              id="known-competitors"
+              type="text"
+              disabled={isLocked}
+              value={knownCompetitors}
+              onChange={(e) => setKnownCompetitors(e.target.value)}
+              placeholder="ex : pharosacademy.podia.com, autreconcurrent.com"
+              className={selectClass}
+            />
+            <p className="text-xs text-slate-500">
+              Domaines séparés par des virgules. Toujours inclus dans le scan, même si la
+              découverte automatique les rate.
+            </p>
           </div>
         </div>
 

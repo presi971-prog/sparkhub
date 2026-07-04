@@ -184,6 +184,7 @@ export interface ClientContextInput {
   monthly_budget: 'none' | 'under_500' | '500_2000' | '2000_plus'
   ad_budget: 'none' | 'under_300' | '300_1000' | '1000_plus'
   horizon: '30j' | '90j' | '6m'
+  known_competitors?: string[]
 }
 
 export type ScanResult = {

@@ -537,10 +537,31 @@ async function runMethodA(
   const { competitors: rawCompetitors, cost: compCost } =
     await findCompetitorsByDomain(domain, zone, langue, MATURE_RAW_CANDIDATES)
   cost += compCost
-  const candidates = rawCompetitors.filter(
+  const autoCandidates = rawCompetitors.filter(
     (c) => c.domain.toLowerCase() !== domain.toLowerCase(),
   )
-  console.log(`[MethodA] RAW candidates after self-filter: ${candidates.length}`)
+  console.log(`[MethodA] RAW candidates after self-filter: ${autoCandidates.length}`)
+
+  // A1bis. Concurrents connus à la main (clientContext.known_competitors) —
+  // ajoutés s'ils ne sont pas déjà dans la découverte auto DataForSEO.
+  const knownDomainsA = (clientContext?.known_competitors ?? [])
+    .map((raw) => extractDomain(raw))
+    .filter((d) => d && d.toLowerCase() !== domain.toLowerCase())
+  const autoDomainsSetA = new Set(autoCandidates.map((c) => c.domain.toLowerCase()))
+  const knownOnlyA: Competitor[] = knownDomainsA
+    .filter((d) => !autoDomainsSetA.has(d.toLowerCase()))
+    .map((d, i) => ({
+      rank: autoCandidates.length + i + 1,
+      domain: d,
+      avg_position: null,
+      intersections: 0,
+      estimated_traffic: null,
+      shared_keywords: null,
+    }))
+  if (knownOnlyA.length > 0) {
+    console.log(`[MethodA] CONCURRENTS CONNUS (manuel) : ${knownOnlyA.map((c) => c.domain).join(', ')}`)
+  }
+  const candidates = [...autoCandidates, ...knownOnlyA]
 
   // A2. Contexte cible : fetch home pour titre + description
   const targetSignal = await safeFetchTargetSignal(url)
@@ -862,6 +883,40 @@ async function runMethodB(
   // loin, on garde TOUS les candidats web + remplit avec les meilleurs GMaps.
   // Sans ça, le cap mangeait les candidats web qui sont la valeur ajoutée V2.
   const placesByDomain = new Map<string, (typeof gmapsPlaces)[number]>()
+
+  // 0) Concurrents connus à la main (clientContext.known_competitors) —
+  // TOUJOURS inclus, prioritaires sur toute source auto. Utile quand une
+  // découverte terrain (ex: veille manuelle) trouve un acteur que
+  // DataForSEO/Maps/Perplexity/Brave ratent (site récent, mal indexé...).
+  const knownCompetitors = clientContext?.known_competitors ?? []
+  if (knownCompetitors.length > 0) {
+    const knownNames: string[] = []
+    for (const raw of knownCompetitors) {
+      const d = normalizeDomain(raw.startsWith('http') ? raw : `https://${raw}`)
+      if (!d || d === targetDomain) continue
+      placesByDomain.set(d, {
+        placeId: null,
+        name: d,
+        address: null,
+        phone: null,
+        website: `https://${d}`,
+        rating: null,
+        reviews: null,
+        category: null,
+        lat: null,
+        lng: null,
+        googleUrl: null,
+        matchedQueries: [],
+        avgPosition: null,
+        occurrences: 1,
+        source: 'web' as const,
+      })
+      knownNames.push(d)
+    }
+    if (knownNames.length > 0) {
+      console.log(`[MethodB] CONCURRENTS CONNUS (manuel) : ${knownNames.join(', ')}`)
+    }
+  }
 
   // 1) D'abord les candidats web Perplexity (rares, critiques, jamais cappés)
   if (webResult.status === 'fulfilled') {

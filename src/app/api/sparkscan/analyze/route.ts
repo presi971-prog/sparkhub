@@ -119,12 +119,20 @@ function sanitizeClientContext(raw: unknown): ClientContext | undefined {
     )
       ? (r.ad_budget as ClientContext['ad_budget'])
       : 'none'
+    // known_competitors : optionnel, tableau de strings courtes, cappé pour éviter tout abus.
+    const known_competitors = Array.isArray(r.known_competitors)
+      ? r.known_competitors
+          .filter((d): d is string => typeof d === 'string' && d.trim().length > 0)
+          .map((d) => d.trim().slice(0, 200))
+          .slice(0, 10)
+      : undefined
     return {
       objective: r.objective as ClientContext['objective'],
       team_size: r.team_size as ClientContext['team_size'],
       monthly_budget: r.monthly_budget as ClientContext['monthly_budget'],
       ad_budget,
       horizon: r.horizon as ClientContext['horizon'],
+      ...(known_competitors && known_competitors.length > 0 ? { known_competitors } : {}),
     }
   }
   return undefined
