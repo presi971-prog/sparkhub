@@ -111,19 +111,34 @@ export async function fetchVerifiedQuizQuestion(
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 /**
- * Accroches « orgueil » (demande Thierry 07/07 : décalé, toucher subtilement
- * la fierté du candidat pour déclencher la réponse — le format poli classique
- * ne fait pas commenter). Rotation déterministe par date, anti-répétition.
+ * Accroches « orgueil subtil » (demande Thierry 07/07, ton validé 07/07 :
+ * mix de 3 registres, JAMAIS de défi frontal type « prouve-le ») :
+ *   U — understatement : on minimise la question, celui qui se sent fort
+ *       répond pour le montrer ;
+ *   C — complicité maligne : on sous-entend qu'on connaît les erreurs
+ *       typiques (la lettre citée est toujours une VRAIE mauvaise réponse) ;
+ *   I — identité : répondre = être un vrai candidat, on ne défie personne.
  * RÈGLE : jamais de fausse statistique (« 90 % se trompent » = interdit),
- * le défi est dans le ton, pas dans des chiffres inventés.
+ * tout est dans le ton.
+ * L'ordre U,C,C,C,I,I,I,U,U n'est pas décoratif : avec la rotation par jour
+ * de l'année (sauts de +3/+4 entre vendredi et lundi), il garantit que deux
+ * quiz consécutifs changent toujours de registre.
  */
-const QUIZ_HOOKS: ((grade: string) => string)[] = [
-  (g) => `Trop facile pour un futur ${g} ? Prouve-le. 👇`,
-  (g) => `Un ${g} sérieux répond à ça sans hésiter. Et toi ?`,
-  () => `Réponds sans Google. On te regarde. 👀`,
-  () => `Si tu hésites sur celle-là, ta révision n'est pas finie.`,
-  () => `15 secondes chrono. Le jour J, tu n'auras pas plus.`,
-  (g) => `Tout le monde se dit prêt pour ${g}. Les commentaires vont trancher.`,
+interface HookContext {
+  grade: string
+  /** Lettre d'une mauvaise réponse du quiz du jour (jamais la bonne). */
+  wrongLetter: string
+}
+const QUIZ_HOOKS: ((ctx: HookContext) => string)[] = [
+  () => `Une question simple. En apparence.`,
+  (c) => `Si tu réponds ${c.wrongLetter}, on a des choses à se dire.`,
+  () => `Il y a une réponse évidente. C'est bien ça le problème.`,
+  () => `On sait déjà quelle mauvaise réponse va revenir le plus. On vous attend.`,
+  () => `Les curieux scrollent. Les candidats répondent.`,
+  (c) => `Il y a ceux qui préparent le concours de ${c.grade}, et ceux qui en parlent.`,
+  () => `Ce genre de question, un candidat n'a pas besoin qu'on l'encourage à y répondre.`,
+  () => `Celle-là, normalement, tu la fais de tête. Normalement.`,
+  () => `Rien de compliqué aujourd'hui. Enfin, c'est ce qu'on s'est dit en l'écrivant.`,
 ]
 
 /**
@@ -137,12 +152,15 @@ export function buildQuizCaption(
   date: Date = new Date(),
 ): string {
   const optionLines = q.options.map((opt, i) => `${LETTERS[i]}. ${opt}`).join('\n')
-  // Rotation par jour de l'année : déterministe (reproductible), et lundi et
-  // vendredi d'une même semaine tombent sur des accroches différentes.
+  // Rotation par jour de l'année : déterministe (reproductible), et deux quiz
+  // consécutifs changent de registre (voir l'ordre de QUIZ_HOOKS).
   const dayOfYear = Math.floor(
     (date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 0)) / 86_400_000,
   )
-  const hook = QUIZ_HOOKS[dayOfYear % QUIZ_HOOKS.length](f.label.toLowerCase())
+  const hook = QUIZ_HOOKS[dayOfYear % QUIZ_HOOKS.length]({
+    grade: f.label.toLowerCase(),
+    wrongLetter: LETTERS[(q.correctIndex + 1) % q.options.length],
+  })
   return `${hook}
 
 🧠 QCM ${f.label} :
