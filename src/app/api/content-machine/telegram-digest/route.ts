@@ -44,7 +44,27 @@ interface CalendarRow {
       errors?: { platform: string; error: string }[]
       blog?: { post_id: number; url: string }
     } | null
+    /** Pour un quiz : JSON QuizAnswerRecord (réponse + explication), voir spp-quiz.ts. */
+    video_script: string | null
   }[]
+}
+
+/** Ligne « réponse à poster ce soir » pour un QCM du jour (Concours SPP). */
+function quizAnswerLine(videoScript: string | null): string | null {
+  if (!videoScript) return null
+  try {
+    const a = JSON.parse(videoScript) as {
+      kind?: string
+      correct_letter?: string
+      correct_option?: string
+      explanation?: string
+    }
+    if (a.kind !== 'spp_quiz' || !a.correct_letter) return null
+    const expl = a.explanation ? ` — ${a.explanation}` : ''
+    return `  ↳ À poster CE SOIR en commentaire : ✅ ${a.correct_letter}. ${a.correct_option}${expl}`
+  } catch {
+    return null
+  }
 }
 
 /** Construit le texte du digest (une ligne par contenu du jour, groupée par marque). */
@@ -84,6 +104,12 @@ function buildMessage(rows: CalendarRow[]): string {
 
     const list = byBrand.get(brandName) ?? []
     list.push(line)
+    // QCM du jour : la bonne réponse suit, pour que Thierry la poste en
+    // commentaire le soir même (golden hour) — jamais dans le post lui-même.
+    if (row.content_type === 'quiz') {
+      const answer = quizAnswerLine(content?.video_script ?? null)
+      if (answer) list.push(answer)
+    }
     byBrand.set(brandName, list)
   }
 
@@ -121,7 +147,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('cm_calendar')
-    .select('id, date, content_type, theme, brand:cm_brands(name, slug), cm_contents(status, pushed_at, push_results)')
+    .select('id, date, content_type, theme, brand:cm_brands(name, slug), cm_contents(status, pushed_at, push_results, video_script)')
     .eq('date', today)
 
   if (error) {

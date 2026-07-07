@@ -9,6 +9,7 @@ import {
   pushTodayToGhl,
   generateAndPublishSppArticles,
 } from '@/lib/content-machine/orchestrator'
+import { generateSppQuizContent } from '@/lib/content-machine/spp-quiz'
 import { sendVisibilityDigestEmail } from '@/lib/notifications'
 
 const CRON_SECRET = process.env.CRON_SECRET
@@ -228,6 +229,16 @@ export async function POST(req: Request) {
       if (entry.content_type === 'blog_article') continue
 
       try {
+        // === QCM DU JOUR (Concours SPP) : pipeline dédié ===
+        // Question vérifiée par la plateforme (jamais générée ici) + carte PNG
+        // à la charte. La réponse part dans le digest Telegram du matin.
+        if (entry.content_type === 'quiz') {
+          console.log(`[generate-daily] Quiz pour ${entry.cm_brands.slug}...`)
+          await generateSppQuizContent(supabase, entry, entry.cm_brands.slug)
+          results.push({ calendarId: entry.id, brand: entry.cm_brands.slug, status: 'success' })
+          continue
+        }
+
         // === VIDÉO : pipeline spécial ===
         if (entry.content_type === 'video') {
           console.log(`[generate-daily] Video pour ${entry.cm_brands.slug}...`)

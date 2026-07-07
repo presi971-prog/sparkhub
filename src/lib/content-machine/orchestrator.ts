@@ -28,6 +28,7 @@ import {
   type SocialAccountsByPlatform,
 } from '@/lib/sparkexecute/publishers/ghl-social'
 import type { SocialPlatform, SparkexecuteRun } from '@/lib/sparkexecute/types'
+import { quizFormationForDate, quizTheme } from '@/lib/content-machine/spp-quiz'
 
 // ------------------------------------------------------------
 // Rotation des métiers (2 métiers/semaine, gabarit stratégie 13/06)
@@ -106,11 +107,16 @@ const AGGRESSIVE_PATTERNS: Record<string, Record<number, string | null>> = {
   // n'ajoute qu'1 carrousel pédagogique/semaine (format complémentaire),
   // pour rester dans la fourchette saine mesurée (IG 3-5 posts/semaine).
   // + 2 articles de blog/semaine (SEO, publiés directement sur le site).
+  // + 2 « QCM du jour »/semaine (07/07 : posts d'ENGAGEMENT — constat audit :
+  //   0 interaction sur tous les posts, format 100 % descendant. Question
+  //   VÉRIFIÉE par la plateforme, réponse demandée en commentaire).
   'concours-spp': {
+    1: 'quiz',
     2: 'blog_article',
     3: 'carousel',
+    5: 'quiz',
     6: 'blog_article',
-    1: null, 4: null, 5: null, 7: null,
+    4: null, 7: null,
   },
   transpoquickd: {
     // En veille tant que la licence Dréal n'est pas là : 1 post/sem.
@@ -184,13 +190,20 @@ ${ficheA}
 ${ficheB}`
     } else if (brand.slug === 'concours-spp') {
       grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel. Une série de posts courts de motivation tourne déjà tous les jours sur ces comptes : NE PAS faire de la motivation, faire de la MÉTHODE structurée.
+PÉRIMÈTRE : épreuves ÉCRITES uniquement (QCM, note d'analyse, compte-rendu, QROC, dissertation…). La plateforme ne prépare PAS aux épreuves orales ni à l'entretien avec le jury (décision 07/07/2026) : JAMAIS de thème sur l'oral, l'entretien, la présentation devant jury.
 CONTINUITÉ ÉDITORIALE : les thèmes de la semaine forment une mini-série : l'article de blog du mardi ouvre un sujet de méthode, le CARROUSEL du mercredi en donne la version résumée en 5 étapes (même sujet, angle "les 5 clés"), l'article du samedi ouvre un sujet différent. Le thème du carrousel doit se terminer par : (renvoi : article complet gratuit sur le blog, lien en bio).
 RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre de barème, aucune date d'épreuve, aucun contenu d'annale : uniquement de la méthode générale.`
     } else if (brand.slug === 'transpoquickd') {
       grounding = `Thèmes ancrés sur le transport de marchandises en Guadeloupe (livraison locale, fiabilité, entreprise guadeloupéenne). Sobre et factuel : l'entreprise démarre, AUCUNE promesse chiffrée, aucun faux témoignage.`
     }
 
-    const scheduleText = missing
+    // Les entrées « quiz » ne passent pas par le thémage Claude : leur thème
+    // est déterministe (rotation des concours, code parsable par spp-quiz.ts)
+    // et la question elle-même viendra de la plateforme Concours SPP.
+    const quizDays = missing.filter((m) => m.contentType === 'quiz')
+    const themedDays = missing.filter((m) => m.contentType !== 'quiz')
+
+    const scheduleText = themedDays
       .map((m, i) => `${i + 1}. ${m.date} — type: ${m.contentType}`)
       .join('\n')
 
@@ -206,20 +219,34 @@ ${recentThemes || '(aucun)'}
 Réponds UNIQUEMENT en JSON : un tableau de strings, un thème par ligne du planning, dans l'ordre. Pas de markdown.`
 
     let themes: string[] = []
-    try {
-      const raw = await askClaude(systemPrompt, `Planning à thématiser :\n${scheduleText}`, 1500)
-      themes = JSON.parse(raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
-    } catch {
-      themes = missing.map((m) => `Contenu ${m.contentType} ancré métier (${m.date})`)
+    if (themedDays.length > 0) {
+      try {
+        const raw = await askClaude(systemPrompt, `Planning à thématiser :\n${scheduleText}`, 1500)
+        themes = JSON.parse(raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+      } catch {
+        themes = themedDays.map((m) => `Contenu ${m.contentType} ancré métier (${m.date})`)
+      }
     }
 
-    const rows = missing.map((m, i) => ({
-      brand_id: brand.id,
-      content_type: m.contentType,
-      theme: themes[i] || `Contenu ${m.contentType}`,
-      date: m.date,
-      status: 'planned',
-    }))
+    const rows = [
+      ...themedDays.map((m, i) => ({
+        brand_id: brand.id,
+        content_type: m.contentType,
+        theme: themes[i] || `Contenu ${m.contentType}`,
+        date: m.date,
+        status: 'planned',
+      })),
+      ...quizDays.map((m) => {
+        const d = new Date(`${m.date}T12:00:00Z`)
+        return {
+          brand_id: brand.id,
+          content_type: m.contentType,
+          theme: quizTheme(quizFormationForDate(d, isoWeekNumber(d))),
+          date: m.date,
+          status: 'planned',
+        }
+      }),
+    ]
     const { error } = await supabase.from('cm_calendar').insert(rows)
     if (!error) {
       created += rows.length
@@ -281,6 +308,9 @@ function platformsForContent(
     post_image: ['facebook', 'instagram', 'linkedin'],
     carousel: ['facebook', 'instagram', 'linkedin'],
     video: ['facebook', 'instagram', 'tiktok', 'youtube'],
+    // QCM du jour : réseaux à commentaires uniquement (la mécanique = répondre
+    // en commentaire ; pas de LinkedIn, la marque SPP n'y a pas de compte).
+    quiz: ['facebook', 'instagram'],
   }
   const platforms = [...(base[contentType] ?? ['facebook'])]
   // Post Google 2x/semaine : mardi et vendredi (jours carrousel DCG AI)
