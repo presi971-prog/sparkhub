@@ -134,7 +134,7 @@ export async function renderQuizCardPng(input: QuizCardInput): Promise<Buffer> {
           }}
         >
           <div style={{ display: 'flex', color: '#D4A843', fontSize: 30, fontWeight: 800 }}>
-            Ta réponse en commentaire
+            Sûr de ta réponse ?
           </div>
           <div style={{ display: 'flex', color: '#FFFFFF', fontSize: 30, fontWeight: 800 }}>
             CONCOURS&nbsp;

@@ -111,20 +111,48 @@ export async function fetchVerifiedQuizQuestion(
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 /**
+ * Accroches « orgueil » (demande Thierry 07/07 : décalé, toucher subtilement
+ * la fierté du candidat pour déclencher la réponse — le format poli classique
+ * ne fait pas commenter). Rotation déterministe par date, anti-répétition.
+ * RÈGLE : jamais de fausse statistique (« 90 % se trompent » = interdit),
+ * le défi est dans le ton, pas dans des chiffres inventés.
+ */
+const QUIZ_HOOKS: ((grade: string) => string)[] = [
+  (g) => `Trop facile pour un futur ${g} ? Prouve-le. 👇`,
+  (g) => `Un ${g} sérieux répond à ça sans hésiter. Et toi ?`,
+  () => `Réponds sans Google. On te regarde. 👀`,
+  () => `Si tu hésites sur celle-là, ta révision n'est pas finie.`,
+  () => `15 secondes chrono. Le jour J, tu n'auras pas plus.`,
+  (g) => `Tout le monde se dit prêt pour ${g}. Les commentaires vont trancher.`,
+]
+
+/**
  * Légende du post. Pas de lien (post d'engagement : un lien tue la portée
  * organique Facebook, référentiel v2.0) ; la question et les options sont
  * répétées en texte pour l'accessibilité et la recherche.
  */
-export function buildQuizCaption(f: QuizFormation, q: VerifiedQuizQuestion): string {
+export function buildQuizCaption(
+  f: QuizFormation,
+  q: VerifiedQuizQuestion,
+  date: Date = new Date(),
+): string {
   const optionLines = q.options.map((opt, i) => `${LETTERS[i]}. ${opt}`).join('\n')
-  return `🧠 QCM du jour — concours de ${f.label.toLowerCase()}
+  // Rotation par jour de l'année : déterministe (reproductible), et lundi et
+  // vendredi d'une même semaine tombent sur des accroches différentes.
+  const dayOfYear = Math.floor(
+    (date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 0)) / 86_400_000,
+  )
+  const hook = QUIZ_HOOKS[dayOfYear % QUIZ_HOOKS.length](f.label.toLowerCase())
+  return `${hook}
+
+🧠 QCM ${f.label} :
 
 ${q.question}
 
 ${optionLines}
 
-💬 Ta réponse (${LETTERS.slice(0, q.options.length).join(', ')}) en commentaire 👇
-✅ Réponse et explication ce soir en commentaire.
+💬 Ta réponse (${LETTERS.slice(0, q.options.length).join(', ')}) en commentaire.
+✅ La réponse tombe ce soir, en commentaire. On compte les sans-faute.
 
 #concourspompier #sapeurpompier #concoursspp #QCM #${f.hashtag}`
 }
