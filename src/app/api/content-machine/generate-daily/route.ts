@@ -92,16 +92,24 @@ async function generateTextForEntry(
 
   const photoStyle = `photorealistic professional photograph, shot on Canon EOS R5, natural lighting, shallow depth of field, 8K quality. NEVER illustration, NEVER cartoon, NEVER drawing, NEVER digital art, NEVER anime, NEVER clipart. Real people, real places, real objects only.`
 
+  // Concours SPP = preparation d'un concours. On ne montre JAMAIS de pompier ni d'uniforme
+  // (les modeles IA generent des pompiers etrangers/americains = decredibilisant pour un public FR).
+  // On montre un CANDIDAT QUI REVISE, en civil. Pas d'ancrage Guadeloupe pour cette marque.
+  const isSPP = brand.slug === 'concours-spp' || /concours\s*spp/i.test(brand.name || '')
+  const sceneStyle = isSPP
+    ? `${photoStyle} A young adult REVISING for a competitive written exam: seated at a desk with open notebooks, flashcards, textbooks, a laptop and a pen, focused and determined. Everyday civilian clothes. ABSOLUTELY NO firefighter, NO uniform, NO helmet, NO fire truck, NO emergency scene. Neutral modern indoor setting (home study or library). NOT tropical, no beach, no palm trees. Do not force any specific ethnicity. Square 1080x1080, soft natural light. No text, no logos, no watermarks. Describe the SPECIFIC study scene relevant to the post theme.`
+    : `${photoStyle} Caribbean/Guadeloupe tropical setting, brand colors ${colors.primary || ''} and ${colors.secondary || ''}, diverse Caribbean people with dark/mixed skin, square 1080x1080, warm golden hour lighting. No text, no logos, no watermarks in image. Describe the SPECIFIC scene relevant to the post theme.`
+
   let formatInstruction = ''
   if (contentType === 'post_image') {
     formatInstruction = `Genere un post avec texte en francais + 1 prompt d'image en ANGLAIS.
-JSON: { "text": "texte du post en francais avec emojis et hashtags", "imagePrompts": ["${photoStyle} Caribbean/Guadeloupe tropical setting, brand colors ${colors.primary || ''} and ${colors.secondary || ''}, diverse Caribbean people with dark/mixed skin, square 1080x1080, warm golden hour lighting. No text, no logos, no watermarks in image. Describe the SPECIFIC scene relevant to the post theme."] }`
+JSON: { "text": "texte du post en francais avec emojis et hashtags", "imagePrompts": ["${sceneStyle}"] }`
   } else if (contentType === 'carousel') {
     formatInstruction = `Genere un carousel (4-6 slides) avec textes en francais + prompts image en ANGLAIS.
-JSON: { "text": "accroche en francais", "slides": [{"title":"titre court", "text":"explication 2-3 phrases", "imagePrompt":"${photoStyle} Caribbean setting, brand colors ${colors.primary || ''} ${colors.secondary || ''}, square format, specific scene for this slide"}], "imagePrompts": ["slide 1 prompt", "slide 2 prompt"] }`
+JSON: { "text": "accroche en francais", "slides": [{"title":"titre court", "text":"explication 2-3 phrases", "imagePrompt":"${sceneStyle}"}], "imagePrompts": ["slide 1 prompt", "slide 2 prompt"] }`
   } else {
     formatInstruction = `Genere un script video (15-30s) avec voix off en francais + prompts image en ANGLAIS.
-JSON: { "text": "accroche en francais", "videoScript": {"title":"titre", "scenes":[{"sceneNumber":1, "voiceover":"texte voix off en francais", "visualDescription":"description visuelle", "imagePrompt":"${photoStyle} Caribbean Guadeloupe, brand colors ${colors.primary || ''} ${colors.secondary || ''}, cinematic, square format"}]}, "imagePrompts": ["scene 1 prompt"] }`
+JSON: { "text": "accroche en francais", "videoScript": {"title":"titre", "scenes":[{"sceneNumber":1, "voiceover":"texte voix off en francais", "visualDescription":"description visuelle", "imagePrompt":"${sceneStyle} cinematic"}]}, "imagePrompts": ["scene 1 prompt"] }`
   }
 
   const systemPrompt = `Tu es un expert en creation de contenu pour les reseaux sociaux, specialise dans le marche de la Guadeloupe et des Antilles francaises.
@@ -115,10 +123,15 @@ COULEURS : ${colors.primary || '#000'} (principale), ${colors.secondary || '#FFF
 
 REGLES ABSOLUES :
 - Le TEXTE du post est TOUJOURS en francais
-- Utilise des references locales Guadeloupe/Antilles/Caraibes naturellement
+${isSPP
+  ? `- Marque nationale (concours FR) : AUCUN ancrage geographique (pas de Guadeloupe/Antilles/tropical) ni dans le texte ni dans l'image
+- Emojis moderes (2-3 max). Pas de liens ni URLs. 3-5 hashtags en francais.
+- Les PROMPTS D'IMAGE sont en ANGLAIS (les modeles IA generent mieux en anglais)
+- Les prompts d'image montrent UNIQUEMENT un CANDIDAT QUI REVISE EN CIVIL (bureau, fiches, cahiers, ordinateur). JAMAIS de pompier, JAMAIS d'uniforme, JAMAIS de camion, JAMAIS de scene d'intervention, JAMAIS de contexte tropical.`
+  : `- Utilise des references locales Guadeloupe/Antilles/Caraibes naturellement
 - Emojis moderes (2-3 max). Pas de liens ni URLs. 3-5 hashtags en francais dont au moins 1 sur la Guadeloupe.
 - Les PROMPTS D'IMAGE sont en ANGLAIS (les modeles IA generent mieux en anglais)
-- Les prompts d'image doivent decrire : contexte tropical caribeen, couleurs de la marque, personnes locales, format carre 1080x1080
+- Les prompts d'image doivent decrire : contexte tropical caribeen, couleurs de la marque, personnes locales, format carre 1080x1080`}
 - JAMAIS de texte, logo, ou watermark dans les prompts d'image
 - Reponds UNIQUEMENT en JSON valide, sans markdown ni backticks.
 
@@ -248,12 +261,16 @@ export async function POST(req: Request) {
           const voiceId = BRAND_VOICES[brand.slug] || BRAND_VOICES['dcg-ai']
 
           const photoStyle = `photorealistic professional photograph, Canon EOS R5, natural lighting, shallow depth of field. NEVER illustration, NEVER cartoon.`
+          const isSPPvid = brand.slug === 'concours-spp' || /concours\s*spp/i.test(brand.name || '')
+          const imgContext = isSPPvid
+            ? `a candidate REVISING in civilian clothes (desk, notebooks, flashcards, laptop). ABSOLUTELY NO firefighter, NO uniform, NO fire truck, NO tropical setting. No forced ethnicity.`
+            : `contexte Guadeloupe/Caraibes, couleurs ${colors.primary} ${colors.secondary}`
 
           // 1. Script
           const scriptPrompt = `Tu es un realisateur publicitaire expert en contenu court TikTok/Reels.
 MARQUE: ${brand.name} | TON: ${brand.tone} | CIBLE: ${brand.target_audience} | ARGUMENTS: ${args}
 Cree un script video 15-20s (3-4 scenes) sur: "${entry.theme}"
-Voix off en FRANCAIS, prompts image en ANGLAIS avec style ${photoStyle}, contexte Guadeloupe/Caraibes, couleurs ${colors.primary} ${colors.secondary}, format 1:1.
+Voix off en FRANCAIS, prompts image en ANGLAIS avec style ${photoStyle}, ${imgContext}, format 1:1.
 JSON sans markdown: { "title":"...", "voiceover_full":"texte complet voix off", "scenes":[{"sceneNumber":1,"voiceover":"...","imagePrompt":"English..."}], "post_text":"texte post FR avec emojis et hashtags" }`
 
           const rawScript = await askClaude(scriptPrompt, `Theme: ${entry.theme}`, 3000)
