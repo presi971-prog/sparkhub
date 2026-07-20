@@ -190,7 +190,7 @@ ${ficheA}
 ${ficheB}`
     } else if (brand.slug === 'concours-spp') {
       grounding = `Thèmes STRICTEMENT ancrés sur la préparation aux concours de sapeur-pompier professionnel. Une série de posts courts de motivation tourne déjà tous les jours sur ces comptes : NE PAS faire de la motivation, faire de la MÉTHODE structurée.
-PÉRIMÈTRE : épreuves ÉCRITES uniquement (QCM, note d'analyse, compte-rendu, QROC, dissertation…). La plateforme ne prépare PAS aux épreuves orales ni à l'entretien avec le jury (décision 07/07/2026) : JAMAIS de thème sur l'oral, l'entretien, la présentation devant jury.
+PÉRIMÈTRE : épreuves ÉCRITES uniquement. LISTE FERMÉE des épreuves existantes (décret 2020-1474) : QCM, compte-rendu opérationnel (sergent), note d'analyse (lieutenant, capitaine), note administrative (lieutenant hors classe), QROC (capitaine). INTERDIT ABSOLU de traiter une épreuve absente de cette liste : il n'existe AUCUNE dissertation, aucun résumé de texte, aucune composition dans ces concours. La plateforme ne prépare PAS aux épreuves orales ni à l'entretien avec le jury (décision 07/07/2026) : JAMAIS de thème sur l'oral, l'entretien, la présentation devant jury.
 CONTINUITÉ ÉDITORIALE : les thèmes de la semaine forment une mini-série : l'article de blog du mardi ouvre un sujet de méthode, le CARROUSEL du mercredi en donne la version résumée en 5 étapes (même sujet, angle "les 5 clés"), l'article du samedi ouvre un sujet différent. Le thème du carrousel doit se terminer par : (renvoi : article complet gratuit sur le blog, lien en bio).
 RÈGLE ABSOLUE : aucune invention réglementaire, aucun chiffre de barème, aucune date d'épreuve, aucun contenu d'annale : uniquement de la méthode générale.`
     } else if (brand.slug === 'transpoquickd') {
