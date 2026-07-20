@@ -1,6 +1,8 @@
 // Smart Crawler — Jina Reader wrapper
 // Convertit n'importe quelle URL publique en Markdown propre
 
+import { BROWSER_USER_AGENT } from './browser-headers'
+
 const JINA_TIMEOUT = 15_000 // 15 secondes
 
 /**
@@ -12,9 +14,12 @@ export async function fetchWithJina(url: string): Promise<string> {
   const jinaUrl = `https://r.jina.ai/${url}`
   const apiKey = process.env.JINA_API_KEY
 
+  // User-Agent navigateur OBLIGATOIRE : sans lui, Cloudflare (devant r.jina.ai)
+  // renvoie 403 "browser_signature_banned" et le crawl échoue à 100 %.
   const headers: Record<string, string> = {
     'Accept': 'text/markdown',
     'X-Return-Format': 'markdown',
+    'User-Agent': BROWSER_USER_AGENT,
   }
 
   if (apiKey) {
