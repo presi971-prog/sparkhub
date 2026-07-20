@@ -197,8 +197,8 @@ export async function POST(req: Request) {
   try {
     const blogResult = await generateAndPublishSppArticles(supabase)
     sppBlog = blogResult
-    if (blogResult.published.length > 0) {
-      calendarInfo += ` · Blog SPP : ${blogResult.published.length} article(s) publié(s)`
+    if (blogResult.pending.length > 0) {
+      calendarInfo += ` · Blog SPP : ${blogResult.pending.length} article(s) en attente de validation Telegram`
     }
     if (blogResult.errors.length > 0) {
       calendarInfo += ` · Blog SPP : ${blogResult.errors.length} échec(s)`

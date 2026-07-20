@@ -518,15 +518,17 @@ export async function pushTodayToGhl(
 /**
  * Traite les entrées calendrier `blog_article` du jour (marque concours-spp) :
  * génère un article MÉTHODE en markdown (blindage anti-invention strict :
- * jamais de chiffre réglementaire, de barème, de date d'épreuve) et le publie
- * directement sur le blog du site Concours SPP. Le résultat apparaît dans le
- * digest du matin.
+ * jamais de chiffre réglementaire, de barème, de date d'épreuve), le publie en
+ * BROUILLON sur le blog du site Concours SPP, puis envoie l'article complet
+ * sur Telegram avec les liens Publier/Rejeter (validation obligatoire depuis
+ * l'incident « dissertation » du 18/07/2026 : plus jamais de publication
+ * directe). L'état apparaît dans le digest du matin.
  */
 export async function generateAndPublishSppArticles(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-): Promise<{ published: { title: string; url: string | null }[]; errors: string[] }> {
-  const published: { title: string; url: string | null }[] = []
+): Promise<{ pending: { title: string; url: string | null }[]; errors: string[] }> {
+  const pending: { title: string; url: string | null }[] = []
   const errors: string[] = []
   const today = new Date().toISOString().split('T')[0]
 
@@ -535,7 +537,7 @@ export async function generateAndPublishSppArticles(
     .select('id, slug, name')
     .eq('slug', 'concours-spp')
     .maybeSingle()
-  if (!brand) return { published, errors }
+  if (!brand) return { pending, errors }
 
   const { data: entries } = await supabase
     .from('cm_calendar')
@@ -544,11 +546,12 @@ export async function generateAndPublishSppArticles(
     .eq('date', today)
     .eq('content_type', 'blog_article')
     .eq('status', 'planned')
-  if (!entries || entries.length === 0) return { published, errors }
+  if (!entries || entries.length === 0) return { pending, errors }
 
   const { publishToConcoursSppBlog } = await import(
     '@/lib/sparkexecute/publishers/concours-spp-blog'
   )
+  const { sendBlogValidationRequest } = await import('@/lib/content-machine/blog-validation')
 
   for (const entry of entries) {
     try {
@@ -575,26 +578,38 @@ FORMAT : markdown. UN titre H1 accrocheur (c'est le titre de l'article), une int
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
+      // Brouillon UNIQUEMENT : la mise en ligne passe par la validation Telegram.
       const result = await publishToConcoursSppBlog(pseudoRun, {
-        status: 'published',
+        status: 'draft',
         category: 'conseil',
       })
 
-      await supabase
+      const { data: content, error: insertError } = await supabase
         .from('cm_contents')
         .insert({
           calendar_id: entry.id,
           brand_id: brand.id,
           content_type: 'blog_article',
           text_content: markdown,
-          status: 'approved',
-          pushed_at: new Date().toISOString(),
+          status: 'pending',
           push_results: { blog: { post_id: result.post_id, url: result.post_url } },
         })
+        .select('id')
+        .single()
+      if (insertError || !content) {
+        throw new Error(`insertion cm_contents échouée: ${insertError?.message ?? 'pas de ligne'}`)
+      }
       await supabase.from('cm_calendar').update({ status: 'generated' }).eq('id', entry.id)
 
-      published.push({ title: entry.theme, url: result.post_url })
-      console.log(`[orchestrator] BLOG SPP publié: ${entry.theme} → ${result.post_url}`)
+      const tg = await sendBlogValidationRequest(content.id, entry.theme, markdown)
+      if (!tg.ok) {
+        // L'article est en brouillon, rien n'est perdu : le digest de 6h GP
+        // signale l'attente, mais on trace l'échec d'envoi.
+        errors.push(`${entry.theme}: envoi Telegram échoué (${tg.error})`)
+      }
+
+      pending.push({ title: entry.theme, url: result.post_url })
+      console.log(`[orchestrator] BLOG SPP en brouillon, validation Telegram envoyée: ${entry.theme}`)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       errors.push(`${entry.theme}: ${msg}`)
@@ -602,5 +617,5 @@ FORMAT : markdown. UN titre H1 accrocheur (c'est le titre de l'article), une int
     }
   }
 
-  return { published, errors }
+  return { pending, errors }
 }

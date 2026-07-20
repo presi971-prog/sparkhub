@@ -83,9 +83,15 @@ function buildMessage(rows: CalendarRow[]): string {
 
     let line: string
     if (row.content_type === 'blog_article') {
-      line = results?.blog
-        ? `• Blog : ${row.theme} — publié ce matin`
-        : `• Blog : ${row.theme} — pas encore publié`
+      if (!results?.blog) {
+        line = `• Blog : ${row.theme} — pas encore généré`
+      } else if (content?.status === 'approved') {
+        line = `• Blog : ${row.theme} — publié ✅`
+      } else if (content?.status === 'rejected') {
+        line = `• Blog : ${row.theme} — rejeté, resté en brouillon`
+      } else {
+        line = `• Blog : ${row.theme} — ⏳ EN ATTENTE de ton OK (liens dans le message « BLOG SPP À VALIDER »)`
+      }
     } else if (!content?.pushed_at) {
       line = `• ${row.theme} — pas encore programmé`
     } else {
