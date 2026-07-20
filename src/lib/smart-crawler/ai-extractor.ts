@@ -273,9 +273,10 @@ async function analyzeImageColors(imageUrl: string): Promise<BrandColors | null>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        temperature: 0,
+        // Sonnet 4 retiré (404 prod le 20/07/2026) ; thinking désactivé pour préserver rapidité et coût.
+        model: 'claude-sonnet-5',
+        max_tokens: 400,
+        thinking: { type: 'disabled' },
         messages: [{
           role: 'user',
           content: [
@@ -354,9 +355,10 @@ export async function extractBusinessData(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        temperature: 0,
+        // Sonnet 4 retiré (404 prod le 20/07/2026) ; thinking désactivé pour préserver rapidité et coût.
+        model: 'claude-sonnet-5',
+        max_tokens: 2000,
+        thinking: { type: 'disabled' },
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userPrompt }],
       }),
