@@ -6,11 +6,11 @@
 //
 // 1. Si l'URL est sociale (Facebook, Instagram, LinkedIn) → directement Microlink,
 //    parce que Jina est bloqué par la page de login de ces plateformes.
-// 2. Si l'URL est un site web → on tente Jina d'abord. Si Jina renvoie une
-//    page de login (cas où le site a un mur de connexion) ou un contenu trop
-//    court, on retombe sur Microlink qui scrape les meta tags.
+// 2. Si l'URL est un site web → on tente Jina, puis le HTML brut direct si son
+//    contenu est insuffisant, et enfin Microlink pour récupérer les meta tags.
 
 import { fetchWithJina } from './jina-reader'
+import { fetchRawHtml } from './raw-html'
 import { fetchWithMicrolink, isLoginPageContent } from './microlink'
 import { crawlFacebook } from './facebook-crawler'
 import { crawlInstagram } from './instagram-crawler'
@@ -29,10 +29,46 @@ function isLinkedinUrl(url: string): boolean {
   return /linkedin\.com|lnkd\.in/i.test(url)
 }
 
+/**
+ * Détecte si la valeur reçue dans le champ "site web" est en réalité une
+ * adresse email (contact@domaine.fr) — le formulaire opt-in ne valide pas
+ * le champ, on reçoit parfois n'importe quoi.
+ */
+function isEmailAddress(url: string): boolean {
+  // On retire un éventuel préfixe http(s):// puis on regarde la partie
+  // avant le premier "/", "?" ou "#" : si elle contient un "@", c'est un email.
+  const withoutProtocol = url.replace(/^https?:\/\//i, '')
+  const host = withoutProtocol.split(/[/?#]/)[0]
+  return host.includes('@')
+}
+
+/**
+ * Détecte un domaine social "nu" sans slug de page (facebook.com,
+ * www.instagram.com/...) : inutilisable, il n'y a aucune page à crawler.
+ */
+function isBareSocialDomain(url: string): boolean {
+  return /^(?:https?:\/\/)?(?:(?:www|m|web)\.)?(?:facebook\.com|fb\.com|fb\.me|instagram\.com|linkedin\.com|lnkd\.in)\/?$/i.test(url.trim())
+}
+
 export async function crawlWebsite(url?: string, contactId?: string): Promise<CrawlResult> {
   // Filtrer les URLs vides ou invalides (GHL envoie "https://" quand le champ est vide)
   if (!url || url.trim() === '' || url.trim() === 'https://' || url.trim() === 'http://') {
     return { source: 'website', url: '', content: '', success: false }
+  }
+
+  // Garde d'entrée : le champ "site web" du formulaire reçoit parfois un email
+  // ou un domaine social nu (facebook.com sans page). Aucun crawl possible →
+  // on sort proprement sans consommer de quota.
+  const trimmedUrl = url.trim()
+  if (isEmailAddress(trimmedUrl) || isBareSocialDomain(trimmedUrl)) {
+    console.warn(`[crawlWebsite] Entrée invalide (email ou domaine social nu) : ${trimmedUrl}`)
+    return {
+      source: 'website',
+      url: trimmedUrl,
+      content: '',
+      success: false,
+      error: 'URL invalide : adresse email ou domaine social sans page',
+    }
   }
 
   // Normaliser l'URL
@@ -62,7 +98,7 @@ export async function crawlWebsite(url?: string, contactId?: string): Promise<Cr
     return { ...liResult, source: 'website' as const }
   }
 
-  // Cas 2 : URL classique → Jina d'abord, fallback Microlink si nécessaire.
+  // Cas 2 : URL classique → Jina d'abord, puis HTML brut direct, puis Microlink.
   try {
     const jinaContent = await fetchWithJina(normalizedUrl)
 
@@ -76,8 +112,21 @@ export async function crawlWebsite(url?: string, contactId?: string): Promise<Cr
       }
     }
 
-    // Jina a échoué ou est tombé sur une page de login → on tente Microlink
-    console.warn(`[crawlWebsite] Jina insuffisant pour ${normalizedUrl} (${jinaContent?.length || 0} chars), fallback Microlink`)
+    // Jina a échoué → fallback GRATUIT : fetch direct du HTML + nettoyage.
+    // (Pas de rendu JS, mais suffisant pour la plupart des sites vitrines.)
+    console.warn(`[crawlWebsite] Jina insuffisant pour ${normalizedUrl} (${jinaContent?.length || 0} chars), fallback HTML brut`)
+    const rawContent = await fetchRawHtml(normalizedUrl)
+    if (rawContent && rawContent.length >= 200 && !isLoginPageContent(rawContent)) {
+      return {
+        source: 'website',
+        url: normalizedUrl,
+        content: rawContent.slice(0, MAX_CHARS),
+        success: true,
+      }
+    }
+
+    // HTML brut insuffisant aussi → dernier filet : Microlink (meta tags).
+    console.warn(`[crawlWebsite] HTML brut insuffisant pour ${normalizedUrl} (${rawContent?.length || 0} chars), fallback Microlink`)
     const microContent = await fetchWithMicrolink(normalizedUrl)
     if (microContent && microContent.length >= 30) {
       return {
@@ -93,7 +142,7 @@ export async function crawlWebsite(url?: string, contactId?: string): Promise<Cr
       url: normalizedUrl,
       content: '',
       success: false,
-      error: 'Jina et Microlink ont tous deux échoué',
+      error: 'Jina, HTML brut et Microlink ont tous échoué',
     }
   } catch (error) {
     return {
