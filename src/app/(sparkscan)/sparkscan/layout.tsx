@@ -113,6 +113,12 @@ export default function SparkScanLayout({
               Historique
             </Link>
             <Link
+              href="/sparkscan/referencement"
+              className="uppercase tracking-[0.15em] text-slate-500 transition-colors hover:text-slate-900"
+            >
+              Référencement
+            </Link>
+            <Link
               href="/"
               className="uppercase tracking-[0.15em] text-slate-500 transition-colors hover:text-slate-900"
             >

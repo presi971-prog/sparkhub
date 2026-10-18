@@ -380,3 +380,49 @@ export async function findCompetitorsByDomain(
   }))
   return { competitors, cost: task?.cost ?? 0 }
 }
+
+// Référencement : suggestions et positions sans restriction aux vingt premiers.
+export async function fetchKeywordSuggestions(seed: string, languageCode = 'fr', locationCode = 2250, limit = 30) {
+  interface Suggestion { keyword: string; keyword_info?: { search_volume?: number | null }; keyword_properties?: { keyword_difficulty?: number | null } }
+  const json = await dataforseoFetch<{ items?: Suggestion[]; seed_keyword_data?: Suggestion }>(
+    '/dataforseo_labs/google/keyword_suggestions/live',
+    [{ keyword: seed, location_code: locationCode, language_code: languageCode, limit, include_seed_keyword: true,
+      order_by: ['keyword_info.search_volume,desc'], filters: ['keyword_info.search_volume', '>=', 10] }],
+  )
+  const task = json.tasks?.[0]
+  const result = task?.result?.[0]
+  const raw = [...(result?.items ?? [])]
+  const own = result?.seed_keyword_data
+  if (own && (own.keyword_info?.search_volume ?? 0) >= 10 && !raw.some(i => i.keyword === own.keyword)) raw.push(own)
+  return { items: raw.map(i => ({ keyword: i.keyword, search_volume: i.keyword_info?.search_volume ?? null,
+    difficulty: i.keyword_properties?.keyword_difficulty ?? null })), cost: task?.cost ?? json.cost ?? 0 }
+}
+
+export async function fetchRankedKeywordsAll(domain: string, zone: string, languageCode: string, limit = 100): Promise<{ keywords: RankedKeyword[]; cost: number }> {
+  const json = await dataforseoFetch<{ items?: RankedKeywordItemRaw[] }>(
+    '/dataforseo_labs/google/ranked_keywords/live',
+    [{ target: domain, location_code: mapZoneToLocationCode(zone), language_code: languageCode,
+      limit, order_by: ['keyword_data.keyword_info.search_volume,desc'] }],
+  )
+  const task = json.tasks?.[0]
+  const keywords: RankedKeyword[] = []
+  const seen = new Set<string>()
+  for (const it of task?.result?.[0]?.items ?? []) {
+    const keyword = it.keyword_data?.keyword?.trim()
+    const position = it.ranked_serp_element?.serp_item?.rank_group
+    if (!keyword || !position || seen.has(keyword)) continue
+    seen.add(keyword)
+    keywords.push({ keyword, position, search_volume: it.keyword_data?.keyword_info?.search_volume ?? null,
+      ranked_url: it.ranked_serp_element?.serp_item?.url ?? null })
+  }
+  return { keywords, cost: task?.cost ?? json.cost ?? 0 }
+}
+
+export async function fetchSerpTop(keyword: string, locationName: 'Guadeloupe' | 'France', languageCode = 'fr', depth = 30) {
+  const json = await dataforseoFetch<{ items?: { type: string; rank_group: number; domain: string; url: string; title: string }[] }>(
+    '/serp/google/organic/live/regular', [{ keyword, location_name: locationName, language_code: languageCode, depth }],
+  )
+  const task = json.tasks?.[0]
+  return { items: (task?.result?.[0]?.items ?? []).filter(i => i.type === 'organic').map(i => ({ position: i.rank_group,
+    domain: i.domain, url: i.url, title: i.title })), cost: task?.cost ?? json.cost ?? 0 }
+}
